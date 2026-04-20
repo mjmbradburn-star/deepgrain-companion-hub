@@ -114,43 +114,6 @@ export default function AssessProcessing() {
           }
         }
       } else {
-
-  // 1. Decide what to do based on session + draft.
-  useEffect(() => {
-    const draft = loadDraft();
-
-    if (!draft.level) {
-      navigate("/assess", { replace: true });
-      return;
-    }
-    if (Object.keys(draft.answers ?? {}).length === 0) {
-      navigate("/assess/q/1", { replace: true });
-      return;
-    }
-
-    let cancelled = false;
-
-    const handleSession = async (signedIn: boolean) => {
-      if (cancelled || finalisedRef.current) return;
-      if (signedIn) {
-        finalisedRef.current = true;
-        setPhase("syncing");
-        try {
-          const { slug } = await finaliseAssessment();
-          if (cancelled) return;
-          setPhase("done");
-          // Brief settle before redirect so the build-log finishes.
-          window.setTimeout(() => {
-            if (!cancelled) navigate(`/assess/r/${slug}`, { replace: true });
-          }, 1400);
-        } catch (err) {
-          console.error("[finalise] failed", err);
-          if (!cancelled) {
-            setPhase("error");
-            setError(err instanceof SyncError ? err.message : "Something went wrong saving your answers.");
-          }
-        }
-      } else {
         // Signed-out — the magic link was already sent on the email screen.
         const email = draft.qualifier?.email;
         if (!email) {
@@ -175,7 +138,7 @@ export default function AssessProcessing() {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, seedMode]);
 
   // 2. Animate the "build log" while syncing.
   useEffect(() => {
