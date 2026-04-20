@@ -9,6 +9,7 @@ import Assess from "./pages/Assess.tsx";
 import AssessStart from "./pages/AssessStart.tsx";
 import AssessQuestion from "./pages/AssessQuestion.tsx";
 import AssessProcessing from "./pages/AssessProcessing.tsx";
+import AuthCallback from "./pages/AuthCallback.tsx";
 import Pillars from "./pages/Pillars.tsx";
 import Ladder from "./pages/Ladder.tsx";
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/assess/start" element={<AssessStart />} />
           <Route path="/assess/q/:step" element={<AssessQuestion />} />
           <Route path="/assess/processing" element={<AssessProcessing />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/pillars" element={<Pillars />} />
           <Route path="/ladder" element={<Ladder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
