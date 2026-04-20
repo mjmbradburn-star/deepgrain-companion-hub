@@ -1,15 +1,33 @@
 // Shared content + types for the AIOI diagnostic flow.
-// Function-level pillar question bank (v2 — 19 questions across 8 pillars).
+// Function-level v3 — 12 questions across 8 pillars, with per-function variants
+// for two of them (workflow + ROI). Function picker added to the qualifier.
 
 import type { PillarIndex } from "@/components/aioi/PillarChip";
 import type { Tier } from "@/components/aioi/TierBadge";
 
 export type Level = "company" | "function" | "individual";
 
+export type BusinessFunction =
+  | "sales"
+  | "marketing"
+  | "engineering-product"
+  | "people-hr"
+  | "finance"
+  | "ops-cs";
+
+export const FUNCTIONS: { id: BusinessFunction; title: string; tagline: string }[] = [
+  { id: "sales",                title: "Sales",               tagline: "Pipeline, prospecting, calls, deals." },
+  { id: "marketing",            title: "Marketing",           tagline: "Briefs, content, campaigns, brand." },
+  { id: "engineering-product",  title: "Engineering & Product", tagline: "Code, specs, reviews, releases." },
+  { id: "people-hr",            title: "People & HR",         tagline: "Hiring, onboarding, internal comms." },
+  { id: "finance",              title: "Finance",             tagline: "Close, FP&A, reporting, controls." },
+  { id: "ops-cs",               title: "Operations & CS",     tagline: "Tickets, deflection, success, ops." },
+];
+
 export const LEVELS: Record<Level, { title: string; tagline: string; time: string; audience: string }> = {
-  company:    { title: "Company",    tagline: "The whole organisation.", time: "~22 min", audience: "Exec / Board" },
-  function:   { title: "Function",   tagline: "One team, deeply.",       time: "~18 min", audience: "Function lead" },
-  individual: { title: "Individual", tagline: "Your personal stack.",    time: "~12 min", audience: "IC / Operator" },
+  company:    { title: "Company",    tagline: "The whole organisation.", time: "~12 min", audience: "Exec / Board" },
+  function:   { title: "Function",   tagline: "One team, deeply.",       time: "~7 min",  audience: "Function lead" },
+  individual: { title: "Individual", tagline: "Your personal stack.",    time: "~7 min",  audience: "IC / Operator" },
 };
 
 export const PILLAR_NAMES: Record<PillarIndex, string> = {
@@ -39,9 +57,319 @@ export interface Question {
   options: QuestionOption[]; // length 6, ordered Dormant..AI-Native
 }
 
-// 2–3 questions per pillar. Order matters: the diagnostic walks pillar by pillar.
-// ─── FUNCTION level ─────────────────────────────────────────────────────────
+// ─── FUNCTION level v3 — 12 questions ───────────────────────────────────────
 export const FUNCTION_QUESTIONS: Question[] = [
+  // P1 Strategy & Mandate (×2)
+  {
+    id: "f-p1-owner",
+    pillar: 1,
+    prompt: "Who actually owns AI in your function?",
+    options: [
+      { tier: 0, label: "Nobody. It hasn't really come up." },
+      { tier: 1, label: "Whoever shouts loudest in a given week." },
+      { tier: 2, label: "An interested deputy, on the side of their desk." },
+      { tier: 3, label: "A named lead with a remit, no budget." },
+      { tier: 4, label: "A named lead with a remit and a budget." },
+      { tier: 5, label: "It's the function head's first agenda item, every week." },
+    ],
+  },
+  {
+    id: "f-p1-strategy",
+    pillar: 1,
+    prompt: "Is there a written plan for what AI should do here?",
+    options: [
+      { tier: 0, label: "No, and nobody has asked for one." },
+      { tier: 1, label: "A few slides someone made for an offsite." },
+      { tier: 2, label: "A draft we keep meaning to finish." },
+      { tier: 3, label: "A one-pager with goals, owned by the lead." },
+      { tier: 4, label: "A plan with quarterly milestones tied to OKRs." },
+      { tier: 5, label: "AI is the operating model. The plan is the plan." },
+    ],
+  },
+  // P2 Data Foundations (×2)
+  {
+    id: "f-p2-data",
+    pillar: 2,
+    prompt: "If a tool tried to read your function's data tomorrow, what would it find?",
+    options: [
+      { tier: 0, label: "PDFs, inboxes and Slack threads." },
+      { tier: 1, label: "A few shared drives and a battered spreadsheet." },
+      { tier: 2, label: "A CRM or warehouse, half-populated." },
+      { tier: 3, label: "Clean tables for the core entities, gaps elsewhere." },
+      { tier: 4, label: "A documented schema engineering trusts." },
+      { tier: 5, label: "Versioned, governed, queryable by a tool today." },
+    ],
+  },
+  {
+    id: "f-p2-access",
+    pillar: 2,
+    prompt: "How easily can the team get the data they need to answer a question?",
+    options: [
+      { tier: 0, label: "They ask in Slack and hope." },
+      { tier: 1, label: "Someone in BI runs it on request, eventually." },
+      { tier: 2, label: "Self-serve dashboards for the obvious questions." },
+      { tier: 3, label: "Self-serve for most things, BI for the long tail." },
+      { tier: 4, label: "Natural-language queries on a governed warehouse." },
+      { tier: 5, label: "Tools fetch and join data across systems on their own." },
+    ],
+  },
+  // P3 Tooling & Infrastructure (×1)
+  {
+    id: "f-p3-tools",
+    pillar: 3,
+    prompt: "What AI tooling is actually in use here, day to day?",
+    options: [
+      { tier: 0, label: "None." },
+      { tier: 1, label: "Personal ChatGPT accounts on company cards." },
+      { tier: 2, label: "One team licence to Copilot or similar." },
+      { tier: 3, label: "An approved stack with SSO and data controls." },
+      { tier: 4, label: "Approved stack plus internal copilots wired into two workflows." },
+      { tier: 5, label: "Bespoke tools in production, monitored, with fallbacks." },
+    ],
+  },
+  // P4 Workflow Integration (×2; first has function variants)
+  {
+    id: "f-p4-workflow",
+    pillar: 4,
+    prompt: "Where does AI sit in the actual day to day?",
+    options: [
+      { tier: 0, label: "Nowhere. It's a separate tab people open occasionally." },
+      { tier: 1, label: "A few people use it for first drafts, off-process." },
+      { tier: 2, label: "It's part of one named workflow, owned by one team." },
+      { tier: 3, label: "Built into two or three workflows, with playbooks." },
+      { tier: 4, label: "The default for most production work, with humans on review." },
+      { tier: 5, label: "Workflows are designed model-first; people handle exceptions." },
+    ],
+  },
+  {
+    id: "f-p4-redesign",
+    pillar: 4,
+    prompt: "Have you redesigned any work around AI, rather than bolting it on?",
+    options: [
+      { tier: 0, label: "No. Workflows are exactly as they were." },
+      { tier: 1, label: "We've talked about it. Nothing changed." },
+      { tier: 2, label: "One workflow has been tweaked to include AI steps." },
+      { tier: 3, label: "Two or three workflows were redesigned around AI." },
+      { tier: 4, label: "Most core workflows have been rebuilt model-first." },
+      { tier: 5, label: "New work is designed for AI by default; people handle exceptions." },
+    ],
+  },
+  // P5 Skills & Fluency (×2)
+  {
+    id: "f-p5-fluency",
+    pillar: 5,
+    prompt: "How fluent is the average person in your function, not the keenest?",
+    options: [
+      { tier: 0, label: "Hasn't really tried it." },
+      { tier: 1, label: "Has typed into ChatGPT once or twice." },
+      { tier: 2, label: "Uses it weekly for ad-hoc tasks." },
+      { tier: 3, label: "Uses it daily, can iterate on prompts." },
+      { tier: 4, label: "Builds prompts, templates and small tools they reuse." },
+      { tier: 5, label: "Builds small tools and ships them to colleagues." },
+    ],
+  },
+  {
+    id: "f-p5-growth",
+    pillar: 5,
+    prompt: "What's in place to help people get better at this?",
+    options: [
+      { tier: 0, label: "Nothing. People figure it out alone." },
+      { tier: 1, label: "An optional Lunch & Learn happened once." },
+      { tier: 2, label: "A self-serve library of links and recordings." },
+      { tier: 3, label: "Structured onboarding and a shared prompt library." },
+      { tier: 4, label: "Role-specific training with ongoing peer review." },
+      { tier: 5, label: "AI fluency is a hiring and promotion criterion." },
+    ],
+  },
+  // P6 Governance & Risk (×1)
+  {
+    id: "f-p6-policy",
+    pillar: 6,
+    prompt: "What governance is in place?",
+    options: [
+      { tier: 0, label: "None. We hope for the best." },
+      { tier: 1, label: "An informal 'don't paste customer data' rule." },
+      { tier: 2, label: "A written policy nobody has read." },
+      { tier: 3, label: "Policy plus an approved-tools list, lightly enforced." },
+      { tier: 4, label: "Policy, tooling, audit trails and periodic reviews." },
+      { tier: 5, label: "Live monitoring, model risk register, board-level oversight." },
+    ],
+  },
+  // P7 Measurement & ROI (×1; has function variants)
+  {
+    id: "f-p7-roi",
+    pillar: 7,
+    prompt: "Can you point to the value AI has produced for this function?",
+    options: [
+      { tier: 0, label: "No, and we haven't tried to measure." },
+      { tier: 1, label: 'Anecdotes. "It saves me an hour a week."' },
+      { tier: 2, label: "One pilot with a rough time-saving figure." },
+      { tier: 3, label: "Two or three named workflows with hours-saved tracked." },
+      { tier: 4, label: "Hours, quality and cycle time, reported quarterly." },
+      { tier: 5, label: "AI-attributable revenue or margin in the P&L." },
+    ],
+  },
+  // P8 Culture & Adoption (×1)
+  {
+    id: "f-p8-talk",
+    pillar: 8,
+    prompt: "How do colleagues talk about using AI in their work?",
+    options: [
+      { tier: 0, label: "They don't." },
+      { tier: 1, label: "Quietly, in case it looks like cheating." },
+      { tier: 2, label: "Curiously, in 1:1s but not standups." },
+      { tier: 3, label: "Openly, with the better users teaching the rest." },
+      { tier: 4, label: 'It\'s expected. "Have you tried it with the model?" is normal.' },
+      { tier: 5, label: "Not using it for a task is the thing that needs explaining." },
+    ],
+  },
+];
+
+// ─── Function-specific variants for f-p4-workflow + f-p7-roi ────────────────
+// Same question id, alternative prompt + options. If a respondent picks a
+// function, we swap in the variant; otherwise we use the base above.
+type VariantsByFunction = Partial<Record<BusinessFunction, { prompt: string; options: QuestionOption[] }>>;
+
+export const FUNCTION_VARIANTS: Record<string, VariantsByFunction> = {
+  "f-p4-workflow": {
+    sales: {
+      prompt: "Where does AI sit in the actual sales day, beyond the demo?",
+      options: [
+        { tier: 0, label: "Nowhere. Reps open ChatGPT in a separate tab now and then." },
+        { tier: 1, label: "A few reps use it for first-draft emails, off-process." },
+        { tier: 2, label: "Built into prospecting or follow-ups for one team." },
+        { tier: 3, label: "In two or three plays (research, drafting, summaries) with playbooks." },
+        { tier: 4, label: "The default first pass for outbound and call notes, with reps on review." },
+        { tier: 5, label: "Plays are designed model-first; reps handle the relationship moments." },
+      ],
+    },
+    marketing: {
+      prompt: "Where does AI sit in the actual marketing day, beyond the demo?",
+      options: [
+        { tier: 0, label: "Nowhere. The team opens it in a tab now and then." },
+        { tier: 1, label: "A few people use it for first-draft copy, off-process." },
+        { tier: 2, label: "Built into one named workflow (briefing, drafting or research)." },
+        { tier: 3, label: "In two or three workflows (briefs, drafts, asset variants) with playbooks." },
+        { tier: 4, label: "The default first pass for most production work, with humans on review." },
+        { tier: 5, label: "Campaigns are designed model-first; humans curate and approve." },
+      ],
+    },
+    "engineering-product": {
+      prompt: "Where does AI sit in the actual engineering and product day, beyond the demo?",
+      options: [
+        { tier: 0, label: "Nowhere. People open it in a separate tab occasionally." },
+        { tier: 1, label: "A few engineers use Copilot for autocomplete, nothing structural." },
+        { tier: 2, label: "Embedded in one workflow (PR review, test gen, or spec drafting)." },
+        { tier: 3, label: "In two or three workflows (PRs, tests, design docs) with conventions." },
+        { tier: 4, label: "The default first pass for code, tests and specs, with humans on review." },
+        { tier: 5, label: "Workflows are designed agent-first; engineers handle the hard reviews." },
+      ],
+    },
+    "people-hr": {
+      prompt: "Where does AI sit in the actual People day, beyond the demo?",
+      options: [
+        { tier: 0, label: "Nowhere. The team opens it in a separate tab now and then." },
+        { tier: 1, label: "A few people use it for first-draft comms or JD edits, off-process." },
+        { tier: 2, label: "Built into one named workflow (screening, summaries, or comms)." },
+        { tier: 3, label: "In two or three workflows (sourcing, screening, internal comms) with playbooks." },
+        { tier: 4, label: "The default first pass for most production work, with humans on review." },
+        { tier: 5, label: "Workflows are designed model-first; people handle the human moments." },
+      ],
+    },
+    finance: {
+      prompt: "Where does AI sit in the actual finance day, beyond the demo?",
+      options: [
+        { tier: 0, label: "Nowhere. People open it in a separate tab occasionally." },
+        { tier: 1, label: "A few analysts use it to draft commentary, off-process." },
+        { tier: 2, label: "Built into one workflow (variance commentary, AP coding, or summaries)." },
+        { tier: 3, label: "In two or three workflows (close, FP&A drafts, audit prep) with playbooks." },
+        { tier: 4, label: "The default first pass for analysis and commentary, with humans on review." },
+        { tier: 5, label: "Workflows are designed model-first; finance handles judgement calls." },
+      ],
+    },
+    "ops-cs": {
+      prompt: "Where does AI sit in the actual operations or customer success day, beyond the demo?",
+      options: [
+        { tier: 0, label: "Nowhere. People open it in a separate tab occasionally." },
+        { tier: 1, label: "A few agents use it for first-draft replies, off-process." },
+        { tier: 2, label: "Built into one workflow (triage, summaries, or knowledge-base draft)." },
+        { tier: 3, label: "In two or three workflows (deflection, summaries, QBR prep) with playbooks." },
+        { tier: 4, label: "The default first pass for tickets and comms, with humans on review." },
+        { tier: 5, label: "Workflows are designed model-first; humans handle the trickiest cases." },
+      ],
+    },
+  },
+  "f-p7-roi": {
+    sales: {
+      prompt: "Can you point to the value AI has produced for sales?",
+      options: [
+        { tier: 0, label: "No, and we haven't tried to measure." },
+        { tier: 1, label: 'Anecdotes. "It saves me an hour on prep."' },
+        { tier: 2, label: "One pilot with a rough time-saving figure." },
+        { tier: 3, label: "Hours saved tracked across drafting and research." },
+        { tier: 4, label: "Pipeline coverage, reply rates and cycle time, reported quarterly." },
+        { tier: 5, label: "AI-attributable bookings or win-rate uplift in the forecast." },
+      ],
+    },
+    marketing: {
+      prompt: "Can you point to the value AI has produced for marketing?",
+      options: [
+        { tier: 0, label: "No, and we haven't tried to measure." },
+        { tier: 1, label: 'Anecdotes. "It saves me an hour on each brief."' },
+        { tier: 2, label: "One pilot with a rough time-saving figure." },
+        { tier: 3, label: "Hours saved tracked across briefs and asset production." },
+        { tier: 4, label: "Output volume, quality scores and cycle time, reported quarterly." },
+        { tier: 5, label: "AI-attributable pipeline contribution in the marketing P&L." },
+      ],
+    },
+    "engineering-product": {
+      prompt: "Can you point to the value AI has produced for engineering and product?",
+      options: [
+        { tier: 0, label: "No, and we haven't tried to measure." },
+        { tier: 1, label: 'Anecdotes. "It saves me an hour on boilerplate."' },
+        { tier: 2, label: "One pilot with a rough time-saving figure." },
+        { tier: 3, label: "Hours saved tracked across PRs, tests and docs." },
+        { tier: 4, label: "Cycle time, defect rate and PR throughput, reported quarterly." },
+        { tier: 5, label: "AI-attributable shipping velocity reflected in roadmap commitments." },
+      ],
+    },
+    "people-hr": {
+      prompt: "Can you point to the value AI has produced for People?",
+      options: [
+        { tier: 0, label: "No, and we haven't tried to measure." },
+        { tier: 1, label: 'Anecdotes. "It saves an hour on each role."' },
+        { tier: 2, label: "One pilot with a rough time-saving figure." },
+        { tier: 3, label: "Hours saved tracked across sourcing, screening and comms." },
+        { tier: 4, label: "Time-to-hire, quality of hire and comms throughput, reported quarterly." },
+        { tier: 5, label: "AI-attributable improvements in retention or time-to-productivity." },
+      ],
+    },
+    finance: {
+      prompt: "Can you point to the value AI has produced for finance?",
+      options: [
+        { tier: 0, label: "No, and we haven't tried to measure." },
+        { tier: 1, label: 'Anecdotes. "It saves an hour on the close."' },
+        { tier: 2, label: "One pilot with a rough time-saving figure." },
+        { tier: 3, label: "Hours saved tracked across close, AP and reporting drafts." },
+        { tier: 4, label: "Days-to-close, error rate and analyst throughput, reported quarterly." },
+        { tier: 5, label: "AI-attributable margin or working-capital improvement in the P&L." },
+      ],
+    },
+    "ops-cs": {
+      prompt: "Can you point to the value AI has produced for operations or customer success?",
+      options: [
+        { tier: 0, label: "No, and we haven't tried to measure." },
+        { tier: 1, label: 'Anecdotes. "It saves an hour on each escalation."' },
+        { tier: 2, label: "One pilot with a rough time-saving figure." },
+        { tier: 3, label: "Hours saved tracked across triage, replies and QBR prep." },
+        { tier: 4, label: "Deflection rate, CSAT and handle time, reported quarterly." },
+        { tier: 5, label: "AI-attributable retention or NRR uplift in the customer book." },
+      ],
+    },
+  },
+};
+
+// ─── Legacy reference (kept for company / individual until those are reworked) ─
   // ─── P1 Strategy & Mandate ──────────────────────────────────────────────
   {
     id: "p1-mandate",
