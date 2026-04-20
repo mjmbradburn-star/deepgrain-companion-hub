@@ -454,11 +454,12 @@ function OutcomeCard({ outcome }: { outcome: OutcomeRow }) {
 
 // ─── Report (printable A4 one-pager) ──────────────────────────────────────
 function ReportTab({
-  data, pillarValues, cohort,
+  data, pillarValues, cohort, slice,
 }: {
   data: ReportData;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
+  slice: MatchedSlice | null;
 }) {
   const { respondent, report, outcomes } = data;
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
