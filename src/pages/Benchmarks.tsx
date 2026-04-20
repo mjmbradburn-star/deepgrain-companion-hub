@@ -248,8 +248,16 @@ export default function Benchmarks() {
                   {size !== "All" && <> · {size} headcount</>}
                   {sector !== "All" && <> · {sector}</>}.
                 </p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                  Refreshed {new Date(view.refreshedAt).toLocaleDateString()}
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35 flex items-center gap-2 flex-wrap">
+                  <span>Refreshed {new Date(view.refreshedAt).toLocaleDateString()}</span>
+                  <span className="text-cream/20">·</span>
+                  <span
+                    title="Seeded synthetic medians shown until live respondents accumulate."
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-brass/30 bg-brass/10 px-1.5 py-0.5 text-brass-bright"
+                  >
+                    <span className="h-1 w-1 rounded-full bg-brass-bright" />
+                    Synthetic data
+                  </span>
                 </p>
               </>
             )}
