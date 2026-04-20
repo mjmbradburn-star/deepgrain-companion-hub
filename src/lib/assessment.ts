@@ -1,5 +1,5 @@
 // Shared content + types for the AIOI diagnostic flow.
-// Function-level pillar question seed (subset for v1 — 8 questions across 8 pillars).
+// Function-level pillar question bank (v2 — 19 questions across 8 pillars).
 
 import type { PillarIndex } from "@/components/aioi/PillarChip";
 import type { Tier } from "@/components/aioi/TierBadge";
@@ -39,8 +39,9 @@ export interface Question {
   options: QuestionOption[]; // length 6, ordered Dormant..AI-Native
 }
 
-// One question per pillar — enough to wire the flow end-to-end before the full bank is seeded server-side.
+// 2–3 questions per pillar. Order matters: the diagnostic walks pillar by pillar.
 export const FUNCTION_QUESTIONS: Question[] = [
+  // ─── P1 Strategy & Mandate ──────────────────────────────────────────────
   {
     id: "p1-mandate",
     pillar: 1,
@@ -55,6 +56,21 @@ export const FUNCTION_QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "p1-strategy",
+    pillar: 1,
+    prompt: "Is there a written AI strategy for the function?",
+    options: [
+      { tier: 0, label: "No, and nobody has asked for one." },
+      { tier: 1, label: "A few slides someone made for an offsite." },
+      { tier: 2, label: "A draft document, never finalised." },
+      { tier: 3, label: "A one-pager with goals, owned by the lead." },
+      { tier: 4, label: "Strategy with quarterly milestones tied to OKRs." },
+      { tier: 5, label: "AI is the operating model — the strategy is the strategy." },
+    ],
+  },
+
+  // ─── P2 Data Foundations ────────────────────────────────────────────────
+  {
     id: "p2-data",
     pillar: 2,
     prompt: "If a model needed to read your function's data tomorrow, what would it find?",
@@ -67,6 +83,34 @@ export const FUNCTION_QUESTIONS: Question[] = [
       { tier: 5, label: "Versioned, governed, and queryable by an agent today." },
     ],
   },
+  {
+    id: "p2-quality",
+    pillar: 2,
+    prompt: "How confident are you in the quality of that data?",
+    options: [
+      { tier: 0, label: "We don't really know what's in there." },
+      { tier: 1, label: "We know it's messy; nobody has time to fix it." },
+      { tier: 2, label: "We trust one or two reports, not the rest." },
+      { tier: 3, label: "Core entities are clean; we audit occasionally." },
+      { tier: 4, label: "Quality SLAs exist; owners are named." },
+      { tier: 5, label: "Continuous monitoring; data quality is a tracked KPI." },
+    ],
+  },
+  {
+    id: "p2-access",
+    pillar: 2,
+    prompt: "How easily can the team get the data they need?",
+    options: [
+      { tier: 0, label: "They ask in Slack and hope." },
+      { tier: 1, label: "Someone in BI runs it on request, eventually." },
+      { tier: 2, label: "Self-serve dashboards for the obvious questions." },
+      { tier: 3, label: "Self-serve for most, BI for the long tail." },
+      { tier: 4, label: "Natural-language queries on a governed warehouse." },
+      { tier: 5, label: "Agents pull and join data across systems autonomously." },
+    ],
+  },
+
+  // ─── P3 Tooling & Infrastructure ────────────────────────────────────────
   {
     id: "p3-tools",
     pillar: 3,
@@ -81,6 +125,21 @@ export const FUNCTION_QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "p3-integration",
+    pillar: 3,
+    prompt: "How well does AI tooling connect to the rest of your stack?",
+    options: [
+      { tier: 0, label: "It doesn't. Copy-paste is the integration." },
+      { tier: 1, label: "Browser extensions and clipboard." },
+      { tier: 2, label: "A handful of off-the-shelf integrations." },
+      { tier: 3, label: "Sanctioned connectors for the systems that matter." },
+      { tier: 4, label: "API-level integration with our core systems." },
+      { tier: 5, label: "Models and tools share a unified context layer." },
+    ],
+  },
+
+  // ─── P4 Workflow Integration ────────────────────────────────────────────
+  {
     id: "p4-workflow",
     pillar: 4,
     prompt: "Where does AI sit in the actual day-to-day?",
@@ -93,6 +152,21 @@ export const FUNCTION_QUESTIONS: Question[] = [
       { tier: 5, label: "Workflows are designed model-first; humans escalate." },
     ],
   },
+  {
+    id: "p4-redesign",
+    pillar: 4,
+    prompt: "Have you redesigned any workflows around AI, rather than bolting it on?",
+    options: [
+      { tier: 0, label: "No — workflows are exactly as they were." },
+      { tier: 1, label: "We've talked about it. Nothing changed." },
+      { tier: 2, label: "One workflow has been tweaked to include AI steps." },
+      { tier: 3, label: "Two or three workflows were redesigned around AI." },
+      { tier: 4, label: "Most core workflows have been rebuilt model-first." },
+      { tier: 5, label: "New work is designed for AI by default; humans escalate." },
+    ],
+  },
+
+  // ─── P5 Skills & Fluency ────────────────────────────────────────────────
   {
     id: "p5-skills",
     pillar: 5,
@@ -107,6 +181,21 @@ export const FUNCTION_QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "p5-training",
+    pillar: 5,
+    prompt: "What's in place to grow that fluency?",
+    options: [
+      { tier: 0, label: "Nothing. People figure it out alone." },
+      { tier: 1, label: "An optional Lunch & Learn happened once." },
+      { tier: 2, label: "A self-serve library of links and recordings." },
+      { tier: 3, label: "Structured onboarding and a shared prompt library." },
+      { tier: 4, label: "Role-specific training with ongoing peer review." },
+      { tier: 5, label: "AI fluency is a hiring and promotion criterion." },
+    ],
+  },
+
+  // ─── P6 Governance & Risk ───────────────────────────────────────────────
+  {
     id: "p6-governance",
     pillar: 6,
     prompt: "What governance is in place?",
@@ -119,6 +208,21 @@ export const FUNCTION_QUESTIONS: Question[] = [
       { tier: 5, label: "Live monitoring, model risk register, board-level oversight." },
     ],
   },
+  {
+    id: "p6-review",
+    pillar: 6,
+    prompt: "How are AI outputs reviewed before they reach a customer or decision?",
+    options: [
+      { tier: 0, label: "They aren't. Whatever the model said, ships." },
+      { tier: 1, label: "The author eyeballs it." },
+      { tier: 2, label: "Peer review for anything customer-facing." },
+      { tier: 3, label: "Documented review steps for risky outputs." },
+      { tier: 4, label: "Tiered review with sign-off thresholds by risk." },
+      { tier: 5, label: "Automated evals plus human-in-the-loop for high-stakes." },
+    ],
+  },
+
+  // ─── P7 Measurement & ROI ───────────────────────────────────────────────
   {
     id: "p7-roi",
     pillar: 7,
@@ -133,6 +237,21 @@ export const FUNCTION_QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "p7-baseline",
+    pillar: 7,
+    prompt: "Do you have a baseline you measure improvements against?",
+    options: [
+      { tier: 0, label: "No baseline. No measurement." },
+      { tier: 1, label: "Gut feel from before vs after." },
+      { tier: 2, label: "Rough baseline for one workflow." },
+      { tier: 3, label: "Baselines for the workflows we've automated." },
+      { tier: 4, label: "Baselines plus quarterly re-measurement." },
+      { tier: 5, label: "Continuous baselines feeding a live ROI dashboard." },
+    ],
+  },
+
+  // ─── P8 Culture & Adoption ──────────────────────────────────────────────
+  {
     id: "p8-culture",
     pillar: 8,
     prompt: "How do colleagues talk about using AI in their work?",
@@ -143,6 +262,19 @@ export const FUNCTION_QUESTIONS: Question[] = [
       { tier: 3, label: "Openly, with the better users teaching the rest." },
       { tier: 4, label: "It's expected — 'have you tried with the model?' is normal." },
       { tier: 5, label: "Not using it for a task is the thing that needs explaining." },
+    ],
+  },
+  {
+    id: "p8-leadership",
+    pillar: 8,
+    prompt: "How visibly does leadership use AI themselves?",
+    options: [
+      { tier: 0, label: "They don't, and don't pretend to." },
+      { tier: 1, label: "A curious exec or two in private." },
+      { tier: 2, label: "The function head dabbles, talks about it sometimes." },
+      { tier: 3, label: "Leadership demos AI use in team meetings." },
+      { tier: 4, label: "Leaders ship AI-built artefacts as a matter of course." },
+      { tier: 5, label: "Leadership operates AI-first; the team follows the example." },
     ],
   },
 ];
