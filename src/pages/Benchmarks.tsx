@@ -355,7 +355,36 @@ export default function Benchmarks() {
       {/* Four filter rows */}
       <section className="py-6">
         <div className="container">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-2 mb-4">
+            {/* Reset = clear every query param so all filters return to defaults
+                (level=function, all secondaries=All, compare collapsed). */}
+            <button
+              onClick={() => {
+                const isAlreadyDefault =
+                  level === "function" &&
+                  fn === "All" &&
+                  size === "All" &&
+                  sector === "All" &&
+                  region === "All" &&
+                  !compareOpen;
+                setSearchParams(new URLSearchParams(), { replace: true });
+                if (isAlreadyDefault) {
+                  toast("Filters already at defaults");
+                } else {
+                  toast.success("Filters reset", {
+                    description: "All slices back to defaults.",
+                  });
+                }
+              }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm font-ui text-xs tracking-wide transition-colors border bg-transparent text-cream/65 border-cream/15 hover:border-cream/45 hover:text-cream"
+              aria-label="Reset all filters to defaults"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 3-6.7" />
+                <polyline points="3 4 3 10 9 10" />
+              </svg>
+              Reset filters
+            </button>
             <button
               onClick={async () => {
                 const url = window.location.href;
