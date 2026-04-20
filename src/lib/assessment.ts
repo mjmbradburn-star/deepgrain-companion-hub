@@ -40,6 +40,7 @@ export interface Question {
 }
 
 // 2–3 questions per pillar. Order matters: the diagnostic walks pillar by pillar.
+// ─── FUNCTION level ─────────────────────────────────────────────────────────
 export const FUNCTION_QUESTIONS: Question[] = [
   // ─── P1 Strategy & Mandate ──────────────────────────────────────────────
   {
