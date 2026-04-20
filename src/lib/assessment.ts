@@ -722,10 +722,14 @@ export const INDIVIDUAL_QUESTIONS: Question[] = [
   },
 ];
 
-export function getQuestions(level: Level | undefined): Question[] {
+export function getQuestions(level: Level | undefined, fn?: BusinessFunction): Question[] {
   if (level === "company") return COMPANY_QUESTIONS;
   if (level === "individual") return INDIVIDUAL_QUESTIONS;
-  return FUNCTION_QUESTIONS;
+  if (!fn) return FUNCTION_QUESTIONS;
+  return FUNCTION_QUESTIONS.map((q) => {
+    const variant = FUNCTION_VARIANTS[q.id]?.[fn];
+    return variant ? { ...q, prompt: variant.prompt, options: variant.options } : q;
+  });
 }
 
 const DRAFT_KEY = "aioi:draft:v1";
@@ -736,6 +740,7 @@ export interface AssessmentDraft {
     role?: string;
     size?: string;
     pain?: string;
+    function?: BusinessFunction;
     email?: string;
     consentMarketing?: boolean;
     consentBenchmark?: boolean;
@@ -743,10 +748,8 @@ export interface AssessmentDraft {
   /** questionId -> selected tier index (0..5) */
   answers: Record<string, number>;
   startedAt?: string;
-  /** Set once the user has signed in and the respondent row exists. */
   respondentId?: string;
   respondentSlug?: string;
-  /** True once we've fired signInWithOtp for this draft's email. */
   magicLinkSent?: boolean;
 }
 
