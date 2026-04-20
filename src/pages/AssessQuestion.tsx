@@ -128,7 +128,11 @@ export default function AssessQuestion() {
       <main className="w-full flex flex-col">
         {/* Progress bar — full width under the chrome */}
         <div className="container pt-6">
-          <ProgressBar segments={segments} />
+          <ProgressBar
+            segments={segments}
+            currentPillar={question.pillar}
+            currentPillarLabel={PILLAR_NAMES[question.pillar]}
+          />
         </div>
 
         <div
