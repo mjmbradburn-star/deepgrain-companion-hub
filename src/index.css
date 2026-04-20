@@ -103,6 +103,7 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'ss01', 'cv01';
+    font-weight: 450;
     background-color: hsl(var(--walnut));
   }
 
@@ -116,6 +117,7 @@
   .font-display {
     font-family: 'Cormorant Garamond', 'Times New Roman', serif;
     font-feature-settings: 'liga', 'dlig';
+    font-weight: 500;
   }
   .font-mono-tech {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
