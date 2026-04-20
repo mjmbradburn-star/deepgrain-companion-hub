@@ -142,19 +142,16 @@ export default function AssessReport() {
         outcomes = (outs ?? []) as OutcomeRow[];
       }
 
-      // Cohort overlay (best-effort)
-      let cohort: Record<number, number> | null = null;
-      const { data: bench } = await supabase
-        .from("benchmarks_materialised")
-        .select("pillar_medians")
-        .eq("level", respondent.level)
-        .order("refreshed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (bench?.pillar_medians && typeof bench.pillar_medians === "object") {
-        const raw = bench.pillar_medians as Record<string, number>;
-        cohort = Object.fromEntries(Object.entries(raw).map(([k, v]) => [Number(k), Number(v)]));
-      }
+      // Resolve the most specific benchmark slice for this respondent.
+      const slice = await fetchBestSlice({
+        level: respondent.level,
+        function: respondent.function ?? null,
+        region: respondent.region ?? null,
+      });
+      // The radar overlay uses whichever slice we matched (so deltas and the
+      // radar always tell the same story).
+      const cohort = slice ? pillarsFromRow(slice.row) : null;
+      if (cancelled) return;
 
       setData({
         respondent: { ...respondent, user_id: undefined as never } as ReportData["respondent"],
@@ -169,6 +166,7 @@ export default function AssessReport() {
         },
         outcomes,
         cohort,
+        slice,
       });
       setState("ready");
     }
