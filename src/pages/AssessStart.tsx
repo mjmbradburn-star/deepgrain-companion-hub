@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { OptionCard } from "@/components/aioi/OptionCard";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LEVELS, loadDraft, saveDraft } from "@/lib/assessment";
+import { sendMagicLink, SyncError } from "@/lib/sync";
 
 const ROLE_OPTIONS = [
   "Founder / CEO",
@@ -156,8 +157,16 @@ export default function AssessStart() {
         {screen === "email" && (
           <EmailScreen
             initial={draft.qualifier}
-            onSubmit={(values) => {
+            magicLinkSent={!!draft.magicLinkSent}
+            onSubmit={async (values) => {
               update(values);
+              const latest = { ...draft, qualifier: { ...(draft.qualifier ?? {}), ...values } };
+              try {
+                await sendMagicLink(values.email, `${window.location.origin}/auth/callback`);
+                saveDraft({ ...latest, magicLinkSent: true });
+              } catch (err) {
+                console.warn("[magic-link] initial send failed", err);
+              }
               navigate("/assess/q/1");
             }}
           />
@@ -203,17 +212,20 @@ function ProgressDots({ index, total, onJump }: { index: number; total: number; 
 
 function EmailScreen({
   initial,
+  magicLinkSent,
   onSubmit,
 }: {
   initial?: { email?: string; consentBenchmark?: boolean; consentMarketing?: boolean };
-  onSubmit: (v: { email: string; consentBenchmark: boolean; consentMarketing: boolean }) => void;
+  magicLinkSent?: boolean;
+  onSubmit: (v: { email: string; consentBenchmark: boolean; consentMarketing: boolean }) => Promise<void> | void;
 }) {
   const [email, setEmail] = useState(initial?.email ?? "");
   const [consentBenchmark, setBench] = useState(!!initial?.consentBenchmark);
   const [consentMarketing, setMkt] = useState(!!initial?.consentMarketing);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handle = (e: React.FormEvent) => {
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     const result = emailSchema.safeParse({ email, consentBenchmark, consentMarketing });
@@ -222,13 +234,20 @@ function EmailScreen({
       setError(first?.message ?? "Please check the form");
       return;
     }
-    onSubmit({ email, consentBenchmark: true, consentMarketing });
+    setSubmitting(true);
+    try {
+      await onSubmit({ email, consentBenchmark: true, consentMarketing });
+    } catch (err) {
+      setError(err instanceof SyncError ? err.message : "Could not send your magic link.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <Step
       heading={<>Where should the <span className="italic text-brass-bright">report land?</span></>}
-      sub="One email. We'll send a magic link to your private results page."
+      sub="One email. We'll send a magic link right now so you can sign in while you answer — your results page is waiting on the other side."
     >
       <form onSubmit={handle} className="space-y-6 max-w-lg">
         <div>
@@ -267,17 +286,23 @@ function EmailScreen({
           <p role="alert" className="text-sm text-pillar-7 font-ui">{error}</p>
         )}
 
+        {magicLinkSent && (
+          <p className="text-xs text-cream/55 font-mono uppercase tracking-[0.16em]">
+            ✓ Magic link already sent to {initial?.email}. Submitting will refresh it.
+          </p>
+        )}
+
         <div className="pt-4 flex items-center gap-4">
           <Button
             type="submit"
             size="lg"
-            className="h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase"
+            disabled={submitting}
+            className="h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase disabled:opacity-60"
           >
-            Begin the questions
-            <ArrowRight className="ml-1 h-4 w-4" />
+            {submitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending link…</>) : (<>Send link & begin <ArrowRight className="ml-1 h-4 w-4" /></>)}
           </Button>
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
-            ~18 min · 8 questions
+            ~18 min · sign in while you answer
           </span>
         </div>
       </form>
