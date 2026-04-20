@@ -362,3 +362,8 @@ function Consent({
     </label>
   );
 }
+
+function AutoSkip({ onSkip }: { onSkip: () => void }) {
+  useEffect(() => { onSkip(); }, [onSkip]);
+  return null;
+}
