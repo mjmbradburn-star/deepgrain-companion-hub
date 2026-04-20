@@ -1,14 +1,14 @@
 import { PillarChip, type PillarIndex } from "./PillarChip";
 
 const PILLARS: { i: PillarIndex; name: string; blurb: string }[] = [
-  { i: 1, name: "Strategy & Mandate",     blurb: "Whether AI is a stated priority — and who owns the mandate." },
-  { i: 2, name: "Data Foundations",       blurb: "The state of the data your models would actually run on." },
-  { i: 3, name: "Tooling & Infrastructure", blurb: "What's deployed, where, and how it's governed." },
-  { i: 4, name: "Workflow Integration",   blurb: "Where AI lives in the day-to-day — not just the demo." },
-  { i: 5, name: "Skills & Fluency",       blurb: "How well your people can think with the machine." },
-  { i: 6, name: "Governance & Risk",      blurb: "Policy, audit trails, and the ability to say no." },
-  { i: 7, name: "Measurement & ROI",      blurb: "Whether you can prove anything is working." },
-  { i: 8, name: "Culture & Adoption",     blurb: "The unwritten rule of whether AI is allowed." },
+  { i: 1, name: "Strategy & Mandate",       blurb: "Whether anyone has actually been told to own this." },
+  { i: 2, name: "Data Foundations",         blurb: "What a model would find if it tried to read your work." },
+  { i: 3, name: "Tooling & Infrastructure", blurb: "What's in use, not what's been bought." },
+  { i: 4, name: "Workflow Integration",     blurb: "Where AI sits in the day, beyond the demo." },
+  { i: 5, name: "Skills & Fluency",         blurb: "How fluent the average person is, not the keenest." },
+  { i: 6, name: "Governance & Risk",        blurb: "What stops something silly happening in your name." },
+  { i: 7, name: "Measurement & ROI",        blurb: "Whether you can put a number next to the work." },
+  { i: 8, name: "Culture & Adoption",       blurb: "How people talk about it when no one is watching." },
 ];
 
 export function PillarsGrid() {
@@ -22,7 +22,7 @@ export function PillarsGrid() {
             <span className="italic text-brass-bright">decide whether AI works</span> for you.
           </h2>
           <p className="mt-6 font-display text-xl text-cream/65 max-w-xl">
-            Most AI assessments measure tools. This one measures your operating system.
+            Most surveys measure tools. This one looks at how you operate.
           </p>
         </div>
 
