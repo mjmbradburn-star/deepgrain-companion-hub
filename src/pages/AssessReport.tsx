@@ -264,7 +264,12 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
-          <ReportTab data={data} pillarValues={pillarValues} cohort={cohort ?? undefined} />
+          <ReportTab
+            data={data}
+            pillarValues={pillarValues}
+            cohort={cohort ?? undefined}
+            slice={data.slice}
+          />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="invite" className="focus-visible:outline-none">
