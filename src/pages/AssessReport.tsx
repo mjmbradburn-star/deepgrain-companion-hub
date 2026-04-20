@@ -251,7 +251,12 @@ function ReportView({ data }: { data: ReportData }) {
 
         {/* ─── Tabs ─── */}
         <TabsPrimitive.Content value="overview" className="focus-visible:outline-none">
-          <OverviewTab report={report} pillarValues={pillarValues} cohort={cohort ?? undefined} />
+          <OverviewTab
+            report={report}
+            pillarValues={pillarValues}
+            cohort={cohort ?? undefined}
+            slice={data.slice}
+          />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
@@ -274,11 +279,12 @@ function ReportView({ data }: { data: ReportData }) {
 
 // ─── Overview ─────────────────────────────────────────────────────────────
 function OverviewTab({
-  report, pillarValues, cohort,
+  report, pillarValues, cohort, slice,
 }: {
   report: NonNullable<ReportData["report"]>;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
+  slice: MatchedSlice | null;
 }) {
   return (
     <section className="container max-w-6xl py-16 sm:py-20">
