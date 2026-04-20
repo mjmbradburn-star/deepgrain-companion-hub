@@ -668,6 +668,16 @@ function PrintableCohortStrip({
           </li>
         ))}
       </ul>
+      <div className="mt-3 flex items-center gap-4 font-mono text-[9px] uppercase tracking-[0.22em] text-walnut/55">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-1.5 w-3 rounded-sm bg-walnut/85" aria-hidden />
+          Your tier
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-1.5 w-3 rounded-sm bg-walnut/30" aria-hidden />
+          Cohort median
+        </span>
+      </div>
     </div>
   );
 }
