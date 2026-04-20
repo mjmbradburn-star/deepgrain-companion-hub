@@ -287,32 +287,3 @@ Compose:
 
   return { diagnosisOut: String(parsed.diagnosis).trim(), planOut: plan };
 }
-
-function fallbackDiagnosis(
-  tier: TierLabel,
-  hotspots: Array<{ name: string }>,
-): string {
-  const weakest = hotspots[0]?.name ?? "the operating model";
-  return `Operating at ${tier}. The drag is in ${weakest} — that's where the next quarter has to land.`;
-}
-
-function fallbackPlan(
-  hotspots: Array<{ pillar: number; tier: number }>,
-  outcomes: Array<{ id: string; pillar: number; applies_to_tier: number; title: string }>,
-) {
-  const monthsArr: { month: number; title: string; rationale: string; outcome_ids: string[] }[] = [];
-  for (let m = 1; m <= 3; m++) {
-    const targetPillar = hotspots[(m - 1) % hotspots.length]?.pillar ?? 1;
-    const tier = hotspots[(m - 1) % hotspots.length]?.tier ?? 0;
-    const candidates = outcomes
-      .filter((o) => o.pillar === targetPillar && o.applies_to_tier >= Math.floor(tier))
-      .slice(0, 2);
-    monthsArr.push({
-      month: m,
-      title: candidates[0]?.title ?? `Month ${m}`,
-      rationale: "Foundations first, then leverage. This month tackles the lowest-scoring pillar.",
-      outcome_ids: candidates.map((c) => c.id),
-    });
-  }
-  return monthsArr;
-}
