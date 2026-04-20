@@ -67,6 +67,19 @@ export function Hero() {
           </span>
         </div>
       </div>
+
+      {/* Scroll cue — hairline + mono label, fades on scroll */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 bottom-5 z-10 flex flex-col items-center gap-2 transition-opacity duration-500 ${
+          scrolled ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <span className="h-8 w-px bg-cream/25" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-cream/45">
+          Scroll · Eight pillars
+        </span>
+      </div>
     </section>
   );
 }
