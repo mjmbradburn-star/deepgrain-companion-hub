@@ -75,6 +75,7 @@ export async function ensureRespondent(
         org_size: draft.qualifier?.size ?? null,
         pain: draft.qualifier?.pain ?? null,
         function: draft.qualifier?.function ?? null,
+        region: draft.qualifier?.region ?? null,
         consent_marketing: !!draft.qualifier?.consentMarketing,
         consent_benchmark: !!draft.qualifier?.consentBenchmark,
         started_at: draft.startedAt ?? new Date().toISOString(),
@@ -93,6 +94,7 @@ export async function ensureRespondent(
         org_size: draft.qualifier?.size ?? null,
         pain: draft.qualifier?.pain ?? null,
         function: draft.qualifier?.function ?? null,
+        region: draft.qualifier?.region ?? null,
         consent_marketing: !!draft.qualifier?.consentMarketing,
         consent_benchmark: !!draft.qualifier?.consentBenchmark,
       })
