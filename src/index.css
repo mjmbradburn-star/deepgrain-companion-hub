@@ -92,7 +92,7 @@
 
 @layer base {
   * {
-    border-color: hsl(var(--cream) / 0.12);
+    border-color: hsl(var(--green) / 0.14);
   }
 
   html {
@@ -107,8 +107,8 @@
   }
 
   ::selection {
-    background-color: hsl(var(--brass) / 0.35);
-    color: hsl(var(--cream));
+    background-color: hsl(var(--brass) / 0.3);
+    color: hsl(var(--green));
   }
 }
 
@@ -125,11 +125,11 @@
   }
 
   .eyebrow {
-    @apply font-ui uppercase tracking-[0.18em] text-xs text-brass-bright/90;
+    @apply font-ui uppercase tracking-[0.18em] text-xs text-brass/90;
   }
 
   .hairline {
-    background-color: hsl(var(--cream) / 0.12);
+    background-color: hsl(var(--green) / 0.14);
   }
 
   .grain::before {
