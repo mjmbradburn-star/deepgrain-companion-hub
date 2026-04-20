@@ -1,0 +1,718 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import {
+  ArrowRight,
+  Check,
+  Copy,
+  Mail,
+  Printer,
+  Send,
+} from "lucide-react";
+
+import { SiteNav } from "@/components/aioi/SiteNav";
+import { SiteFooter } from "@/components/aioi/SiteFooter";
+import { RadarChart } from "@/components/aioi/RadarChart";
+import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
+import { PillarChip } from "@/components/aioi/PillarChip";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { PILLAR_NAMES } from "@/lib/assessment";
+
+// ─── Types coming back from the report row ────────────────────────────────
+interface PillarTierEntry {
+  tier: number;
+  label: Tier;
+  name: string;
+}
+interface Hotspot {
+  pillar: number;
+  name: string;
+  tier: number;
+  tierLabel: Tier;
+}
+interface PlanMonth {
+  month: number;
+  title: string;
+  rationale: string;
+  outcome_ids: string[];
+}
+interface OutcomeRow {
+  id: string;
+  pillar: number;
+  applies_to_tier: number;
+  title: string;
+  body: string;
+  effort: number | null;
+  impact: number | null;
+  time_to_value: string | null;
+}
+interface ReportData {
+  respondent: {
+    id: string;
+    slug: string;
+    level: string;
+    role: string | null;
+    org_size: string | null;
+    pain: string | null;
+    submitted_at: string | null;
+  };
+  report: {
+    aioi_score: number;
+    overall_tier: Tier;
+    pillar_tiers: Record<string, PillarTierEntry>;
+    hotspots: Hotspot[];
+    diagnosis: string | null;
+    plan: PlanMonth[];
+    generated_at: string | null;
+  } | null;
+  outcomes: OutcomeRow[];
+  cohort: Record<number, number> | null;
+}
+
+type LoadState = "loading" | "ready" | "missing" | "forbidden" | "no-report" | "error";
+
+export default function AssessReport() {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const [state, setState] = useState<LoadState>("loading");
+  const [data, setData] = useState<ReportData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!slug) return;
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        navigate(`/auth/callback?next=${encodeURIComponent(`/assess/r/${slug}`)}`, { replace: true });
+        return;
+      }
+
+      const { data: respondent, error: rErr } = await supabase
+        .from("respondents")
+        .select("id, slug, level, role, org_size, pain, submitted_at, user_id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (cancelled) return;
+      if (rErr) {
+        setState("error");
+        setError(rErr.message);
+        return;
+      }
+      if (!respondent) {
+        setState("missing");
+        return;
+      }
+      if (respondent.user_id !== session.session.user.id) {
+        setState("forbidden");
+        return;
+      }
+
+      const { data: report } = await supabase
+        .from("reports")
+        .select("aioi_score, overall_tier, pillar_tiers, hotspots, diagnosis, plan, generated_at")
+        .eq("respondent_id", respondent.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!report) {
+        setState("no-report");
+        return;
+      }
+
+      // Fetch outcomes referenced in the plan
+      const outcomeIds = (report.plan as PlanMonth[] | null)?.flatMap((m) => m.outcome_ids) ?? [];
+      let outcomes: OutcomeRow[] = [];
+      if (outcomeIds.length > 0) {
+        const { data: outs } = await supabase
+          .from("outcomes_library")
+          .select("id, pillar, applies_to_tier, title, body, effort, impact, time_to_value")
+          .in("id", outcomeIds);
+        outcomes = (outs ?? []) as OutcomeRow[];
+      }
+
+      // Cohort overlay (best-effort)
+      let cohort: Record<number, number> | null = null;
+      const { data: bench } = await supabase
+        .from("benchmarks_materialised")
+        .select("pillar_medians")
+        .eq("level", respondent.level)
+        .order("refreshed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (bench?.pillar_medians && typeof bench.pillar_medians === "object") {
+        const raw = bench.pillar_medians as Record<string, number>;
+        cohort = Object.fromEntries(Object.entries(raw).map(([k, v]) => [Number(k), Number(v)]));
+      }
+
+      setData({
+        respondent: { ...respondent, user_id: undefined as never } as ReportData["respondent"],
+        report: {
+          aioi_score: report.aioi_score ?? 0,
+          overall_tier: (report.overall_tier as Tier) ?? "Dormant",
+          pillar_tiers: (report.pillar_tiers as Record<string, PillarTierEntry>) ?? {},
+          hotspots: (report.hotspots as Hotspot[]) ?? [],
+          diagnosis: report.diagnosis,
+          plan: (report.plan as PlanMonth[]) ?? [],
+          generated_at: report.generated_at,
+        },
+        outcomes,
+        cohort,
+      });
+      setState("ready");
+    }
+    void load();
+    return () => { cancelled = true; };
+  }, [slug, navigate]);
+
+  if (state === "loading") return <FullPageMessage eyebrow="Loading" line1="Pulling your report…" />;
+  if (state === "missing") return <FullPageMessage eyebrow="Not found" line1="No report at this address." cta="/assess" />;
+  if (state === "forbidden") return <FullPageMessage eyebrow="Private" line1="This report belongs to someone else." cta="/" />;
+  if (state === "no-report") return <FullPageMessage eyebrow="Almost there" line1="Your answers landed, the report is still building." line2="Refresh in a few seconds." />;
+  if (state === "error") return <FullPageMessage eyebrow="Error" line1={error ?? "Something went wrong."} cta="/" />;
+  if (!data?.report) return null;
+
+  return <ReportView data={data} />;
+}
+
+// ─── Main view ────────────────────────────────────────────────────────────
+function ReportView({ data }: { data: ReportData }) {
+  const { respondent, report, outcomes, cohort } = data;
+  if (!report) return null;
+
+  const pillarValues = useMemo(() => {
+    const out: Record<number, number> = {};
+    for (const [k, v] of Object.entries(report.pillar_tiers)) {
+      out[Number(k)] = v.tier;
+    }
+    return out;
+  }, [report.pillar_tiers]);
+
+  return (
+    <div className="min-h-screen bg-walnut text-cream">
+      <SiteNav />
+
+      <TabsPrimitive.Root defaultValue="overview" className="w-full">
+        {/* ─── Masthead ─── */}
+        <header className="border-b border-cream/10 pt-32 sm:pt-36 pb-8">
+          <div className="container max-w-6xl">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
+                AIOI Report · {capitalise(respondent.level)} level
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                Slug · {respondent.slug}
+              </span>
+              {report.generated_at && (
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                  Generated · {formatDate(report.generated_at)}
+                </span>
+              )}
+            </div>
+
+            <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
+              Your operating shape, in one picture.
+            </h1>
+
+            {/* Tab bar */}
+            <TabsPrimitive.List className="mt-10 -mb-px flex flex-wrap items-end gap-x-8 gap-y-2 border-b border-cream/10">
+              {[
+                { value: "overview", label: "Overview" },
+                { value: "plan", label: "Plan" },
+                { value: "report", label: "Report" },
+                { value: "invite", label: "Invite" },
+              ].map((t) => (
+                <TabsPrimitive.Trigger
+                  key={t.value}
+                  value={t.value}
+                  className="group relative pb-3 font-ui text-xs uppercase tracking-[0.18em] text-cream/40 hover:text-cream transition-colors data-[state=active]:text-cream data-[state=active]:font-medium focus-visible:outline-none focus-visible:text-cream"
+                >
+                  {t.label}
+                  <span className="absolute -bottom-px left-0 right-0 h-px bg-brass-bright scale-x-0 group-data-[state=active]:scale-x-100 transition-transform origin-left" />
+                </TabsPrimitive.Trigger>
+              ))}
+            </TabsPrimitive.List>
+          </div>
+        </header>
+
+        {/* ─── Tabs ─── */}
+        <TabsPrimitive.Content value="overview" className="focus-visible:outline-none">
+          <OverviewTab report={report} pillarValues={pillarValues} cohort={cohort ?? undefined} />
+        </TabsPrimitive.Content>
+
+        <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
+          <PlanTab plan={report.plan} outcomes={outcomes} />
+        </TabsPrimitive.Content>
+
+        <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
+          <ReportTab data={data} pillarValues={pillarValues} cohort={cohort ?? undefined} />
+        </TabsPrimitive.Content>
+
+        <TabsPrimitive.Content value="invite" className="focus-visible:outline-none">
+          <InviteTab respondentId={respondent.id} slug={respondent.slug} />
+        </TabsPrimitive.Content>
+      </TabsPrimitive.Root>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+// ─── Overview ─────────────────────────────────────────────────────────────
+function OverviewTab({
+  report, pillarValues, cohort,
+}: {
+  report: NonNullable<ReportData["report"]>;
+  pillarValues: Record<number, number>;
+  cohort?: Record<number, number>;
+}) {
+  return (
+    <section className="container max-w-6xl py-16 sm:py-20">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+        {/* Left — score + diagnosis */}
+        <div className="lg:col-span-5">
+          <p className="eyebrow mb-5 text-cream/45">AIOI Score</p>
+          <div className="flex items-baseline gap-4">
+            <span className="font-display font-light text-[96px] leading-none text-brass-bright tabular-nums tracking-[-0.02em]">
+              {report.aioi_score}
+            </span>
+            <span className="font-mono text-xs text-cream/40 uppercase tracking-[0.22em] mb-2">
+              / 100
+            </span>
+          </div>
+
+          <div className="mt-6">
+            <TierBadge tier={report.overall_tier} />
+          </div>
+
+          {report.diagnosis && (
+            <blockquote className="mt-10 border-l-2 border-brass/60 pl-6">
+              <p className="font-display italic text-2xl sm:text-3xl text-cream/90 leading-snug text-balance">
+                "{report.diagnosis}"
+              </p>
+            </blockquote>
+          )}
+
+          {/* Hotspots */}
+          {report.hotspots.length > 0 && (
+            <div className="mt-12 space-y-3">
+              <p className="eyebrow text-cream/45">Three pillars to watch</p>
+              <ul className="space-y-2">
+                {report.hotspots.map((h) => (
+                  <li key={h.pillar} className="flex items-center justify-between gap-4 border-b border-cream/10 py-3">
+                    <div className="flex items-center gap-3">
+                      <PillarChip index={h.pillar as 1|2|3|4|5|6|7|8} label={h.name} />
+                    </div>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/55 tabular-nums">
+                      Tier {h.tier} · {h.tierLabel}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Right — radar */}
+        <div className="lg:col-span-7">
+          <div className="flex items-center justify-between mb-4">
+            <p className="eyebrow text-cream/45">Eight pillars</p>
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-brass-bright" /> You
+              </span>
+              {cohort && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-cream/40" /> Cohort
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-6 sm:p-8">
+            <RadarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Plan ─────────────────────────────────────────────────────────────────
+function PlanTab({
+  plan, outcomes,
+}: { plan: PlanMonth[]; outcomes: OutcomeRow[] }) {
+  const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
+
+  if (plan.length === 0) {
+    return (
+      <section className="container max-w-3xl py-20">
+        <p className="font-display text-xl text-cream/70">
+          No plan generated yet. Try refreshing — the engine may still be drafting it.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="container max-w-6xl py-16 sm:py-20">
+      <div className="max-w-3xl mb-12">
+        <p className="eyebrow mb-5">Three months</p>
+        <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
+          Where to spend the<br />
+          <span className="italic text-brass-bright">next ninety days.</span>
+        </h2>
+        <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl">
+          Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship — sequenced so the foundations land first.
+        </p>
+      </div>
+
+      <div className="space-y-12">
+        {plan.map((month) => (
+          <article key={month.month} className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-t border-cream/10 pt-10">
+            <aside className="lg:col-span-3">
+              <div className="flex items-baseline gap-4">
+                <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
+                  M{month.month}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                  Month {month.month}
+                </span>
+              </div>
+            </aside>
+            <div className="lg:col-span-9 space-y-6">
+              <h3 className="font-display text-3xl sm:text-4xl text-cream leading-tight tracking-tight">
+                {month.title}
+              </h3>
+              <p className="font-display text-lg text-cream/75 leading-relaxed max-w-2xl">
+                {month.rationale}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                {month.outcome_ids.map((id) => {
+                  const o = outcomeMap.get(id);
+                  if (!o) return null;
+                  return <OutcomeCard key={id} outcome={o} />;
+                })}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function OutcomeCard({ outcome }: { outcome: OutcomeRow }) {
+  return (
+    <div className="rounded-md border border-cream/10 bg-surface-1/50 p-5">
+      <div className="flex items-center gap-3 mb-3">
+        <PillarChip index={outcome.pillar as 1|2|3|4|5|6|7|8} label={PILLAR_NAMES[outcome.pillar as 1|2|3|4|5|6|7|8]} />
+      </div>
+      <h4 className="font-display text-xl text-cream leading-snug">{outcome.title}</h4>
+      <p className="mt-2 text-sm text-cream/65 leading-relaxed">{outcome.body}</p>
+      <div className="mt-4 flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
+        {outcome.time_to_value && <span>{outcome.time_to_value}</span>}
+        {typeof outcome.effort === "number" && <span>Effort {outcome.effort}/5</span>}
+        {typeof outcome.impact === "number" && <span>Impact {outcome.impact}/5</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Report (printable A4 one-pager) ──────────────────────────────────────
+function ReportTab({
+  data, pillarValues, cohort,
+}: {
+  data: ReportData;
+  pillarValues: Record<number, number>;
+  cohort?: Record<number, number>;
+}) {
+  const { respondent, report, outcomes } = data;
+  if (!report) return null;
+  const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
+
+  return (
+    <section className="container max-w-5xl py-16 sm:py-20 print:py-0">
+      <div className="flex items-center justify-between mb-6 print:hidden">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+          A4 one-pager · Print or save as PDF
+        </p>
+        <Button
+          onClick={() => window.print()}
+          className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-wider"
+        >
+          <Printer className="h-3.5 w-3.5 mr-2" /> Print / Save PDF
+        </Button>
+      </div>
+
+      <article
+        className="bg-cream text-walnut rounded-md shadow-2xl p-10 sm:p-14 print:rounded-none print:shadow-none print:p-12"
+        style={{ aspectRatio: "1 / 1.414" }}
+      >
+        {/* Masthead */}
+        <header className="flex items-baseline justify-between border-b border-walnut/15 pb-4">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55">
+              AIOI · {capitalise(respondent.level)} level
+            </p>
+            <h1 className="font-display text-3xl text-walnut leading-tight mt-1">
+              The AI Operating Index
+            </h1>
+          </div>
+          <div className="text-right">
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55">
+              Volume I · {report.generated_at ? formatDate(report.generated_at) : "—"}
+            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mt-1">
+              Slug · {respondent.slug}
+            </p>
+          </div>
+        </header>
+
+        {/* Score + diagnosis */}
+        <div className="grid grid-cols-12 gap-8 mt-8">
+          <div className="col-span-5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-2">
+              AIOI Score
+            </p>
+            <p className="font-display font-light text-[88px] leading-none text-walnut tabular-nums tracking-[-0.02em]">
+              {report.aioi_score}
+            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mt-3">
+              Tier · {report.overall_tier}
+            </p>
+            {report.diagnosis && (
+              <p className="mt-6 font-display italic text-xl text-walnut/85 leading-snug border-l-2 border-walnut/40 pl-4">
+                "{report.diagnosis}"
+              </p>
+            )}
+          </div>
+          <div className="col-span-7">
+            <RadarChartPrintable values={pillarValues} cohort={cohort} />
+          </div>
+        </div>
+
+        {/* Hotspots */}
+        <div className="mt-8 border-t border-walnut/15 pt-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-3">
+            Three pillars to watch
+          </p>
+          <ul className="grid grid-cols-3 gap-4">
+            {report.hotspots.map((h) => (
+              <li key={h.pillar} className="border border-walnut/15 rounded-sm p-3">
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-walnut/60">
+                  P{h.pillar}
+                </p>
+                <p className="font-display text-base text-walnut leading-tight mt-1">{h.name}</p>
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-walnut/55 mt-2">
+                  Tier {h.tier} · {h.tierLabel}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Plan */}
+        {report.plan.length > 0 && (
+          <div className="mt-8 border-t border-walnut/15 pt-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-3">
+              Ninety-day plan
+            </p>
+            <ol className="grid grid-cols-3 gap-4">
+              {report.plan.map((m) => (
+                <li key={m.month}>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-walnut/60">
+                    Month {m.month}
+                  </p>
+                  <p className="font-display text-base text-walnut leading-tight mt-1">{m.title}</p>
+                  <ul className="mt-2 space-y-1">
+                    {m.outcome_ids.map((id) => {
+                      const o = outcomeMap.get(id);
+                      return o ? (
+                        <li key={id} className="text-[11px] text-walnut/70 leading-snug flex gap-1">
+                          <span>·</span><span>{o.title}</span>
+                        </li>
+                      ) : null;
+                    })}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        <footer className="mt-auto pt-8 flex items-baseline justify-between text-[10px] font-mono uppercase tracking-[0.24em] text-walnut/50">
+          <span>Deepgrain · The AIOI</span>
+          <span>aioi.deepgrain.co</span>
+        </footer>
+      </article>
+    </section>
+  );
+}
+
+// Bigger, darker radar variant for the printable cream sheet
+function RadarChartPrintable({
+  values, cohort,
+}: { values: Record<number, number>; cohort?: Record<number, number> }) {
+  // We re-use the same component, just inverted via wrapping styles.
+  return (
+    <div className="text-walnut">
+      <RadarChart values={values} cohort={cohort} labels={PILLAR_NAMES} size={420} />
+    </div>
+  );
+}
+
+// ─── Invite ───────────────────────────────────────────────────────────────
+function InviteTab({ respondentId, slug }: { respondentId: string; slug: string }) {
+  const { toast } = useToast();
+  const [emails, setEmails] = useState("");
+  const [note, setNote] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const link = typeof window !== "undefined" ? `${window.location.origin}/assess` : "/assess";
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(link);
+    toast({ title: "Link copied", description: "Paste it wherever your colleagues will see it." });
+  };
+
+  const sendInvites = async () => {
+    const list = emails.split(/[\s,;]+/).map((e) => e.trim()).filter(Boolean);
+    if (list.length === 0) {
+      toast({ title: "Add at least one email", variant: "destructive" });
+      return;
+    }
+    setSending(true);
+    try {
+      await supabase.from("events").insert({
+        name: "report_invite_sent",
+        payload: {
+          respondent_id: respondentId,
+          slug,
+          recipients: list,
+          note: note || null,
+        },
+      });
+      toast({
+        title: `Invites recorded for ${list.length} ${list.length === 1 ? "person" : "people"}`,
+        description: "Outbound delivery via Lovable Emails arrives in the next phase — for now your colleagues should hit the link directly.",
+      });
+      setEmails("");
+      setNote("");
+    } catch (err) {
+      toast({ title: "Couldn't record invites", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <section className="container max-w-3xl py-16 sm:py-20">
+      <p className="eyebrow mb-5">Invite</p>
+      <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
+        Run the same diagnostic<br />
+        <span className="italic text-brass-bright">on the rest of the team.</span>
+      </h2>
+      <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl">
+        Each colleague gets their own private report. The fanout view (medians, deltas, biggest disagreements) lands as soon as three of you have completed it.
+      </p>
+
+      {/* Shareable link */}
+      <div className="mt-12 rounded-md border border-cream/10 bg-surface-1/50 p-5">
+        <p className="eyebrow mb-3 text-cream/45">Shareable link</p>
+        <div className="flex items-center gap-3">
+          <Input
+            readOnly
+            value={link}
+            className="bg-surface-0 border-cream/10 text-cream font-mono text-sm focus-visible:ring-brass"
+          />
+          <Button
+            onClick={copyLink}
+            className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-wider shrink-0"
+          >
+            <Copy className="h-3.5 w-3.5 mr-2" /> Copy
+          </Button>
+        </div>
+      </div>
+
+      {/* Email invites */}
+      <div className="mt-8 space-y-4 rounded-md border border-cream/10 bg-surface-1/50 p-5">
+        <p className="eyebrow text-cream/45">Or send directly</p>
+        <div>
+          <label className="block font-ui text-xs uppercase tracking-[0.16em] text-cream/55 mb-2">
+            Emails (comma-separated)
+          </label>
+          <Input
+            value={emails}
+            onChange={(e) => setEmails(e.target.value)}
+            placeholder="alex@team.com, jamie@team.com"
+            className="bg-surface-0 border-cream/10 text-cream placeholder:text-cream/30 focus-visible:ring-brass"
+          />
+        </div>
+        <div>
+          <label className="block font-ui text-xs uppercase tracking-[0.16em] text-cream/55 mb-2">
+            Personal note (optional)
+          </label>
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Eighteen minutes. Worth running before our planning offsite."
+            rows={3}
+            className="bg-surface-0 border-cream/10 text-cream placeholder:text-cream/30 focus-visible:ring-brass"
+          />
+        </div>
+        <div className="pt-2 flex items-center gap-4">
+          <Button
+            onClick={sendInvites}
+            disabled={sending}
+            className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-wider"
+          >
+            {sending ? <>Sending…</> : <><Send className="h-3.5 w-3.5 mr-2" /> Send invites</>}
+          </Button>
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
+            We'll record these now; outbound delivery follows in Phase 4.
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function FullPageMessage({ eyebrow, line1, line2, cta }: { eyebrow: string; line1: string; line2?: string; cta?: string }) {
+  return (
+    <div className="min-h-screen bg-walnut text-cream">
+      <SiteNav />
+      <main className="container max-w-2xl pt-40 pb-24">
+        <p className="eyebrow mb-5">{eyebrow}</p>
+        <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
+          {line1}
+        </h1>
+        {line2 && <p className="mt-4 font-display text-lg text-cream/65">{line2}</p>}
+        {cta && (
+          <div className="mt-8">
+            <Link
+              to={cta}
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-wider"
+            >
+              Back <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function capitalise(s: string) {
+  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
+}
+function formatDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
+}
