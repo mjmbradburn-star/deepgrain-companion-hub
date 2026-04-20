@@ -36,25 +36,25 @@ export default function AssessQuestion() {
     }
   }, [draft.level, draft.qualifier?.email, navigate]);
 
-  const question = FUNCTION_QUESTIONS[idx];
+  const question = questions[idx];
   const selected = question ? draft.answers[question.id] : undefined;
 
   const segments = useMemo(
     () =>
-      FUNCTION_QUESTIONS.map((q, i) => ({
+      questions.map((q, i) => ({
         pillar: q.pillar,
         filled: i <= idx && draft.answers[q.id] !== undefined,
       })),
-    [idx, draft.answers],
+    [idx, draft.answers, questions],
   );
 
   // Pillar grouping: where this question sits within its pillar.
   const pillarPosition = useMemo(() => {
     if (!question) return { index: 0, total: 0 };
-    const inPillar = FUNCTION_QUESTIONS.filter((q) => q.pillar === question.pillar);
+    const inPillar = questions.filter((q) => q.pillar === question.pillar);
     const indexInPillar = inPillar.findIndex((q) => q.id === question.id) + 1;
     return { index: indexInPillar, total: inPillar.length };
-  }, [question]);
+  }, [question, questions]);
 
   const goTo = useCallback(
     (nextStep: number, dir: "forward" | "back") => {
