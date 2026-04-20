@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
-import { loadDraft } from "@/lib/assessment";
+import { loadDraft, getQuestions } from "@/lib/assessment";
 import { ensureRespondent, flushAnswers } from "@/lib/sync";
-import { FUNCTION_QUESTIONS } from "@/lib/assessment";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
