@@ -22,6 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLAR_NAMES } from "@/lib/assessment";
+import { fetchBestSlice, pillarsFromRow, type MatchedSlice } from "@/lib/benchmarks";
+import { BenchmarkSliceCard } from "@/components/aioi/BenchmarkSliceCard";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 
 // ─── Types coming back from the report row ────────────────────────────────
@@ -60,6 +62,8 @@ interface ReportData {
     role: string | null;
     org_size: string | null;
     pain: string | null;
+    function: string | null;
+    region: string | null;
     submitted_at: string | null;
   };
   report: {
@@ -73,6 +77,7 @@ interface ReportData {
   } | null;
   outcomes: OutcomeRow[];
   cohort: Record<number, number> | null;
+  slice: MatchedSlice | null;
 }
 
 type LoadState = "loading" | "ready" | "missing" | "forbidden" | "no-report" | "error";
@@ -96,7 +101,7 @@ export default function AssessReport() {
 
       const { data: respondent, error: rErr } = await supabase
         .from("respondents")
-        .select("id, slug, level, role, org_size, pain, submitted_at, user_id")
+        .select("id, slug, level, role, org_size, pain, function, region, submitted_at, user_id")
         .eq("slug", slug)
         .maybeSingle();
       if (cancelled) return;
