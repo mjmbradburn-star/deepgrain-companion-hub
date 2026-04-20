@@ -43,6 +43,27 @@ function specificityHint(spec: number): string {
   }
 }
 
+/** Compact relative time: "just now", "5 min ago", "2 days ago", "3 weeks ago". */
+function relativeTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return null;
+  const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (diffSec < 45) return "just now";
+  const diffMin = Math.round(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hr ago`;
+  const diffDay = Math.round(diffHr / 24);
+  if (diffDay < 7) return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
+  const diffWk = Math.round(diffDay / 7);
+  if (diffWk < 5) return `${diffWk} week${diffWk === 1 ? "" : "s"} ago`;
+  const diffMo = Math.round(diffDay / 30);
+  if (diffMo < 12) return `${diffMo} mo ago`;
+  const diffYr = Math.round(diffDay / 365);
+  return `${diffYr} yr ago`;
+}
+
 export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
   const cohortPillars = slice ? pillarsFromRow(slice.row) : {};
 
@@ -93,9 +114,19 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
             {specificityHint(slice.specificity)}
           </p>
         </div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-          n = {sample.toLocaleString()}
-        </p>
+        <div className="text-right space-y-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+            n = {sample.toLocaleString()}
+          </p>
+          {relativeTime(slice.row.refreshed_at) && (
+            <p
+              className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40"
+              title={slice.row.refreshed_at ?? undefined}
+            >
+              Refreshed {relativeTime(slice.row.refreshed_at)}
+            </p>
+          )}
+        </div>
       </header>
 
       {/* Headline numbers */}
