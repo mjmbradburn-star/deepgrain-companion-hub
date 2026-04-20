@@ -222,19 +222,72 @@ export default function Benchmarks() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [level, setLevel] = useState<Level>("function");
-  const [fn, setFn] = useState<FunctionSlice>("All");
-  const [size, setSize] = useState<SizeBand>("All");
-  const [sector, setSector] = useState<Sector>("All");
-  const [region, setRegion] = useState<Region>("All");
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Compare-functions panel
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [compareSelection, setCompareSelection] = useState<string[]>([
-    "Sales",
-    "Marketing",
-    "Engineering & Product",
-  ]);
+  // Validate URL params against the known option sets — anything unrecognised
+  // falls back to the default. Keeps shared links robust to typos / stale
+  // values without throwing.
+  const validLevel = (v: string | null): Level =>
+    LEVELS.some((l) => l.value === v) ? (v as Level) : "function";
+  const oneOf = <T extends string>(opts: ReadonlyArray<T>, fallback: T) =>
+    (v: string | null): T => (v && (opts as ReadonlyArray<string>).includes(v) ? (v as T) : fallback);
+  const validFn = oneOf(FUNCTIONS, "All");
+  const validSize = oneOf(SIZES, "All");
+  const validSector = oneOf(SECTORS, "All");
+  const validRegion = oneOf(REGIONS, "All");
+
+  const level = validLevel(searchParams.get("level"));
+  const fn = validFn(searchParams.get("fn"));
+  const size = validSize(searchParams.get("size"));
+  const sector = validSector(searchParams.get("sector"));
+  const region = validRegion(searchParams.get("region"));
+
+  const compareOpen = searchParams.get("compare") === "1";
+  const compareSelection = useMemo<string[]>(() => {
+    const raw = searchParams.get("cmp");
+    if (!raw) return ["Sales", "Marketing", "Engineering & Product"];
+    const allowed = new Set<string>(FUNCTIONS.filter((f) => f !== "All"));
+    return raw
+      .split(",")
+      .map((s) => decodeURIComponent(s.trim()))
+      .filter((s) => allowed.has(s))
+      .slice(0, 4);
+  }, [searchParams]);
+
+  // Single setter that mutates one or more URL params at once. Any value
+  // equal to its default is dropped from the query string to keep URLs tidy.
+  const updateParams = (patch: Record<string, string | null>) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const [k, v] of Object.entries(patch)) {
+          if (v == null || v === "") next.delete(k);
+          else next.set(k, v);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  const setLevel = (v: Level) => updateParams({ level: v === "function" ? null : v });
+  const setFn = (v: FunctionSlice) => updateParams({ fn: v === "All" ? null : v });
+  const setSize = (v: SizeBand) => updateParams({ size: v === "All" ? null : v });
+  const setSector = (v: Sector) => updateParams({ sector: v === "All" ? null : v });
+  const setRegion = (v: Region) => updateParams({ region: v === "All" ? null : v });
+  const setCompareOpen = (open: boolean | ((v: boolean) => boolean)) => {
+    const next = typeof open === "function" ? open(compareOpen) : open;
+    updateParams({ compare: next ? "1" : null });
+  };
+  const setCompareSelection = (
+    update: string[] | ((prev: string[]) => string[]),
+  ) => {
+    const next = typeof update === "function" ? update(compareSelection) : update;
+    const defaults = ["Sales", "Marketing", "Engineering & Product"];
+    const isDefault =
+      next.length === defaults.length && next.every((v, i) => v === defaults[i]);
+    updateParams({ cmp: isDefault ? null : next.map(encodeURIComponent).join(",") });
+  };
 
   useEffect(() => {
     let cancelled = false;
