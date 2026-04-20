@@ -264,7 +264,12 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
-          <ReportTab data={data} pillarValues={pillarValues} cohort={cohort ?? undefined} />
+          <ReportTab
+            data={data}
+            pillarValues={pillarValues}
+            cohort={cohort ?? undefined}
+            slice={data.slice}
+          />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="invite" className="focus-visible:outline-none">
@@ -449,11 +454,12 @@ function OutcomeCard({ outcome }: { outcome: OutcomeRow }) {
 
 // ─── Report (printable A4 one-pager) ──────────────────────────────────────
 function ReportTab({
-  data, pillarValues, cohort,
+  data, pillarValues, cohort, slice,
 }: {
   data: ReportData;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
+  slice: MatchedSlice | null;
 }) {
   const { respondent, report, outcomes } = data;
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
@@ -541,6 +547,13 @@ function ReportTab({
           </ul>
         </div>
 
+        {/* Versus the field — print-tuned cohort comparison */}
+        <PrintableCohortStrip
+          slice={slice}
+          values={pillarValues}
+          userScore={report.aioi_score}
+        />
+
         {/* Plan */}
         {report.plan.length > 0 && (
           <div className="mt-8 border-t border-walnut/15 pt-6">
@@ -576,6 +589,107 @@ function ReportTab({
         </footer>
       </article>
     </section>
+  );
+}
+
+/**
+ * Print-tuned cohort comparison strip for the A4 one-pager.
+ *
+ * Uses walnut tones (matching the cream sheet) and a compact 4-col grid of
+ * mini bars so the whole strip fits in one band beneath Hotspots without
+ * pushing the Plan onto a second page.
+ */
+function PrintableCohortStrip({
+  slice,
+  values,
+  userScore,
+}: {
+  slice: MatchedSlice | null;
+  values: Record<number, number>;
+  userScore: number;
+}) {
+  if (!slice) return null;
+
+  const cohortPillars = pillarsFromRow(slice.row);
+  const cohortScore =
+    slice.row.median_score != null ? Math.round(Number(slice.row.median_score)) : null;
+  const sample = slice.row.sample_size;
+  const overallDelta = cohortScore != null ? userScore - cohortScore : null;
+
+  const rows = [1, 2, 3, 4, 5, 6, 7, 8].map((p) => {
+    const user = values[p] ?? 0;
+    const cohort = cohortPillars[p] ?? 0;
+    return {
+      pillar: p,
+      name: PILLAR_NAMES[p as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8],
+      user,
+      cohort,
+      delta: Math.round((user - cohort) * 10) / 10,
+    };
+  });
+
+  return (
+    <div className="mt-8 border-t border-walnut/15 pt-6">
+      <div className="flex items-baseline justify-between mb-3">
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55">
+          Versus the field · {slice.label}
+        </p>
+        <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-walnut/55 tabular-nums">
+          n = {sample.toLocaleString()}
+          {cohortScore != null && (
+            <>
+              {" · "}cohort {cohortScore}
+              {overallDelta != null && (
+                <> · gap {overallDelta > 0 ? "+" : ""}{overallDelta}</>
+              )}
+            </>
+          )}
+        </p>
+      </div>
+      <ul className="grid grid-cols-4 gap-x-5 gap-y-2.5">
+        {rows.map((r) => (
+          <li key={r.pillar} className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-walnut/55 w-5 shrink-0">
+              P{r.pillar}
+            </span>
+            <PrintCohortBar user={r.user} cohort={r.cohort} />
+            <span
+              className={`font-mono text-[10px] tabular-nums w-9 text-right shrink-0 ${
+                r.delta > 0
+                  ? "text-walnut font-semibold"
+                  : r.delta < 0
+                  ? "text-walnut/55"
+                  : "text-walnut/40"
+              }`}
+            >
+              {r.delta > 0 ? "+" : ""}
+              {r.delta.toFixed(1)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Compact double bar in walnut tones for the printable sheet. */
+function PrintCohortBar({ user, cohort }: { user: number; cohort: number }) {
+  const max = 5;
+  const userPct = Math.max(0, Math.min(1, user / max)) * 100;
+  const cohortPct = Math.max(0, Math.min(1, cohort / max)) * 100;
+  return (
+    <div className="relative h-1.5 flex-1 bg-walnut/8 rounded-sm overflow-hidden">
+      <span
+        className="absolute top-0 left-0 h-full bg-walnut/30"
+        style={{ width: `${cohortPct}%` }}
+        aria-hidden
+      />
+      <span
+        className="absolute top-0 left-0 h-full bg-walnut/85"
+        style={{ width: `${userPct}%`, mixBlendMode: "multiply" }}
+        aria-hidden
+      />
+    </div>
   );
 }
 
