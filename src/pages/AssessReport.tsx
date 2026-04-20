@@ -434,6 +434,7 @@ function ReportTab({
 }) {
   const { respondent, report, outcomes } = data;
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
+
   if (!report) return null;
 
   return (
