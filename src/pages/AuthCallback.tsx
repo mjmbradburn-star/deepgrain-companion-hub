@@ -55,7 +55,7 @@ export default function AuthCallback() {
         return;
       }
       const answered = Object.keys(draft.answers ?? {}).length;
-      const totalQuestions = getQuestions(draft.level).length;
+      const totalQuestions = getQuestions(draft.level, draft.qualifier?.function).length;
       if (answered >= totalQuestions) {
         navigate("/assess/processing", { replace: true });
       } else if (draft.level && answered > 0) {
