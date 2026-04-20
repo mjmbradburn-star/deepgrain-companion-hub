@@ -111,12 +111,17 @@ export default {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "scroll-bob": {
+          "0%, 100%": { transform: "translateY(0)", opacity: "0.55" },
+          "50%": { transform: "translateY(6px)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-up": "fade-up 600ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "fade-in": "fade-in 800ms ease-out both",
+        "scroll-bob": "scroll-bob 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite",
       },
     },
   },
