@@ -14,17 +14,17 @@
     /* Brand core — inverted: cream paper, green ink, brass as accent.
        Token names preserved (walnut/cream/brass) so existing class usage
        remains semantically correct after the inversion. */
-    --green: 152 55% 14%;          /* deep phthalo, primary ink */
-    --green-deep: 152 60% 9%;
+    --green: 152 60% 10%;          /* deep phthalo, primary ink */
+    --green-deep: 152 65% 6%;
     /* "walnut" is now the page background — warm cream paper */
     --walnut: 42 45% 92%;          /* #F5EFE0-ish */
     --walnut-soft: 40 38% 88%;
     /* "brass" stays gold but slightly deeper for contrast on cream */
-    --brass: 32 55% 42%;           /* #A47532-ish */
-    --brass-bright: 34 62% 48%;
+    --brass: 32 60% 36%;           /* deeper gold for readable accent */
+    --brass-bright: 34 65% 42%;
     /* "cream" is now the foreground ink — deep phthalo green */
-    --cream: 152 55% 12%;
-    --cream-dim: 152 30% 22%;
+    --cream: 152 60% 9%;
+    --cream-dim: 152 35% 18%;
 
     /* Surfaces — light paper stack, cool sage tint as it deepens */
     --surface-0: 42 50% 96%;       /* paper white */
@@ -103,6 +103,7 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'ss01', 'cv01';
+    font-weight: 450;
     background-color: hsl(var(--walnut));
   }
 
@@ -116,6 +117,7 @@
   .font-display {
     font-family: 'Cormorant Garamond', 'Times New Roman', serif;
     font-feature-settings: 'liga', 'dlig';
+    font-weight: 500;
   }
   .font-mono-tech {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
