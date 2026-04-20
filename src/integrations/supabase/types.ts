@@ -16,31 +16,37 @@ export type Database = {
     Tables: {
       benchmarks_materialised: {
         Row: {
+          function: string | null
           id: string
           level: Database["public"]["Enums"]["assessment_level"]
           median_score: number | null
           pillar_medians: Json | null
           refreshed_at: string
+          region: string | null
           sample_size: number
           sector: string | null
           size_band: string | null
         }
         Insert: {
+          function?: string | null
           id?: string
           level: Database["public"]["Enums"]["assessment_level"]
           median_score?: number | null
           pillar_medians?: Json | null
           refreshed_at?: string
+          region?: string | null
           sample_size?: number
           sector?: string | null
           size_band?: string | null
         }
         Update: {
+          function?: string | null
           id?: string
           level?: Database["public"]["Enums"]["assessment_level"]
           median_score?: number | null
           pillar_medians?: Json | null
           refreshed_at?: string
+          region?: string | null
           sample_size?: number
           sector?: string | null
           size_band?: string | null
@@ -285,6 +291,7 @@ export type Database = {
           level: Database["public"]["Enums"]["assessment_level"]
           org_size: string | null
           pain: string | null
+          region: string | null
           role: string | null
           sector: string | null
           slug: string
@@ -302,6 +309,7 @@ export type Database = {
           level: Database["public"]["Enums"]["assessment_level"]
           org_size?: string | null
           pain?: string | null
+          region?: string | null
           role?: string | null
           sector?: string | null
           slug?: string
@@ -319,6 +327,7 @@ export type Database = {
           level?: Database["public"]["Enums"]["assessment_level"]
           org_size?: string | null
           pain?: string | null
+          region?: string | null
           role?: string | null
           sector?: string | null
           slug?: string
