@@ -337,6 +337,8 @@ export type Database = {
     Functions: {
       gen_slug: { Args: never; Returns: string }
       is_my_respondent: { Args: { _respondent_id: string }; Returns: boolean }
+      normalize_size_band: { Args: { _org_size: string }; Returns: string }
+      recompute_benchmarks: { Args: { _min_sample?: number }; Returns: number }
     }
     Enums: {
       assessment_level: "company" | "function" | "individual"
