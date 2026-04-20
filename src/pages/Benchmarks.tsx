@@ -203,9 +203,9 @@ export default function Benchmarks() {
       {/* Filters */}
       <section className="py-10 border-b border-cream/10">
         <div className="container grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FilterPill label="Level" options={LEVELS} value={level} onChange={setLevel} />
-          <FilterPill label="Org size" options={SIZES} value={size} onChange={setSize} />
-          <FilterPill label="Sector" options={SECTORS} value={sector} onChange={setSector} />
+          <FilterPill<Level> label="Level" options={LEVELS} value={level} onChange={setLevel} />
+          <FilterPill<SizeBand> label="Org size" options={SIZES} value={size} onChange={setSize} />
+          <FilterPill<Sector> label="Sector" options={SECTORS} value={sector} onChange={setSector} />
         </div>
       </section>
 
