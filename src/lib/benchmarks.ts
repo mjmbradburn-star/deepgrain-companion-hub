@@ -4,6 +4,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
+type Level = Database["public"]["Enums"]["assessment_level"];
+
 export type BenchmarkRow = Database["public"]["Tables"]["benchmarks_materialised"]["Row"] & {
   function?: string | null;
   region?: string | null;
@@ -60,7 +62,7 @@ export async function fetchBestSlice({
   function: fn,
   region,
 }: {
-  level: string;
+  level: Level;
   function?: string | null;
   region?: string | null;
 }): Promise<MatchedSlice | null> {
