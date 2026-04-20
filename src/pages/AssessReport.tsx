@@ -353,6 +353,15 @@ function OverviewTab({
           </div>
         </div>
       </div>
+
+      {/* Cohort delta card — full width below the score + radar */}
+      <div className="mt-16">
+        <BenchmarkSliceCard
+          values={pillarValues}
+          userScore={report.aioi_score}
+          slice={slice}
+        />
+      </div>
     </section>
   );
 }
