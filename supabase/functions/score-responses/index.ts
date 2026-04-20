@@ -6,64 +6,25 @@
 // by re-checking respondents.user_id against the JWT's sub.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import {
+  PILLAR_NAMES,
+  PILLAR_WEIGHTS,
+  TIER_LABELS,
+  type TierLabel,
+  tierForScore,
+  tierLabel,
+  pillarTiers as computePillarTiers,
+  aioiScore,
+  topHotspots,
+  fallbackDiagnosis,
+  fallbackPlan,
+} from "./scoring.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-// ─── Domain constants ──────────────────────────────────────────────────────
-const PILLAR_NAMES: Record<number, string> = {
-  1: "Strategy & Mandate",
-  2: "Data Foundations",
-  3: "Tooling & Infrastructure",
-  4: "Workflow Integration",
-  5: "Skills & Fluency",
-  6: "Governance & Risk",
-  7: "Measurement & ROI",
-  8: "Culture & Adoption",
-};
-
-// Causal weighting — Strategy / Data / Workflow upstream of the rest.
-const PILLAR_WEIGHTS: Record<number, number> = {
-  1: 0.14,
-  2: 0.14,
-  3: 0.12,
-  4: 0.14,
-  5: 0.12,
-  6: 0.12,
-  7: 0.12,
-  8: 0.10,
-};
-
-const TIER_LABELS = [
-  "Dormant",
-  "Reactive",
-  "Exploratory",
-  "Operational",
-  "Integrated",
-  "AI-Native",
-] as const;
-
-type TierLabel = (typeof TIER_LABELS)[number];
-
-const SCORE_BANDS: Array<{ max: number; tier: TierLabel }> = [
-  { max: 14, tier: "Dormant" },
-  { max: 29, tier: "Reactive" },
-  { max: 49, tier: "Exploratory" },
-  { max: 69, tier: "Operational" },
-  { max: 87, tier: "Integrated" },
-  { max: 100, tier: "AI-Native" },
-];
-
-function tierForScore(score: number): TierLabel {
-  return SCORE_BANDS.find((b) => score <= b.max)!.tier;
-}
-
-function tierLabel(idx: number): TierLabel {
-  return TIER_LABELS[Math.max(0, Math.min(5, idx))];
-}
 
 // ─── Handler ───────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
