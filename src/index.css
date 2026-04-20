@@ -11,31 +11,36 @@
 
 @layer base {
   :root {
-    /* Brand core */
-    --green: 152 51% 11%;        /* #123524 phthalo */
-    --green-deep: 152 60% 7%;
-    --walnut: 19 41% 8%;         /* #1C0F0A */
-    --walnut-soft: 19 30% 12%;
-    --brass: 30 43% 44%;         /* #A07840 */
-    --brass-bright: 36 56% 58%;
-    --cream: 44 50% 90%;         /* #F2EBD9 */
-    --cream-dim: 44 30% 78%;
+    /* Brand core — inverted: cream paper, green ink, brass as accent.
+       Token names preserved (walnut/cream/brass) so existing class usage
+       remains semantically correct after the inversion. */
+    --green: 152 55% 14%;          /* deep phthalo, primary ink */
+    --green-deep: 152 60% 9%;
+    /* "walnut" is now the page background — warm cream paper */
+    --walnut: 42 45% 92%;          /* #F5EFE0-ish */
+    --walnut-soft: 40 38% 88%;
+    /* "brass" stays gold but slightly deeper for contrast on cream */
+    --brass: 32 55% 42%;           /* #A47532-ish */
+    --brass-bright: 34 62% 48%;
+    /* "cream" is now the foreground ink — deep phthalo green */
+    --cream: 152 55% 12%;
+    --cream-dim: 152 30% 22%;
 
-    /* Surfaces (product chrome layered on walnut) */
-    --surface-0: 19 41% 6%;
-    --surface-1: 19 38% 9%;
-    --surface-2: 19 32% 13%;
-    --surface-3: 19 28% 17%;
+    /* Surfaces — light paper stack, cool sage tint as it deepens */
+    --surface-0: 42 50% 96%;       /* paper white */
+    --surface-1: 42 38% 90%;       /* warm off-white */
+    --surface-2: 90 18% 84%;       /* sage tint */
+    --surface-3: 90 15% 76%;
 
-    /* Pillar accents — warm, brass-harmonised */
-    --pillar-1: 80 18% 55%;   /* sage */
-    --pillar-2: 38 38% 65%;   /* sand */
-    --pillar-3: 95 22% 38%;   /* moss */
-    --pillar-4: 18 52% 52%;   /* terracotta */
-    --pillar-5: 36 65% 56%;   /* amber */
-    --pillar-6: 30 43% 44%;   /* brass */
-    --pillar-7: 6 42% 48%;    /* muted red */
-    --pillar-8: 210 12% 42%;  /* slate */
+    /* Pillar accents — retuned to harmonise with green on cream */
+    --pillar-1: 95 28% 32%;   /* moss */
+    --pillar-2: 80 22% 42%;   /* sage */
+    --pillar-3: 70 28% 35%;   /* olive */
+    --pillar-4: 38 55% 42%;   /* ochre */
+    --pillar-5: 18 52% 42%;   /* terracotta */
+    --pillar-6: 32 55% 42%;   /* brass */
+    --pillar-7: 14 38% 38%;   /* clay */
+    --pillar-8: 200 18% 38%;  /* slate */
 
     /* Semantic mappings (shadcn) */
     --background: var(--walnut);
@@ -47,24 +52,24 @@
     --popover: var(--surface-2);
     --popover-foreground: var(--cream);
 
-    --primary: var(--brass);
-    --primary-foreground: var(--walnut);
+    --primary: var(--green);
+    --primary-foreground: 42 50% 96%;
 
     --secondary: var(--surface-2);
     --secondary-foreground: var(--cream);
 
     --muted: var(--surface-2);
-    --muted-foreground: 44 20% 65%;
+    --muted-foreground: 152 20% 28%;
 
-    --accent: var(--green);
-    --accent-foreground: var(--cream);
+    --accent: var(--brass);
+    --accent-foreground: 42 50% 96%;
 
-    --destructive: 6 60% 45%;
-    --destructive-foreground: var(--cream);
+    --destructive: 6 60% 38%;
+    --destructive-foreground: 42 50% 96%;
 
-    --border: 44 30% 90% / 0.12;
-    --input: 44 30% 90% / 0.16;
-    --ring: var(--brass);
+    --border: 152 30% 14% / 0.14;
+    --input: 152 30% 14% / 0.18;
+    --ring: var(--green);
 
     --radius: 0.5rem;
 
@@ -87,7 +92,7 @@
 
 @layer base {
   * {
-    border-color: hsl(var(--cream) / 0.12);
+    border-color: hsl(var(--green) / 0.14);
   }
 
   html {
@@ -102,8 +107,8 @@
   }
 
   ::selection {
-    background-color: hsl(var(--brass) / 0.35);
-    color: hsl(var(--cream));
+    background-color: hsl(var(--brass) / 0.3);
+    color: hsl(var(--green));
   }
 }
 
@@ -120,11 +125,11 @@
   }
 
   .eyebrow {
-    @apply font-ui uppercase tracking-[0.18em] text-xs text-brass-bright/90;
+    @apply font-ui uppercase tracking-[0.18em] text-xs text-brass/90;
   }
 
   .hairline {
-    background-color: hsl(var(--cream) / 0.12);
+    background-color: hsl(var(--green) / 0.14);
   }
 
   .grain::before {
