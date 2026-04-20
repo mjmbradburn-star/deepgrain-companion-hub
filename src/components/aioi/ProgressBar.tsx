@@ -50,10 +50,8 @@ export function ProgressBar({ segments, className, currentPillar, currentPillarL
         {segments.map((s, i) => (
           <div
             key={i}
-            className={cn(
-              "flex-1 h-full rounded-[1px] transition-all duration-500 ease-out",
-              s.filled ? pillarFill[s.pillar] : "bg-cream/10",
-            )}
+            className="flex-1 h-full rounded-[1px] transition-[background-color] duration-200 ease-out"
+            style={{ backgroundColor: s.filled ? pillarColorVar[s.pillar] : EMPTY_FILL }}
           />
         ))}
       </div>
