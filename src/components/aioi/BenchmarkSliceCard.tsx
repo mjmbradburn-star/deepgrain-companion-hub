@@ -8,6 +8,12 @@ import { useMemo } from "react";
 
 import { PILLAR_NAMES } from "@/lib/assessment";
 import { pillarsFromRow, type MatchedSlice } from "@/lib/benchmarks";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   /** User's pillar tiers (1..8 → 0..5). */
