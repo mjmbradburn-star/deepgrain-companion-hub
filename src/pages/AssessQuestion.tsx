@@ -48,6 +48,14 @@ export default function AssessQuestion() {
     [idx, draft.answers],
   );
 
+  // Pillar grouping: where this question sits within its pillar.
+  const pillarPosition = useMemo(() => {
+    if (!question) return { index: 0, total: 0 };
+    const inPillar = FUNCTION_QUESTIONS.filter((q) => q.pillar === question.pillar);
+    const indexInPillar = inPillar.findIndex((q) => q.id === question.id) + 1;
+    return { index: indexInPillar, total: inPillar.length };
+  }, [question]);
+
   const goTo = useCallback(
     (nextStep: number, dir: "forward" | "back") => {
       setDirection(dir);
@@ -129,10 +137,14 @@ export default function AssessQuestion() {
             direction === "forward" ? "animate-[fade-up_320ms_cubic-bezier(0.22,1,0.36,1)_both]" : "animate-fade-in"
           }`}
         >
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-8">
             <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
-              Question {stepNum} · Pillar {question.pillar}
+              Question {stepNum} of {FUNCTION_QUESTIONS.length}
+              <span className="mx-2 text-cream/20">·</span>
+              <span className="text-cream/60">{PILLAR_NAMES[question.pillar]}</span>
+              <span className="mx-2 text-cream/20">·</span>
+              {pillarPosition.index} of {pillarPosition.total} in pillar
             </span>
           </div>
 
