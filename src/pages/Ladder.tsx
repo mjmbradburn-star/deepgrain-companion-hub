@@ -9,138 +9,107 @@ interface TierEntry {
   scoreBand: string;
   tag: string;
   thesis: string;
-  feels: string[]; // what it feels like inside
-  proof: string[]; // proof points / observable signs
-  hazard: string; // the trap at this tier
-  next: string; // what gets you to the next rung
-  populationPct: number; // notional share of the cohort
+  here: string[]; // "you're probably here if…"
+  watch: string; // the next thing to watch for
+  next: string; // to climb a rung
+  populationPct: number;
 }
 
 const TIERS: TierEntry[] = [
   {
     tier: "Dormant",
     index: 0,
-    scoreBand: "0 – 14",
-    tag: "AI is a rumour.",
+    scoreBand: "0 to 14",
+    tag: "It hasn't really come up.",
     thesis:
-      "AI exists as headlines and competitor anecdotes, not as anything that touches how the work actually happens. There is no owner, no budget, and no policy because there is nothing to govern yet.",
-    feels: [
-      "Nobody can name the person responsible.",
-      "Conversations stay at the slide level — never the workflow level.",
-      "If asked 'what AI do you use?', the honest answer is 'we don't'.",
+      "AI exists in headlines and competitor anecdotes, not in anything that touches how the work actually happens. There's no owner, no budget, no policy, mostly because there's nothing to govern yet. That's a fine starting point.",
+    here: [
+      "If asked who owns AI here, you'd struggle to name one person.",
+      "Conversations stay at the slide level, rarely the workflow level.",
+      "If asked which AI tools you use, the honest answer is none.",
     ],
-    proof: [
-      "Zero approved AI tools in the stack.",
-      "No mention of AI in any function's quarterly plan.",
-      "No record of even an informal pilot in the last six months.",
-    ],
-    hazard: "Confusing 'we're cautious' with 'we're behind'. The first is a posture; the second is a position.",
+    watch: "Confusing 'we're cautious' with 'we're behind'. The first is a posture you can hold; the second is a position you have to climb out of.",
     next: "Pick one workflow. Find one person. Give them six weeks. That's it.",
     populationPct: 18,
   },
   {
     tier: "Reactive",
     index: 1,
-    scoreBand: "15 – 29",
-    tag: "Used when forced.",
+    scoreBand: "15 to 29",
+    tag: "Used quietly when stuck.",
     thesis:
-      "Individuals reach for ChatGPT when they're stuck — to draft a tricky email, summarise a long document, get unstuck on code. It's invisible, unsanctioned, and entirely personal. There is no shared playbook because there is no shared anything.",
-    feels: [
-      "People use it but don't talk about it.",
-      "Spend shows up on personal cards, not the function budget.",
-      "If you removed it tomorrow, no process would break — it isn't in any process.",
+      "People reach for ChatGPT when they're stuck. To draft a tricky email, summarise a long doc, get unstuck on code. It's invisible, unsanctioned and personal. There's no shared way of doing things because there's no shared anything.",
+    here: [
+      "People use it but don't really talk about it.",
+      "Spend turns up on personal cards, not the function budget.",
+      "If you took it away tomorrow, no process would break, because it isn't in any process.",
     ],
-    proof: [
-      "Personal ChatGPT subscriptions outnumber team licences.",
-      "An informal 'don't paste customer data' rule, communicated verbally.",
-      "No measurement of any kind.",
-    ],
-    hazard: "A breach you only learn about when it's already in a headline. Shadow AI is a governance failure dressed as savings.",
-    next: "Sanction one tool. Write one page of policy. Name one owner. Today, not next quarter.",
+    watch: "A breach you only learn about when it's already in a headline. Quiet usage is still your responsibility.",
+    next: "Approve one tool. Write one page of policy. Name one owner. This week, not next quarter.",
     populationPct: 27,
   },
   {
     tier: "Exploratory",
     index: 2,
-    scoreBand: "30 – 49",
+    scoreBand: "30 to 49",
     tag: "Pilots and pet projects.",
     thesis:
-      "A function or two — usually marketing, sales ops, or engineering — is running real experiments. There are wins. The wins are owned by believers and depend on those believers staying. None of it has reached the production workflow that pays the bills.",
-    feels: [
+      "A team or two, often marketing, sales ops or engineering, is running real experiments. There are wins. The wins belong to the people who care most, and depend on those people staying. None of it has reached the production work that pays the bills.",
+    here: [
       "Three slides at the leadership offsite, two of which are demos.",
-      "A monthly 'AI working group' meeting that is more interesting than useful.",
-      "Excitement that has not yet translated into a single line in a job description.",
+      "A monthly working group that's more interesting than useful.",
+      "Excitement that hasn't yet shown up in a job description.",
     ],
-    proof: [
-      "One or two team licences to mainstream copilots.",
-      "A written but lightly-enforced acceptable-use policy.",
-      "ROI claims expressed as anecdotes ('saves me an hour').",
-    ],
-    hazard: "The pilot purgatory: enough success to feel ahead, not enough to be ahead. Believers leave; the work goes with them.",
-    next: "Pick the pilot with the strongest ROI. Make it the default for that workflow. Write the playbook. Ship it.",
+    watch: "Pilot purgatory. Enough success to feel ahead, not enough to actually be ahead. When the believers leave, the work goes with them.",
+    next: "Pick the pilot with the strongest evidence. Make it the default for that workflow. Write the playbook. Ship it.",
     populationPct: 28,
   },
   {
     tier: "Operational",
     index: 3,
-    scoreBand: "50 – 69",
-    tag: "AI is in the workflow.",
+    scoreBand: "50 to 69",
+    tag: "Now part of the work.",
     thesis:
-      "Two or three named workflows now run through AI on production data, with playbooks and a measurement habit. Adoption is uneven — some teams are racing, others are watching — but the function has crossed the line from experimentation to operation.",
-    feels: [
+      "Two or three named workflows run through AI on production data, with playbooks and a measurement habit. Adoption is uneven. Some teams are racing, some are watching. The function has crossed the line from experimenting to operating.",
+    here: [
       "New joiners get an AI tooling section in their onboarding.",
-      "Quarterly reviews include hours-saved and cycle-time numbers.",
+      "Quarterly reviews include hours-saved or cycle-time numbers.",
       "Leadership talks about 'our AI stack', not 'AI'.",
     ],
-    proof: [
-      "An approved stack with SSO, data controls, audit trails.",
-      "Hours-saved tracked on at least two workflows.",
-      "A single accountable lead with a budget and a roadmap.",
-    ],
-    hazard: "Plateau. Tooling stays the same; the world doesn't. Operational becomes legacy faster than anyone expects.",
-    next: "Move from 'AI in workflows' to 'workflows redesigned around AI'. Different work, different verb.",
+    watch: "Plateau. The tooling stays the same, the world doesn't. Operational becomes legacy faster than anyone expects.",
+    next: "Move from 'AI in workflows' to 'workflows redesigned around AI'. Different verb, different work.",
     populationPct: 17,
   },
   {
     tier: "Integrated",
     index: 4,
-    scoreBand: "70 – 87",
-    tag: "Default for most work.",
+    scoreBand: "70 to 87",
+    tag: "The default first draft.",
     thesis:
-      "AI is the assumed first draft for most production work — content, code, analysis, customer comms — with humans on review. Skills are widespread; the median person, not the keenest one, is the level you measure. Governance, measurement and tooling all keep up.",
-    feels: [
-      "Meetings about 'should we use AI for this?' have stopped happening.",
+      "AI is the assumed first draft for most production work, with humans on review. Skills are widespread. The level you measure is the median person, not the keenest. Governance, measurement and tooling all keep up with what people are doing.",
+    here: [
+      "Meetings about whether to use AI for something have stopped happening.",
       "The function publishes a quarterly AI scorecard and means it.",
       "Hiring criteria include AI fluency by default, not as a nice-to-have.",
     ],
-    proof: [
-      "Internal copilots wired into core systems for at least three workflows.",
-      "Live monitoring, audit trails, model risk register.",
-      "Hours, quality and cycle time reported quarterly to leadership.",
-    ],
-    hazard: "Believing the journey is over. Integrated is a great place; AI-Native is a different sport.",
-    next: "Redesign the operating model around model capability. Hire and structure for it. Stop bolting AI onto an org chart written before it existed.",
+    watch: "Believing the work is finished. Integrated is a great place; AI-Native is a different sport.",
+    next: "Redesign the operating model around what models can do. Hire and structure for it. Stop bolting AI onto an org chart written before it existed.",
     populationPct: 8,
   },
   {
     tier: "AI-Native",
     index: 5,
-    scoreBand: "88 – 100",
-    tag: "Operating system, not tool.",
+    scoreBand: "88 to 100",
+    tag: "How the work is designed.",
     thesis:
-      "The function — sometimes the company — is designed model-first. Workflows assume model output; humans escalate exceptions. Hiring, structure and unit economics reflect what models can do this year and what they will do next year. Compounding leverage. Most companies will never be here, and that's fine.",
-    feels: [
+      "The function, sometimes the company, is designed model-first. Workflows assume model output and people step in for the exceptions. Hiring, structure and unit economics reflect what models can do this year and what they'll do next. Compounding leverage. Most companies will never be here, and that's fine.",
+    here: [
       "The org chart is unrecognisable from five years ago.",
       "AI-attributable revenue is in the P&L, not a footnote.",
       "Talent comes for the operating model, not the salary.",
     ],
-    proof: [
-      "Bespoke agents in production, monitored, with fallbacks and SLAs.",
-      "Model risk register reviewed at board level.",
-      "Margin advantage attributable to AI, defensible in a board pack.",
-    ],
-    hazard: "Model brittleness at the edges. The further you push, the further you have to fall when a foundation model changes underneath you.",
-    next: "There's no next tier. The work becomes maintaining the lead while the rest of the index re-baselines around you.",
+    watch: "Model brittleness at the edges. The further you push, the further you have to fall when a foundation model changes underneath you.",
+    next: "There's no next rung. The work becomes maintaining the lead while the rest of the index re-baselines around you.",
     populationPct: 2,
   },
 ];
@@ -159,10 +128,10 @@ export default function Ladder() {
           <p className="eyebrow mb-6">The Maturity Ladder</p>
           <h1 className="font-display font-light text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[16ch] text-balance">
             Six rungs.<br />
-            <span className="italic font-normal text-brass-bright">No participation prizes.</span>
+            <span className="italic font-normal text-brass-bright">Climb the one in front of you.</span>
           </h1>
           <p className="mt-8 max-w-2xl font-display text-xl sm:text-2xl text-cream/70 leading-snug">
-            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate — and the gap between your weakest and strongest pillar is usually the more interesting number than the average.
+            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually the more interesting number than the average.
           </p>
         </div>
       </section>
@@ -245,13 +214,10 @@ export default function Ladder() {
                   {t.thesis}
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
-                  <List title="What it feels like" items={t.feels} />
-                  <List title="What you'd see" items={t.proof} />
-                </div>
+                <List title="You're probably here if" items={t.here} />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
-                  <Callout kind="hazard" title="The trap at this tier" body={t.hazard} />
+                  <Callout kind="watch" title="The next thing to watch for" body={t.watch} />
                   <Callout kind="next" title="To climb a rung" body={t.next} />
                 </div>
               </div>
@@ -265,7 +231,7 @@ export default function Ladder() {
         <div className="container max-w-4xl py-24 text-center">
           <p className="eyebrow mb-5">Find your rung</p>
           <h2 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
-            Eighteen minutes.<br />
+            Seven minutes.<br />
             <span className="italic text-brass-bright">A score you can argue with.</span>
           </h2>
           <a
@@ -300,7 +266,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function List({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="rounded-sm border border-cream/10 bg-surface-1/40 p-5">
+    <div className="rounded-sm border border-cream/10 bg-surface-1/40 p-5 max-w-2xl">
       <p className="eyebrow mb-3 text-cream/45">{title}</p>
       <ul className="space-y-2">
         {items.map((it, i) => (
@@ -314,15 +280,15 @@ function List({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function Callout({ kind, title, body }: { kind: "hazard" | "next"; title: string; body: string }) {
-  const isHazard = kind === "hazard";
+function Callout({ kind, title, body }: { kind: "watch" | "next"; title: string; body: string }) {
+  const isWatch = kind === "watch";
   return (
     <div
       className={`rounded-sm border p-5 ${
-        isHazard ? "border-pillar-7/30 bg-pillar-7/5" : "border-brass/30 bg-brass/5"
+        isWatch ? "border-pillar-7/30 bg-pillar-7/5" : "border-brass/30 bg-brass/5"
       }`}
     >
-      <p className={`eyebrow mb-2 ${isHazard ? "text-pillar-7/80" : "text-brass-bright/80"}`}>
+      <p className={`eyebrow mb-2 ${isWatch ? "text-pillar-7/80" : "text-brass-bright/80"}`}>
         {title}
       </p>
       <p className="font-display text-lg text-cream/85 leading-snug">{body}</p>
