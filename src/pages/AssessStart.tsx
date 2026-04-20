@@ -154,6 +154,29 @@ export default function AssessStart() {
           </Step>
         )}
 
+        {screen === "region" && (
+          <Step
+            key="region"
+            heading={<>Where in the world are you <span className="italic text-brass-bright">based?</span></>}
+            sub="So we can place you on the regional benchmark — adoption looks very different across geographies."
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {REGIONS.map((opt, i) => (
+                <OptionCard
+                  key={opt}
+                  index={i + 1}
+                  title={opt}
+                  selected={draft.qualifier?.region === opt}
+                  onClick={() => {
+                    update({ region: opt as Region });
+                    setTimeout(() => advance("region"), 180);
+                  }}
+                />
+              ))}
+            </div>
+          </Step>
+        )}
+
         {screen === "function" && draft.level === "function" && (
           <Step
             key="function"
