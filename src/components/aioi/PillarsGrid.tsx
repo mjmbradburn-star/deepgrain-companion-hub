@@ -34,7 +34,7 @@ export function PillarsGrid() {
                 <span className="font-mono text-xs text-cream/30">0{p.i}</span>
               </div>
               <h3 className="font-display text-2xl text-cream leading-snug mb-3">{p.name}</h3>
-              <p className="text-sm text-cream/55 leading-relaxed">{p.blurb}</p>
+              <p className="text-sm text-cream/75 leading-relaxed">{p.blurb}</p>
             </article>
           ))}
         </div>
