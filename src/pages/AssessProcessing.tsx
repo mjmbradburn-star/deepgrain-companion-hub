@@ -169,6 +169,12 @@ export default function AssessProcessing() {
   return (
     <AssessChrome ariaLabel="Building your report">
       <main className="container max-w-2xl w-full py-20 flex flex-col">
+        {seedMode && (
+          <div className="mb-6 inline-flex items-center gap-2 self-start rounded-sm border border-brass/40 bg-brass/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
+            <span className="h-1.5 w-1.5 rounded-full bg-brass-bright animate-pulse" />
+            Dev seed mode · synthetic session
+          </div>
+        )}
         {phase === "checking" && (
           <Headline eyebrow="One moment" line1="Checking your session…" />
         )}
