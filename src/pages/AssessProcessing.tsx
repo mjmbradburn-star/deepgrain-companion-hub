@@ -57,12 +57,63 @@ const SYNC_LINES = [
 
 export default function AssessProcessing() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const seedMode = import.meta.env.DEV && searchParams.get("seed") === "1";
   const [phase, setPhase] = useState<Phase>("checking");
   const [error, setError] = useState<string | null>(null);
   const [emailSentTo, setEmailSentTo] = useState<string | null>(null);
   const [shown, setShown] = useState<string[]>([]);
   const [resending, setResending] = useState(false);
   const finalisedRef = useRef(false); // guard against StrictMode double-fire
+
+  // 1. Decide what to do based on session + draft.
+  useEffect(() => {
+    const draft = loadDraft();
+
+    if (!draft.level) {
+      navigate("/assess", { replace: true });
+      return;
+    }
+    if (Object.keys(draft.answers ?? {}).length === 0) {
+      navigate("/assess/q/1", { replace: true });
+      return;
+    }
+
+    let cancelled = false;
+
+    const handleSession = async (signedIn: boolean) => {
+      if (cancelled || finalisedRef.current) return;
+      if (signedIn) {
+        finalisedRef.current = true;
+        setPhase("syncing");
+        try {
+          const { slug } = await finaliseAssessment();
+          if (cancelled) return;
+          setPhase("done");
+          // Brief settle before redirect so the build-log finishes.
+          window.setTimeout(() => {
+            if (!cancelled) navigate(`/assess/r/${slug}`, { replace: true });
+          }, 1400);
+        } catch (err) {
+          console.error("[finalise] failed", err);
+          if (!cancelled) {
+            setPhase("error");
+            setError(err instanceof SyncError ? err.message : "Something went wrong saving your answers.");
+          }
+        }
+      } else if (seedMode) {
+        // Dev shortcut — bypass the magic-link wait by minting a synthetic session.
+        try {
+          await seedDevSession();
+          // onAuthStateChange will fire and re-enter handleSession with signedIn=true.
+        } catch (err) {
+          console.error("[seed] failed", err);
+          if (!cancelled) {
+            setPhase("error");
+            setError(err instanceof SyncError ? err.message : "Seed session failed.");
+          }
+        }
+      } else {
 
   // 1. Decide what to do based on session + draft.
   useEffect(() => {
