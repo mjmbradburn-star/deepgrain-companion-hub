@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
-import { loadDraft } from "@/lib/assessment";
+import { loadDraft, getQuestions } from "@/lib/assessment";
 import { ensureRespondent, flushAnswers } from "@/lib/sync";
-import { FUNCTION_QUESTIONS } from "@/lib/assessment";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -56,7 +55,8 @@ export default function AuthCallback() {
         return;
       }
       const answered = Object.keys(draft.answers ?? {}).length;
-      if (answered >= FUNCTION_QUESTIONS.length) {
+      const totalQuestions = getQuestions(draft.level).length;
+      if (answered >= totalQuestions) {
         navigate("/assess/processing", { replace: true });
       } else if (draft.level && answered > 0) {
         navigate(`/assess/q/${answered + 1}`, { replace: true });

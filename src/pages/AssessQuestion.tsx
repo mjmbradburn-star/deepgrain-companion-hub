@@ -8,7 +8,7 @@ import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { Button } from "@/components/ui/button";
 import {
-  FUNCTION_QUESTIONS,
+  getQuestions,
   PILLAR_NAMES,
   loadDraft,
   saveDraft,
@@ -19,11 +19,11 @@ import { pushAnswer } from "@/lib/sync";
 export default function AssessQuestion() {
   const { step } = useParams<{ step: string }>();
   const navigate = useNavigate();
-  const stepNum = Math.max(1, Math.min(FUNCTION_QUESTIONS.length, parseInt(step ?? "1", 10) || 1));
-  const idx = stepNum - 1;
-
   const [draft, setDraft] = useState<AssessmentDraft>(() => loadDraft());
   const [direction, setDirection] = useState<"forward" | "back">("forward");
+  const questions = useMemo(() => getQuestions(draft.level), [draft.level]);
+  const stepNum = Math.max(1, Math.min(questions.length, parseInt(step ?? "1", 10) || 1));
+  const idx = stepNum - 1;
 
   // Guard: must have a level + email captured
   useEffect(() => {
@@ -36,25 +36,25 @@ export default function AssessQuestion() {
     }
   }, [draft.level, draft.qualifier?.email, navigate]);
 
-  const question = FUNCTION_QUESTIONS[idx];
+  const question = questions[idx];
   const selected = question ? draft.answers[question.id] : undefined;
 
   const segments = useMemo(
     () =>
-      FUNCTION_QUESTIONS.map((q, i) => ({
+      questions.map((q, i) => ({
         pillar: q.pillar,
         filled: i <= idx && draft.answers[q.id] !== undefined,
       })),
-    [idx, draft.answers],
+    [idx, draft.answers, questions],
   );
 
   // Pillar grouping: where this question sits within its pillar.
   const pillarPosition = useMemo(() => {
     if (!question) return { index: 0, total: 0 };
-    const inPillar = FUNCTION_QUESTIONS.filter((q) => q.pillar === question.pillar);
+    const inPillar = questions.filter((q) => q.pillar === question.pillar);
     const indexInPillar = inPillar.findIndex((q) => q.id === question.id) + 1;
     return { index: indexInPillar, total: inPillar.length };
-  }, [question]);
+  }, [question, questions]);
 
   const goTo = useCallback(
     (nextStep: number, dir: "forward" | "back") => {
@@ -76,7 +76,7 @@ export default function AssessQuestion() {
       }
       // Auto-advance with a short delay for the visual ack
       window.setTimeout(() => {
-        if (stepNum < FUNCTION_QUESTIONS.length) {
+        if (stepNum < questions.length) {
           goTo(stepNum + 1, "forward");
         } else {
           navigate("/assess/processing");
@@ -108,7 +108,7 @@ export default function AssessQuestion() {
         goBack();
       } else if ((e.key === "ArrowRight" || e.key === "Enter") && selected !== undefined) {
         e.preventDefault();
-        if (stepNum < FUNCTION_QUESTIONS.length) goTo(stepNum + 1, "forward");
+        if (stepNum < questions.length) goTo(stepNum + 1, "forward");
         else navigate("/assess/processing");
       }
     };
@@ -121,9 +121,9 @@ export default function AssessQuestion() {
   return (
     <AssessChrome
       step={stepNum}
-      total={FUNCTION_QUESTIONS.length}
+      total={questions.length}
       back={{ to: "#", label: "Back" }}
-      ariaLabel={`Question ${stepNum} of ${FUNCTION_QUESTIONS.length}`}
+      ariaLabel={`Question ${stepNum} of ${questions.length}`}
     >
       <main className="w-full flex flex-col">
         {/* Progress bar — full width under the chrome */}
@@ -140,7 +140,7 @@ export default function AssessQuestion() {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-8">
             <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
-              Question {stepNum} of {FUNCTION_QUESTIONS.length}
+              Question {stepNum} of {questions.length}
               <span className="mx-2 text-cream/20">·</span>
               <span className="text-cream/60">{PILLAR_NAMES[question.pillar]}</span>
               <span className="mx-2 text-cream/20">·</span>
@@ -178,7 +178,7 @@ export default function AssessQuestion() {
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/30 hidden sm:inline">
                 Press 1–6 · ← back · → next
               </span>
-              {selected !== undefined && stepNum < FUNCTION_QUESTIONS.length && (
+              {selected !== undefined && stepNum < questions.length && (
                 <Button
                   size="sm"
                   onClick={() => goTo(stepNum + 1, "forward")}
@@ -187,7 +187,7 @@ export default function AssessQuestion() {
                   Next <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               )}
-              {selected !== undefined && stepNum === FUNCTION_QUESTIONS.length && (
+              {selected !== undefined && stepNum === questions.length && (
                 <Button
                   size="sm"
                   onClick={() => navigate("/assess/processing")}
