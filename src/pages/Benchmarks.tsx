@@ -40,13 +40,13 @@ function FilterPill<T extends string>({
   onChange,
   label,
 }: {
-  options: readonly { value: T; label: string }[] | readonly T[];
+  options: ReadonlyArray<{ value: T; label: string } | T>;
   value: T;
   onChange: (v: T) => void;
   label: string;
 }) {
   const normalised = options.map((o) =>
-    typeof o === "string" ? { value: o as T, label: o } : (o as { value: T; label: string }),
+    typeof o === "string" ? { value: o, label: o } : o,
   );
   return (
     <div className="flex flex-col gap-2">
