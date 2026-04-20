@@ -74,6 +74,9 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
           <p className="font-display text-2xl text-cream tracking-tight">
             {slice.label}
           </p>
+          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+            {specificityHint(slice.specificity)}
+          </p>
         </div>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
           n = {sample.toLocaleString()}
