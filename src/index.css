@@ -52,8 +52,8 @@
     --popover: var(--surface-2);
     --popover-foreground: var(--cream);
 
-    --primary: var(--brass);
-    --primary-foreground: var(--walnut);
+    --primary: var(--green);
+    --primary-foreground: 42 50% 96%;
 
     --secondary: var(--surface-2);
     --secondary-foreground: var(--cream);
