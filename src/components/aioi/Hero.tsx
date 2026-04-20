@@ -75,7 +75,7 @@ export function Hero() {
           scrolled ? "opacity-0" : "opacity-100"
         }`}
       >
-        <span className="h-8 w-px bg-cream/25" />
+        <span className="h-8 w-px bg-cream/25 origin-top motion-safe:animate-scroll-bob" />
         <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-cream/45">
           Scroll · Eight pillars
         </span>
