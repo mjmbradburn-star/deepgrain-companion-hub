@@ -28,6 +28,21 @@ interface PillarDelta {
 
 const PILLARS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
+/** One-line description of how tight the cohort match is, derived from
+ *  fetchBestSlice's `specificity`:
+ *    3 → function + region
+ *    2 → function-only OR region-only
+ *    1 → level-wide fallback
+ *    0 → last-resort first row at this level */
+function specificityHint(spec: number): string {
+  switch (spec) {
+    case 3: return "Most-specific match · function + region";
+    case 2: return "Partial match · function or region only";
+    case 1: return "Broad match · level-wide fallback";
+    default: return "Approximate match · best available";
+  }
+}
+
 export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
   const cohortPillars = slice ? pillarsFromRow(slice.row) : {};
 
@@ -73,6 +88,9 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
           <p className="eyebrow text-cream/45 mb-2">Your score vs this slice</p>
           <p className="font-display text-2xl text-cream tracking-tight">
             {slice.label}
+          </p>
+          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+            {specificityHint(slice.specificity)}
           </p>
         </div>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
