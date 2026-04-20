@@ -9,6 +9,8 @@ import Assess from "./pages/Assess.tsx";
 import AssessStart from "./pages/AssessStart.tsx";
 import AssessQuestion from "./pages/AssessQuestion.tsx";
 import AssessProcessing from "./pages/AssessProcessing.tsx";
+import Pillars from "./pages/Pillars.tsx";
+import Ladder from "./pages/Ladder.tsx";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,8 @@ const App = () => (
           <Route path="/assess/start" element={<AssessStart />} />
           <Route path="/assess/q/:step" element={<AssessQuestion />} />
           <Route path="/assess/processing" element={<AssessProcessing />} />
+          <Route path="/pillars" element={<Pillars />} />
+          <Route path="/ladder" element={<Ladder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
