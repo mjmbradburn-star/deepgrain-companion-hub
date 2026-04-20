@@ -124,7 +124,8 @@ export default function AssessReport() {
       }
 
       // Fetch outcomes referenced in the plan
-      const outcomeIds = (report.plan as PlanMonth[] | null)?.flatMap((m) => m.outcome_ids) ?? [];
+      const planRaw = (report.plan as unknown as PlanMonth[] | null) ?? [];
+      const outcomeIds = planRaw.flatMap((m) => m.outcome_ids ?? []);
       let outcomes: OutcomeRow[] = [];
       if (outcomeIds.length > 0) {
         const { data: outs } = await supabase
@@ -153,10 +154,10 @@ export default function AssessReport() {
         report: {
           aioi_score: report.aioi_score ?? 0,
           overall_tier: (report.overall_tier as Tier) ?? "Dormant",
-          pillar_tiers: (report.pillar_tiers as Record<string, PillarTierEntry>) ?? {},
-          hotspots: (report.hotspots as Hotspot[]) ?? [],
+          pillar_tiers: (report.pillar_tiers as unknown as Record<string, PillarTierEntry>) ?? {},
+          hotspots: (report.hotspots as unknown as Hotspot[]) ?? [],
           diagnosis: report.diagnosis,
-          plan: (report.plan as PlanMonth[]) ?? [],
+          plan: planRaw,
           generated_at: report.generated_at,
         },
         outcomes,
