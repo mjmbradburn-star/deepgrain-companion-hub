@@ -6,10 +6,16 @@ interface Segment {
   filled: boolean;
 }
 
-const pillarFill: Record<PillarIndex, string> = {
-  1: "bg-pillar-1", 2: "bg-pillar-2", 3: "bg-pillar-3", 4: "bg-pillar-4",
-  5: "bg-pillar-5", 6: "bg-pillar-6", 7: "bg-pillar-7", 8: "bg-pillar-8",
+// Use HSL var() so segment fill can crossfade between pillar colours
+// via inline `backgroundColor` (Tailwind class swaps cannot animate colour).
+const pillarColorVar: Record<PillarIndex, string> = {
+  1: "hsl(var(--pillar-1))", 2: "hsl(var(--pillar-2))",
+  3: "hsl(var(--pillar-3))", 4: "hsl(var(--pillar-4))",
+  5: "hsl(var(--pillar-5))", 6: "hsl(var(--pillar-6))",
+  7: "hsl(var(--pillar-7))", 8: "hsl(var(--pillar-8))",
 };
+
+const EMPTY_FILL = "hsl(var(--cream) / 0.10)";
 
 const pillarText: Record<PillarIndex, string> = {
   1: "text-pillar-1", 2: "text-pillar-2", 3: "text-pillar-3", 4: "text-pillar-4",
@@ -44,10 +50,8 @@ export function ProgressBar({ segments, className, currentPillar, currentPillarL
         {segments.map((s, i) => (
           <div
             key={i}
-            className={cn(
-              "flex-1 h-full rounded-[1px] transition-all duration-500 ease-out",
-              s.filled ? pillarFill[s.pillar] : "bg-cream/10",
-            )}
+            className="flex-1 h-full rounded-[1px] transition-[background-color] duration-200 ease-out"
+            style={{ backgroundColor: s.filled ? pillarColorVar[s.pillar] : EMPTY_FILL }}
           />
         ))}
       </div>
