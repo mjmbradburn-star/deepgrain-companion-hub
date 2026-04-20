@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Check,
   Copy,
+  Loader2,
   Mail,
   Printer,
   Send,
@@ -21,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLAR_NAMES } from "@/lib/assessment";
+import { sendMagicLink, SyncError } from "@/lib/sync";
 
 // ─── Types coming back from the report row ────────────────────────────────
 interface PillarTierEntry {
@@ -202,18 +204,21 @@ function ReportView({ data }: { data: ReportData }) {
         {/* ─── Masthead ─── */}
         <header className="border-b border-cream/10 pt-32 sm:pt-36 pb-8">
           <div className="container max-w-6xl">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
-                AIOI Report · {capitalise(respondent.level)} level
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                Slug · {respondent.slug}
-              </span>
-              {report.generated_at && (
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                  Generated · {formatDate(report.generated_at)}
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-6">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
+                  AIOI Report · {capitalise(respondent.level)} level
                 </span>
-              )}
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                  Slug · {respondent.slug}
+                </span>
+                {report.generated_at && (
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                    Generated · {formatDate(report.generated_at)}
+                  </span>
+                )}
+              </div>
+              <ResendReportLink slug={respondent.slug} />
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
@@ -681,6 +686,72 @@ function InviteTab({ respondentId, slug }: { respondentId: string; slug: string 
         </div>
       </div>
     </section>
+  );
+}
+
+// ─── Resend report link ───────────────────────────────────────────────────
+// One-click "send me the link again" for respondents returning on a new
+// device. Pulls the email from the active session, fires a fresh magic
+// link pointing back at this report, and locks the button for 60s so the
+// rate-limiter on the auth provider isn't pestered.
+function ResendReportLink({ slug }: { slug: string }) {
+  const { toast } = useToast();
+  const [email, setEmail] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled) setEmail(data.session?.user.email ?? null);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const onClick = async () => {
+    if (!email || sending || cooldown > 0) return;
+    setSending(true);
+    try {
+      const redirectTo = `${window.location.origin}/assess/r/${slug}`;
+      await sendMagicLink(email, redirectTo);
+      toast({
+        title: "Link sent",
+        description: `We've emailed a fresh sign-in link to ${email}. Check your inbox.`,
+      });
+      setCooldown(60);
+    } catch (err) {
+      const message = err instanceof SyncError ? err.message : "Could not send the link. Try again in a moment.";
+      toast({ title: "Send failed", description: message, variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (!email) return null;
+
+  return (
+    <Button
+      type="button"
+      onClick={onClick}
+      disabled={sending || cooldown > 0}
+      variant="outline"
+      size="sm"
+      className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+    >
+      {sending ? (
+        <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> Sending…</>
+      ) : cooldown > 0 ? (
+        <><Mail className="h-3.5 w-3.5 mr-2" /> Sent · {cooldown}s</>
+      ) : (
+        <><Mail className="h-3.5 w-3.5 mr-2" /> Resend report link</>
+      )}
+    </Button>
   );
 }
 
