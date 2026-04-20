@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLAR_NAMES } from "@/lib/assessment";
+import { sendMagicLink, SyncError } from "@/lib/sync";
 
 // ─── Types coming back from the report row ────────────────────────────────
 interface PillarTierEntry {
