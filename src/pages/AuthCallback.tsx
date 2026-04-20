@@ -55,7 +55,8 @@ export default function AuthCallback() {
         return;
       }
       const answered = Object.keys(draft.answers ?? {}).length;
-      if (answered >= FUNCTION_QUESTIONS.length) {
+      const totalQuestions = getQuestions(draft.level).length;
+      if (answered >= totalQuestions) {
         navigate("/assess/processing", { replace: true });
       } else if (draft.level && answered > 0) {
         navigate(`/assess/q/${answered + 1}`, { replace: true });
