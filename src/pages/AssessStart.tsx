@@ -179,8 +179,7 @@ export default function AssessStart() {
         )}
 
         {screen === "function" && draft.level !== "function" && (
-          // Skip the function picker for company / individual levels
-          <SkipFunction onSkip={() => advance("function")} />
+          <AutoSkip onSkip={() => advance("function")} />
         )}
 
         {screen === "email" && (
@@ -362,4 +361,9 @@ function Consent({
       </span>
     </label>
   );
+}
+
+function AutoSkip({ onSkip }: { onSkip: () => void }) {
+  useEffect(() => { onSkip(); }, [onSkip]);
+  return null;
 }
