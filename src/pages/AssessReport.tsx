@@ -22,6 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLAR_NAMES } from "@/lib/assessment";
+import { fetchBestSlice, pillarsFromRow, type MatchedSlice } from "@/lib/benchmarks";
+import { BenchmarkSliceCard } from "@/components/aioi/BenchmarkSliceCard";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 
 // ─── Types coming back from the report row ────────────────────────────────
@@ -60,6 +62,8 @@ interface ReportData {
     role: string | null;
     org_size: string | null;
     pain: string | null;
+    function: string | null;
+    region: string | null;
     submitted_at: string | null;
   };
   report: {
@@ -73,6 +77,7 @@ interface ReportData {
   } | null;
   outcomes: OutcomeRow[];
   cohort: Record<number, number> | null;
+  slice: MatchedSlice | null;
 }
 
 type LoadState = "loading" | "ready" | "missing" | "forbidden" | "no-report" | "error";
@@ -96,7 +101,7 @@ export default function AssessReport() {
 
       const { data: respondent, error: rErr } = await supabase
         .from("respondents")
-        .select("id, slug, level, role, org_size, pain, submitted_at, user_id")
+        .select("id, slug, level, role, org_size, pain, function, region, submitted_at, user_id")
         .eq("slug", slug)
         .maybeSingle();
       if (cancelled) return;
@@ -137,19 +142,16 @@ export default function AssessReport() {
         outcomes = (outs ?? []) as OutcomeRow[];
       }
 
-      // Cohort overlay (best-effort)
-      let cohort: Record<number, number> | null = null;
-      const { data: bench } = await supabase
-        .from("benchmarks_materialised")
-        .select("pillar_medians")
-        .eq("level", respondent.level)
-        .order("refreshed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (bench?.pillar_medians && typeof bench.pillar_medians === "object") {
-        const raw = bench.pillar_medians as Record<string, number>;
-        cohort = Object.fromEntries(Object.entries(raw).map(([k, v]) => [Number(k), Number(v)]));
-      }
+      // Resolve the most specific benchmark slice for this respondent.
+      const slice = await fetchBestSlice({
+        level: respondent.level,
+        function: respondent.function ?? null,
+        region: respondent.region ?? null,
+      });
+      // The radar overlay uses whichever slice we matched (so deltas and the
+      // radar always tell the same story).
+      const cohort = slice ? pillarsFromRow(slice.row) : null;
+      if (cancelled) return;
 
       setData({
         respondent: { ...respondent, user_id: undefined as never } as ReportData["respondent"],
@@ -164,6 +166,7 @@ export default function AssessReport() {
         },
         outcomes,
         cohort,
+        slice,
       });
       setState("ready");
     }
@@ -248,7 +251,12 @@ function ReportView({ data }: { data: ReportData }) {
 
         {/* ─── Tabs ─── */}
         <TabsPrimitive.Content value="overview" className="focus-visible:outline-none">
-          <OverviewTab report={report} pillarValues={pillarValues} cohort={cohort ?? undefined} />
+          <OverviewTab
+            report={report}
+            pillarValues={pillarValues}
+            cohort={cohort ?? undefined}
+            slice={data.slice}
+          />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
@@ -271,11 +279,12 @@ function ReportView({ data }: { data: ReportData }) {
 
 // ─── Overview ─────────────────────────────────────────────────────────────
 function OverviewTab({
-  report, pillarValues, cohort,
+  report, pillarValues, cohort, slice,
 }: {
   report: NonNullable<ReportData["report"]>;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
+  slice: MatchedSlice | null;
 }) {
   return (
     <section className="container max-w-6xl py-16 sm:py-20">
@@ -343,6 +352,15 @@ function OverviewTab({
             <RadarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} />
           </div>
         </div>
+      </div>
+
+      {/* Cohort delta card — full width below the score + radar */}
+      <div className="mt-16">
+        <BenchmarkSliceCard
+          values={pillarValues}
+          userScore={report.aioi_score}
+          slice={slice}
+        />
       </div>
     </section>
   );
