@@ -29,24 +29,10 @@ interface PillarDelta {
 const PILLARS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
-  if (!slice) {
-    return (
-      <div className="border border-cream/10 rounded-md p-6 bg-surface-1/40">
-        <p className="eyebrow text-cream/45 mb-2">Versus the field</p>
-        <p className="font-display text-cream/70 text-pretty">
-          No matching cohort yet — your slice publishes once enough peers opt in.
-        </p>
-      </div>
-    );
-  }
-
-  const cohortPillars = pillarsFromRow(slice.row);
-  const cohortScore = slice.row.median_score != null
-    ? Math.round(Number(slice.row.median_score))
-    : null;
-  const sample = slice.row.sample_size;
+  const cohortPillars = slice ? pillarsFromRow(slice.row) : {};
 
   const deltas: PillarDelta[] = useMemo(() => {
+    if (!slice) return [];
     return PILLARS.map((p) => {
       const user = values[p] ?? 0;
       const cohort = cohortPillars[p] ?? 0;
@@ -58,7 +44,25 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         delta: Math.round((user - cohort) * 10) / 10,
       };
     }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-  }, [values, cohortPillars]);
+    // cohortPillars is derived from `slice` — the slice ref is the real dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, slice]);
+
+  if (!slice) {
+    return (
+      <div className="border border-cream/10 rounded-md p-6 bg-surface-1/40">
+        <p className="eyebrow text-cream/45 mb-2">Versus the field</p>
+        <p className="font-display text-cream/70 text-pretty">
+          No matching cohort yet — your slice publishes once enough peers opt in.
+        </p>
+      </div>
+    );
+  }
+
+  const cohortScore = slice.row.median_score != null
+    ? Math.round(Number(slice.row.median_score))
+    : null;
+  const sample = slice.row.sample_size;
 
   const overallDelta = cohortScore != null ? userScore - cohortScore : null;
 
