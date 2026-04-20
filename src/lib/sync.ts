@@ -5,17 +5,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { clearDraft, type AssessmentDraft } from "./assessment";
 
-export const FUNCTION_QUESTIONS = [
-  "q1_vision",
-  "q2_strategy",
-  "q3_process",
-  "q4_data",
-  "q5_people",
-  "q6_tech",
-  "q7_culture",
-  "q8_governance"
-];
-
 export interface SyncResult {
   respondentId: string;
   slug: string;
