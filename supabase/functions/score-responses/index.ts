@@ -85,48 +85,11 @@ Deno.serve(async (req) => {
     const pillarOf = new Map<string, number>();
     for (const q of questions) pillarOf.set(q.id, q.pillar);
 
-    // 4. Compute pillar tiers (mean tier of answered questions in each pillar)
-    const pillarSums: Record<number, { sum: number; n: number }> = {};
-    for (const r of responses) {
-      const pillar = pillarOf.get(r.question_id);
-      if (!pillar) continue;
-      pillarSums[pillar] ??= { sum: 0, n: 0 };
-      pillarSums[pillar].sum += r.tier;
-      pillarSums[pillar].n += 1;
-    }
-
-    const pillarTiers: Record<number, number> = {};
-    for (let p = 1; p <= 8; p++) {
-      const agg = pillarSums[p];
-      pillarTiers[p] = agg ? Math.round((agg.sum / agg.n) * 10) / 10 : 0;
-    }
-
-    // 5. Weighted overall AIOI on a 0–100 scale (tier 0..5 → 0..100 via /5)
-    let weighted = 0;
-    let weightUsed = 0;
-    for (let p = 1; p <= 8; p++) {
-      if (pillarSums[p]) {
-        weighted += (pillarTiers[p] / 5) * 100 * PILLAR_WEIGHTS[p];
-        weightUsed += PILLAR_WEIGHTS[p];
-      }
-    }
-    const aioi = Math.round(weightUsed > 0 ? weighted / weightUsed : 0);
+    // 4. Compute pillar tiers, weighted AIOI, and hotspots (pure helpers)
+    const { tiers: pillarTiers, answered } = computePillarTiers(responses, pillarOf);
+    const aioi = aioiScore(pillarTiers, answered);
     const overallTier = tierForScore(aioi);
-
-    // 6. Hotspots: bottom-quartile pillars (or weakest 3 if everyone clusters)
-    const ranked = Object.entries(pillarTiers)
-      .map(([p, t]) => ({ pillar: Number(p), tier: t }))
-      .sort((a, b) => a.tier - b.tier);
-    const cutoff = ranked[Math.min(2, ranked.length - 1)]?.tier ?? 0;
-    const hotspots = ranked
-      .filter((r) => r.tier <= cutoff)
-      .slice(0, 3)
-      .map((r) => ({
-        pillar: r.pillar,
-        name: PILLAR_NAMES[r.pillar],
-        tier: r.tier,
-        tierLabel: tierLabel(Math.round(r.tier)),
-      }));
+    const hotspots = topHotspots(pillarTiers, 3);
 
     // 7. Pull candidate interventions for hotspots from outcomes_library
     const hotspotPillars = hotspots.map((h) => h.pillar);
