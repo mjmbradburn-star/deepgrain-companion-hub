@@ -1,9 +1,22 @@
-// Persists a completed assessment draft to Lovable Cloud after the user signs in.
-// Idempotent: if a respondent already exists for this user + level, we re-use it
-// and upsert responses (no duplicates).
+// Persists the local assessment draft to Lovable Cloud.
+// Strategy:
+//   • The respondent row is created the moment the user first signs in (after
+//     the magic link). Its id + slug are written back into the draft so that
+//     subsequent answer selections can stream straight into the responses
+//     table while the user is still answering questions.
+//   • Each answer is upserted on (respondent_id, question_id) — answering the
+//     same question twice cleanly overwrites the previous tier.
+//   • localStorage stays the source of truth: every DB write is best-effort,
+//     so a flaky network never blocks the flow. On the final processing step
+//     we flush anything that didn't make it.
 
 import { supabase } from "@/integrations/supabase/client";
-import { clearDraft, type AssessmentDraft } from "./assessment";
+import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+  type AssessmentDraft,
+} from "./assessment";
 
 export interface SyncResult {
   respondentId: string;
@@ -19,25 +32,31 @@ export class SyncError extends Error {
 }
 
 /**
- * Push the local draft to the database. The user MUST be authenticated.
- * Returns the respondent slug (used to address the report once Phase 3 lands).
+ * Ensure a respondent row exists for the current user + draft. Returns the
+ * row id + slug and writes them back into the draft for subsequent calls.
+ * Idempotent — safe to call on every sign-in or page load.
  */
-export async function syncDraft(draft: AssessmentDraft): Promise<SyncResult> {
+export async function ensureRespondent(
+  draft: AssessmentDraft = loadDraft(),
+): Promise<{ respondentId: string; slug: string }> {
   const { data: sessionData } = await supabase.auth.getSession();
   const user = sessionData.session?.user;
   if (!user) throw new SyncError("Not authenticated");
-
   if (!draft.level) throw new SyncError("Draft has no level");
-  const answers = Object.entries(draft.answers ?? {});
-  if (answers.length === 0) throw new SyncError("Draft has no answers");
 
-  // Find or create the respondent for this user + level. We let the user run
-  // multiple levels over time; one (user, level, started_at) row each.
+  // Already linked? Trust the cached id.
+  if (draft.respondentId && draft.respondentSlug) {
+    return { respondentId: draft.respondentId, slug: draft.respondentSlug };
+  }
+
+  // Re-use the most recent in-progress respondent for this (user, level) so
+  // a magic-link sign-in on the same device doesn't create duplicates.
   const { data: existing, error: findErr } = await supabase
     .from("respondents")
     .select("id, slug")
     .eq("user_id", user.id)
     .eq("level", draft.level)
+    .is("submitted_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -58,7 +77,6 @@ export async function syncDraft(draft: AssessmentDraft): Promise<SyncResult> {
         consent_marketing: !!draft.qualifier?.consentMarketing,
         consent_benchmark: !!draft.qualifier?.consentBenchmark,
         started_at: draft.startedAt ?? new Date().toISOString(),
-        submitted_at: new Date().toISOString(),
       })
       .select("id, slug")
       .single();
@@ -66,8 +84,8 @@ export async function syncDraft(draft: AssessmentDraft): Promise<SyncResult> {
     respondentId = created.id;
     slug = created.slug;
   } else {
-    // Existing respondent — refresh qualifier + submitted_at
-    const { error: updateErr } = await supabase
+    // Refresh qualifier in case the user revised it after signing in.
+    await supabase
       .from("respondents")
       .update({
         role: draft.qualifier?.role ?? null,
@@ -75,37 +93,91 @@ export async function syncDraft(draft: AssessmentDraft): Promise<SyncResult> {
         pain: draft.qualifier?.pain ?? null,
         consent_marketing: !!draft.qualifier?.consentMarketing,
         consent_benchmark: !!draft.qualifier?.consentBenchmark,
-        submitted_at: new Date().toISOString(),
       })
       .eq("id", respondentId);
-    if (updateErr) throw new SyncError("Could not update respondent", updateErr);
-
-    // Wipe previous answers so a re-take cleanly replaces them.
-    await supabase.from("responses").delete().eq("respondent_id", respondentId);
   }
 
-  // Bulk-insert answers
-  const rows = answers.map(([question_id, tier]) => ({
-    respondent_id: respondentId!,
+  // Persist to draft so the question screen can stream answers.
+  saveDraft({ ...draft, respondentId, respondentSlug: slug });
+  return { respondentId: respondentId!, slug: slug! };
+}
+
+/**
+ * Stream a single answer to the database. Best-effort: on failure we keep
+ * the local draft and return false so the caller can decide what to do.
+ */
+export async function pushAnswer(
+  respondentId: string,
+  questionId: string,
+  tier: number,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("responses")
+    .upsert(
+      { respondent_id: respondentId, question_id: questionId, tier },
+      { onConflict: "respondent_id,question_id" },
+    );
+  if (error) {
+    console.warn("[sync] pushAnswer failed", error);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Flush every locally-cached answer to the database. Used both when a user
+ * signs in mid-flow (backfill) and when finalising on the processing screen
+ * (catch anything that failed live). Returns the number of rows written.
+ */
+export async function flushAnswers(
+  respondentId: string,
+  draft: AssessmentDraft = loadDraft(),
+): Promise<number> {
+  const entries = Object.entries(draft.answers ?? {});
+  if (entries.length === 0) return 0;
+  const rows = entries.map(([question_id, tier]) => ({
+    respondent_id: respondentId,
     question_id,
     tier,
   }));
-  const { error: respErr } = await supabase.from("responses").insert(rows);
-  if (respErr) throw new SyncError("Could not save answers", respErr);
+  const { error } = await supabase
+    .from("responses")
+    .upsert(rows, { onConflict: "respondent_id,question_id" });
+  if (error) throw new SyncError("Could not save answers", error);
+  return rows.length;
+}
 
-  // Fire-and-forget analytics event
+/**
+ * Finalise the assessment: ensure respondent, flush answers, mark submitted,
+ * invoke the scoring engine. Called from the processing screen after the
+ * user has answered every question and is signed-in.
+ */
+export async function finaliseAssessment(): Promise<SyncResult> {
+  const draft = loadDraft();
+  const answers = Object.entries(draft.answers ?? {});
+  if (answers.length === 0) throw new SyncError("Draft has no answers");
+
+  const { respondentId, slug } = await ensureRespondent(draft);
+  const inserted = await flushAnswers(respondentId, draft);
+
+  await supabase
+    .from("respondents")
+    .update({ submitted_at: new Date().toISOString() })
+    .eq("id", respondentId);
+
+  // Analytics — fire-and-forget
+  const { data: sessionData } = await supabase.auth.getSession();
   await supabase.from("events").insert({
     name: "assessment_submitted",
-    user_id: user.id,
+    user_id: sessionData.session?.user.id ?? null,
     payload: {
       respondent_id: respondentId,
       level: draft.level,
-      answer_count: rows.length,
+      answer_count: inserted,
     },
   });
 
-  // Score the responses (writes the reports row). Best-effort — if it fails the
-  // user still has their data; we surface a soft error and let them retry.
+  // Score (best-effort — the report row will appear once it lands)
   try {
     const { error: scoreErr } = await supabase.functions.invoke("score-responses", {
       body: { respondent_id: respondentId },
@@ -116,8 +188,7 @@ export async function syncDraft(draft: AssessmentDraft): Promise<SyncResult> {
   }
 
   clearDraft();
-
-  return { respondentId: respondentId!, slug: slug!, inserted: rows.length };
+  return { respondentId, slug, inserted };
 }
 
 /** Send a magic link to the given email. Returns when the request was accepted. */

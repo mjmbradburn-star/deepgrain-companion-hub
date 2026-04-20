@@ -296,6 +296,11 @@ export interface AssessmentDraft {
   /** questionId -> selected tier index (0..5) */
   answers: Record<string, number>;
   startedAt?: string;
+  /** Set once the user has signed in and the respondent row exists. */
+  respondentId?: string;
+  respondentSlug?: string;
+  /** True once we've fired signInWithOtp for this draft's email. */
+  magicLinkSent?: boolean;
 }
 
 export function loadDraft(): AssessmentDraft {

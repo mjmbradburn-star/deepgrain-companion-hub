@@ -14,6 +14,7 @@ import {
   saveDraft,
   type AssessmentDraft,
 } from "@/lib/assessment";
+import { pushAnswer } from "@/lib/sync";
 
 export default function AssessQuestion() {
   const { step } = useParams<{ step: string }>();
@@ -61,6 +62,10 @@ export default function AssessQuestion() {
       const next = { ...draft, answers: { ...draft.answers, [question.id]: tier } };
       setDraft(next);
       saveDraft(next);
+      // Stream to DB if signed-in (best-effort — local cache stays the source of truth)
+      if (next.respondentId) {
+        void pushAnswer(next.respondentId, question.id, tier);
+      }
       // Auto-advance with a short delay for the visual ack
       window.setTimeout(() => {
         if (stepNum < FUNCTION_QUESTIONS.length) {

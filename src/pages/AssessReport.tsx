@@ -182,15 +182,17 @@ export default function AssessReport() {
 // ─── Main view ────────────────────────────────────────────────────────────
 function ReportView({ data }: { data: ReportData }) {
   const { respondent, report, outcomes, cohort } = data;
-  if (!report) return null;
 
   const pillarValues = useMemo(() => {
     const out: Record<number, number> = {};
+    if (!report) return out;
     for (const [k, v] of Object.entries(report.pillar_tiers)) {
       out[Number(k)] = v.tier;
     }
     return out;
-  }, [report.pillar_tiers]);
+  }, [report]);
+
+  if (!report) return null;
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
@@ -431,8 +433,8 @@ function ReportTab({
   cohort?: Record<number, number>;
 }) {
   const { respondent, report, outcomes } = data;
-  if (!report) return null;
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
+  if (!report) return null;
 
   return (
     <section className="container max-w-5xl py-16 sm:py-20 print:py-0">

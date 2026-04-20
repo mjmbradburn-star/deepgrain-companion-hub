@@ -6,20 +6,20 @@ import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { loadDraft } from "@/lib/assessment";
-import { sendMagicLink, syncDraft, SyncError } from "@/lib/sync";
+import { finaliseAssessment, sendMagicLink, SyncError } from "@/lib/sync";
 
 type Phase =
-  | "checking"        // working out whether we already have a session
-  | "needs-link"      // signed-out — we just sent (or are about to send) the magic link
-  | "syncing"         // signed-in — pushing the draft to the database
-  | "done"            // everything saved
+  | "checking"      // working out whether we already have a session
+  | "needs-link"    // signed-out — magic link was sent earlier (or just resent)
+  | "syncing"       // signed-in — flushing answers + scoring
+  | "done"          // everything saved — redirecting to report
   | "error";
 
 const SYNC_LINES = [
-  "Reading 8 pillar responses…",
+  "Confirming your responses…",
   "Mapping answers to maturity tiers…",
-  "Saving to your private record…",
-  "Cross-referencing benchmark cohort (n = 2,847)…",
+  "Computing weighted AIOI score…",
+  "Cross-referencing benchmark cohort…",
   "Identifying hotspots (bottom-quartile pillars)…",
   "Drafting plan: Month 1 / 2 / 3…",
   "Selecting interventions from outcomes library…",
@@ -32,13 +32,13 @@ export default function AssessProcessing() {
   const [error, setError] = useState<string | null>(null);
   const [emailSentTo, setEmailSentTo] = useState<string | null>(null);
   const [shown, setShown] = useState<string[]>([]);
-  const syncedRef = useRef(false); // guard against StrictMode double-fire
+  const [resending, setResending] = useState(false);
+  const finalisedRef = useRef(false); // guard against StrictMode double-fire
 
-  // 1. On mount, decide what to do based on session + draft.
+  // 1. Decide what to do based on session + draft.
   useEffect(() => {
     const draft = loadDraft();
 
-    // No level → wandered in directly. Send back to start.
     if (!draft.level) {
       navigate("/assess", { replace: true });
       return;
@@ -51,44 +51,39 @@ export default function AssessProcessing() {
     let cancelled = false;
 
     const handleSession = async (signedIn: boolean) => {
-      if (cancelled || syncedRef.current) return;
+      if (cancelled || finalisedRef.current) return;
       if (signedIn) {
-        syncedRef.current = true;
+        finalisedRef.current = true;
         setPhase("syncing");
         try {
-          await syncDraft(loadDraft());
-          if (!cancelled) setPhase("done");
+          const { slug } = await finaliseAssessment();
+          if (cancelled) return;
+          setPhase("done");
+          // Brief settle before redirect so the build-log finishes.
+          window.setTimeout(() => {
+            if (!cancelled) navigate(`/assess/r/${slug}`, { replace: true });
+          }, 1400);
         } catch (err) {
-          console.error("[sync] failed", err);
+          console.error("[finalise] failed", err);
           if (!cancelled) {
             setPhase("error");
             setError(err instanceof SyncError ? err.message : "Something went wrong saving your answers.");
           }
         }
       } else {
-        // Signed-out — request magic link and wait.
+        // Signed-out — the magic link was already sent on the email screen.
         const email = draft.qualifier?.email;
         if (!email) {
           navigate("/assess/start", { replace: true });
           return;
         }
-        try {
-          await sendMagicLink(email, `${window.location.origin}/auth/callback`);
-          if (!cancelled) {
-            setEmailSentTo(email);
-            setPhase("needs-link");
-          }
-        } catch (err) {
-          console.error("[magic-link] failed", err);
-          if (!cancelled) {
-            setPhase("error");
-            setError(err instanceof SyncError ? err.message : "Could not send your magic link.");
-          }
+        if (!cancelled) {
+          setEmailSentTo(email);
+          setPhase("needs-link");
         }
       }
     };
 
-    // Listen first, then check current session — avoids races.
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       void handleSession(!!session);
     });
@@ -102,7 +97,7 @@ export default function AssessProcessing() {
     };
   }, [navigate]);
 
-  // 2. Animate the "build log" while syncing, then settle.
+  // 2. Animate the "build log" while syncing.
   useEffect(() => {
     if (phase !== "syncing") return;
     setShown([]);
@@ -111,9 +106,22 @@ export default function AssessProcessing() {
       setShown((s) => [...s, SYNC_LINES[i]]);
       i++;
       if (i >= SYNC_LINES.length) window.clearInterval(id);
-    }, 420);
+    }, 220);
     return () => window.clearInterval(id);
   }, [phase]);
+
+  const resendLink = async () => {
+    if (!emailSentTo || resending) return;
+    setResending(true);
+    try {
+      await sendMagicLink(emailSentTo, `${window.location.origin}/auth/callback`);
+    } catch (err) {
+      console.error("[resend] failed", err);
+      setError(err instanceof SyncError ? err.message : "Could not resend the link.");
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <AssessChrome ariaLabel="Building your report">
@@ -130,7 +138,7 @@ export default function AssessProcessing() {
               line2={<>We've sent a magic link to <span className="text-brass-bright not-italic">{emailSentTo}</span>.</>}
             />
             <p className="mt-8 max-w-xl font-display text-lg text-cream/65 leading-relaxed">
-              Click the link to sign in — your answers are waiting on this device, and we'll save them and build your report the instant you're back.
+              Click the link to sign in — your answers are saved on this device. The instant you're back, we'll save them to your record and build your report.
             </p>
             <div className="mt-10 inline-flex items-center gap-3 rounded-md border border-cream/10 bg-surface-1/60 px-4 py-3 max-w-fit">
               <Mail className="h-4 w-4 text-brass-bright" />
@@ -139,6 +147,8 @@ export default function AssessProcessing() {
               </span>
             </div>
             <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-cream/30">
+              Didn't arrive? <button onClick={resendLink} disabled={resending} className="underline underline-offset-4 hover:text-cream disabled:opacity-50">{resending ? "Sending…" : "Resend"}</button>
+              {" · "}
               Wrong email? <button onClick={() => navigate("/assess/start")} className="underline underline-offset-4 hover:text-cream">Change it</button>
             </p>
           </>
@@ -153,21 +163,8 @@ export default function AssessProcessing() {
 
         {phase === "done" && (
           <>
-            <Headline eyebrow="Saved" line1="Your answers are in." line2="Report engine arrives in Phase 3." />
-            <div className="mt-12 rounded-lg border border-brass/30 bg-brass/5 p-6 max-w-xl">
-              <p className="font-display text-lg text-cream/85 leading-snug">
-                <span className="text-brass-bright mr-2">✓</span>
-                We've recorded your responses and your benchmark consent. The scoring engine and your private one-pager land in the next phase — we'll email you the moment it's live.
-              </p>
-            </div>
-            <div className="mt-10 flex items-center gap-4">
-              <Button
-                onClick={() => navigate("/")}
-                className="h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase"
-              >
-                Back to home <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
+            <Headline eyebrow="Saved" line1="Your report is ready." line2="Taking you to it now." />
+            <BuildLog shown={SYNC_LINES} total={SYNC_LINES.length} />
           </>
         )}
 
