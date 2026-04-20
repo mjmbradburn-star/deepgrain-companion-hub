@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FUNCTIONS, LEVELS, loadDraft, saveDraft, type BusinessFunction } from "@/lib/assessment";
+import { FUNCTIONS, LEVELS, REGIONS, loadDraft, saveDraft, type BusinessFunction, type Region } from "@/lib/assessment";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 
 const ROLE_OPTIONS = [
@@ -43,8 +43,8 @@ const emailSchema = z.object({
   consentMarketing: z.boolean().optional(),
 });
 
-type Screen = "role" | "size" | "pain" | "function" | "email";
-const SCREENS: Screen[] = ["role", "size", "pain", "function", "email"];
+type Screen = "role" | "size" | "pain" | "region" | "function" | "email";
+const SCREENS: Screen[] = ["role", "size", "pain", "region", "function", "email"];
 
 export default function AssessStart() {
   const navigate = useNavigate();
@@ -147,6 +147,29 @@ export default function AssessStart() {
                   onClick={() => {
                     update({ pain: opt });
                     setTimeout(() => advance("pain"), 180);
+                  }}
+                />
+              ))}
+            </div>
+          </Step>
+        )}
+
+        {screen === "region" && (
+          <Step
+            key="region"
+            heading={<>Where in the world are you <span className="italic text-brass-bright">based?</span></>}
+            sub="So we can place you on the regional benchmark — adoption looks very different across geographies."
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {REGIONS.map((opt, i) => (
+                <OptionCard
+                  key={opt}
+                  index={i + 1}
+                  title={opt}
+                  selected={draft.qualifier?.region === opt}
+                  onClick={() => {
+                    update({ region: opt as Region });
+                    setTimeout(() => advance("region"), 180);
                   }}
                 />
               ))}

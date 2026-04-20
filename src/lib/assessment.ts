@@ -15,6 +15,18 @@ export type BusinessFunction =
   | "finance"
   | "ops-cs";
 
+/** Region labels MUST match the Benchmarks page filter exactly so respondents
+ *  roll up cleanly into the materialised cohort medians. */
+export const REGIONS = [
+  "North America",
+  "Europe",
+  "UK & Ireland",
+  "Asia-Pacific",
+  "Latin America",
+  "Middle East & Africa",
+] as const;
+export type Region = (typeof REGIONS)[number];
+
 export const FUNCTIONS: { id: BusinessFunction; title: string; tagline: string }[] = [
   { id: "sales",                title: "Sales",               tagline: "Pipeline, prospecting, calls, deals." },
   { id: "marketing",            title: "Marketing",           tagline: "Briefs, content, campaigns, brand." },
@@ -741,6 +753,7 @@ export interface AssessmentDraft {
     size?: string;
     pain?: string;
     function?: BusinessFunction;
+    region?: Region;
     email?: string;
     consentMarketing?: boolean;
     consentBenchmark?: boolean;
