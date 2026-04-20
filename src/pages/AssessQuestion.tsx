@@ -8,7 +8,7 @@ import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { Button } from "@/components/ui/button";
 import {
-  FUNCTION_QUESTIONS,
+  getQuestions,
   PILLAR_NAMES,
   loadDraft,
   saveDraft,
@@ -19,11 +19,11 @@ import { pushAnswer } from "@/lib/sync";
 export default function AssessQuestion() {
   const { step } = useParams<{ step: string }>();
   const navigate = useNavigate();
-  const stepNum = Math.max(1, Math.min(FUNCTION_QUESTIONS.length, parseInt(step ?? "1", 10) || 1));
-  const idx = stepNum - 1;
-
   const [draft, setDraft] = useState<AssessmentDraft>(() => loadDraft());
   const [direction, setDirection] = useState<"forward" | "back">("forward");
+  const questions = useMemo(() => getQuestions(draft.level), [draft.level]);
+  const stepNum = Math.max(1, Math.min(questions.length, parseInt(step ?? "1", 10) || 1));
+  const idx = stepNum - 1;
 
   // Guard: must have a level + email captured
   useEffect(() => {
