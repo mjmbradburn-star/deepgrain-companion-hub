@@ -11,6 +11,25 @@ export type BenchmarkRow = Database["public"]["Tables"]["benchmarks_materialised
   region?: string | null;
 };
 
+/** Respondents store function as a lowercase id (e.g. `engineering-product`),
+ *  but `benchmarks_materialised.function` stores display labels (e.g.
+ *  `Engineering & Product`). Translate id → label so slice matching works.
+ *  Unknown ids pass through unchanged. `ops-cs` is intentionally absent —
+ *  it has no single corresponding benchmark slice, so it falls through to
+ *  the level-wide cohort. */
+const FUNCTION_ID_TO_LABEL: Record<string, string> = {
+  "sales": "Sales",
+  "marketing": "Marketing",
+  "engineering-product": "Engineering & Product",
+  "people-hr": "People & HR",
+  "finance": "Finance",
+};
+
+function normaliseFunction(fn: string | null | undefined): string | null {
+  if (!fn) return null;
+  return FUNCTION_ID_TO_LABEL[fn] ?? fn;
+}
+
 /** `pillar_medians` JSON comes in two shapes:
  *   shape A (legacy seed): `{ "1": 2.4 }`
  *   shape B (current):     `{ "1": { "name": "...", "tier": 2.4 } }`
