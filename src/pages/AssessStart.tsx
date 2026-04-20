@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FUNCTIONS, LEVELS, REGIONS, loadDraft, saveDraft, type BusinessFunction, type Region } from "@/lib/assessment";
 import { sendMagicLink, SyncError } from "@/lib/sync";
+import { supabase } from "@/integrations/supabase/client";
 
 const ROLE_OPTIONS = [
   "Founder / CEO",
@@ -55,6 +56,36 @@ export default function AssessStart() {
   useEffect(() => {
     if (!draft.level) navigate("/assess", { replace: true });
   }, [draft.level, navigate]);
+
+  // Telemetry: fire once when the user first reaches the email step, so we
+  // can measure qualifier completion even when sign-in is abandoned. A
+  // sessionStorage flag keeps it idempotent within the tab.
+  useEffect(() => {
+    if (screen !== "email") return;
+    const flagKey = "aioi:qualifier_reached_email_logged";
+    if (sessionStorage.getItem(flagKey) === "1") return;
+    sessionStorage.setItem(flagKey, "1");
+    const q = draft.qualifier ?? {};
+    supabase
+      .from("events")
+      .insert({
+        name: "qualifier_reached_email",
+        payload: {
+          level: draft.level ?? null,
+          role: q.role ?? null,
+          size: q.size ?? null,
+          pain: q.pain ?? null,
+          region: q.region ?? null,
+          function: q.function ?? null,
+          has_email_already: !!q.email,
+          path: window.location.pathname,
+          ts: new Date().toISOString(),
+        },
+      })
+      .then(({ error }) => {
+        if (error) console.warn("[telemetry] qualifier_reached_email failed", error);
+      });
+  }, [screen, draft.level, draft.qualifier]);
 
   const stepIndex = SCREENS.indexOf(screen);
 
