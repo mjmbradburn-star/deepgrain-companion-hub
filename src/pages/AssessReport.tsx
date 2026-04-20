@@ -204,18 +204,21 @@ function ReportView({ data }: { data: ReportData }) {
         {/* ─── Masthead ─── */}
         <header className="border-b border-cream/10 pt-32 sm:pt-36 pb-8">
           <div className="container max-w-6xl">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
-                AIOI Report · {capitalise(respondent.level)} level
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                Slug · {respondent.slug}
-              </span>
-              {report.generated_at && (
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                  Generated · {formatDate(report.generated_at)}
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-6">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
+                  AIOI Report · {capitalise(respondent.level)} level
                 </span>
-              )}
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                  Slug · {respondent.slug}
+                </span>
+                {report.generated_at && (
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                    Generated · {formatDate(report.generated_at)}
+                  </span>
+                )}
+              </div>
+              <ResendReportLink slug={respondent.slug} />
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
