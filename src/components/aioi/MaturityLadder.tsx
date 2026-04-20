@@ -2,12 +2,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { TierBadge, type Tier } from "./TierBadge";
 
 const TIERS: { tier: Tier; tag: string; body: string }[] = [
-  { tier: "Dormant",     tag: "AI is a rumour.",            body: "No mandate, no tools in the workflow, no measurement. Curiosity exists in pockets but nothing is operationalised." },
-  { tier: "Reactive",    tag: "Used when forced.",          body: "Individuals reach for ChatGPT when stuck. No shared playbook, no governance. Risk is invisible." },
-  { tier: "Exploratory", tag: "Pilots and pet projects.",   body: "A function or two is experimenting. Some early wins, no infrastructure, no path to scale beyond the believer." },
-  { tier: "Operational", tag: "AI is in the workflow.",     body: "Specific use cases are running on production data with policy and measurement. Adoption is uneven." },
-  { tier: "Integrated",  tag: "Default for most work.",     body: "Cross-functional, governed, measured. AI is the assumed first draft. Skills are widespread." },
-  { tier: "AI-Native",   tag: "Operating system, not tool.", body: "Workflow, hiring and economics are designed around model capability. Compounding leverage. Most companies will never be here." },
+  { tier: "Dormant",     tag: "It hasn't really come up.",  body: "No one has been asked to own it. Nothing is in any workflow. People talk about AI in the abstract, not about anything they did with it last week." },
+  { tier: "Reactive",    tag: "Used quietly when stuck.",   body: "People reach for ChatGPT to draft an email or summarise a doc. It's on personal cards, not the function budget. There's no shared way of doing it." },
+  { tier: "Exploratory", tag: "Pilots and pet projects.",   body: "A team or two is running real experiments. There are wins, owned by the people who care most. Nothing has yet reached the work that pays the bills." },
+  { tier: "Operational", tag: "Now part of the work.",      body: "A few named workflows run through AI on real data, with playbooks and a measurement habit. Some teams are racing, some are watching." },
+  { tier: "Integrated",  tag: "The default first draft.",   body: "AI is the assumed first pass for most production work, with humans on review. The average person uses it daily. Tooling, governance and measurement all keep up." },
+  { tier: "AI-Native",   tag: "How the work is designed.",  body: "Workflows assume model output. People escalate the exceptions. Hiring and structure reflect what models can do this year and next. Most companies will never be here, and that's fine." },
 ];
 
 export function MaturityLadder() {
@@ -17,11 +17,11 @@ export function MaturityLadder() {
         <div className="mb-14">
           <p className="eyebrow mb-5">The Maturity Ladder</p>
           <h2 className="font-display text-5xl sm:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
-            Six tiers.<br />
-            <span className="italic text-brass-bright">No participation prizes.</span>
+            Six rungs.<br />
+            <span className="italic text-brass-bright">Climb the one in front of you.</span>
           </h2>
           <p className="mt-6 font-display text-xl text-cream/65 max-w-2xl">
-            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate — and the gap between your weakest and strongest pillar is usually the more interesting number.
+            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually the more interesting number.
           </p>
         </div>
 
