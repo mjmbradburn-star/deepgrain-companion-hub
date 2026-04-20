@@ -148,6 +148,44 @@ export type Database = {
           },
         ]
       }
+      question_variants: {
+        Row: {
+          created_at: string
+          function: string
+          id: string
+          options: Json
+          prompt: string
+          question_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          function: string
+          id?: string
+          options: Json
+          prompt: string
+          question_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          function?: string
+          id?: string
+          options?: Json
+          prompt?: string
+          question_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_variants_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questions: {
         Row: {
           active: boolean
@@ -242,6 +280,7 @@ export type Database = {
           consent_benchmark: boolean
           consent_marketing: boolean
           created_at: string
+          function: string | null
           id: string
           level: Database["public"]["Enums"]["assessment_level"]
           org_size: string | null
@@ -258,6 +297,7 @@ export type Database = {
           consent_benchmark?: boolean
           consent_marketing?: boolean
           created_at?: string
+          function?: string | null
           id?: string
           level: Database["public"]["Enums"]["assessment_level"]
           org_size?: string | null
@@ -274,6 +314,7 @@ export type Database = {
           consent_benchmark?: boolean
           consent_marketing?: boolean
           created_at?: string
+          function?: string | null
           id?: string
           level?: Database["public"]["Enums"]["assessment_level"]
           org_size?: string | null

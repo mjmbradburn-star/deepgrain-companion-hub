@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LEVELS, loadDraft, saveDraft } from "@/lib/assessment";
+import { FUNCTIONS, LEVELS, loadDraft, saveDraft, type BusinessFunction } from "@/lib/assessment";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 
 const ROLE_OPTIONS = [
@@ -43,8 +43,8 @@ const emailSchema = z.object({
   consentMarketing: z.boolean().optional(),
 });
 
-type Screen = "role" | "size" | "pain" | "email";
-const SCREENS: Screen[] = ["role", "size", "pain", "email"];
+type Screen = "role" | "size" | "pain" | "function" | "email";
+const SCREENS: Screen[] = ["role", "size", "pain", "function", "email"];
 
 export default function AssessStart() {
   const navigate = useNavigate();
@@ -152,6 +152,35 @@ export default function AssessStart() {
               ))}
             </div>
           </Step>
+        )}
+
+        {screen === "function" && draft.level === "function" && (
+          <Step
+            key="function"
+            heading={<>Which <span className="italic text-brass-bright">function</span> are you scoring?</>}
+            sub="So the questions feel written for you, not for someone else."
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {FUNCTIONS.map((f, i) => (
+                <OptionCard
+                  key={f.id}
+                  index={i + 1}
+                  title={f.title}
+                  description={f.tagline}
+                  selected={draft.qualifier?.function === f.id}
+                  onClick={() => {
+                    update({ function: f.id as BusinessFunction });
+                    setTimeout(() => advance("function"), 180);
+                  }}
+                />
+              ))}
+            </div>
+          </Step>
+        )}
+
+        {screen === "function" && draft.level !== "function" && (
+          // Skip the function picker for company / individual levels
+          <SkipFunction onSkip={() => advance("function")} />
         )}
 
         {screen === "email" && (
