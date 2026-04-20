@@ -78,13 +78,14 @@ export interface MatchedSlice {
  */
 export async function fetchBestSlice({
   level,
-  function: fn,
+  function: fnRaw,
   region,
 }: {
   level: Level;
   function?: string | null;
   region?: string | null;
 }): Promise<MatchedSlice | null> {
+  const fn = normaliseFunction(fnRaw);
   const { data, error } = await supabase
     .from("benchmarks_materialised")
     .select("*")
