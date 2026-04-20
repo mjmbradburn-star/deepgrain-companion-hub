@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Check,
   Copy,
+  Loader2,
   Mail,
   Printer,
   Send,
