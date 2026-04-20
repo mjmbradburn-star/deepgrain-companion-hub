@@ -2,104 +2,143 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/*
+  AIOI Design System
+  Shared visual language with Deepgrain.
+  Phthalo green · dark walnut · aged brass · cream.
+  All colors HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Brand core */
+    --green: 152 51% 11%;        /* #123524 phthalo */
+    --green-deep: 152 60% 7%;
+    --walnut: 19 41% 8%;         /* #1C0F0A */
+    --walnut-soft: 19 30% 12%;
+    --brass: 30 43% 44%;         /* #A07840 */
+    --brass-bright: 36 56% 58%;
+    --cream: 44 50% 90%;         /* #F2EBD9 */
+    --cream-dim: 44 30% 78%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Surfaces (product chrome layered on walnut) */
+    --surface-0: 19 41% 6%;
+    --surface-1: 19 38% 9%;
+    --surface-2: 19 32% 13%;
+    --surface-3: 19 28% 17%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Pillar accents — warm, brass-harmonised */
+    --pillar-1: 80 18% 55%;   /* sage */
+    --pillar-2: 38 38% 65%;   /* sand */
+    --pillar-3: 95 22% 38%;   /* moss */
+    --pillar-4: 18 52% 52%;   /* terracotta */
+    --pillar-5: 36 65% 56%;   /* amber */
+    --pillar-6: 30 43% 44%;   /* brass */
+    --pillar-7: 6 42% 48%;    /* muted red */
+    --pillar-8: 210 12% 42%;  /* slate */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Semantic mappings (shadcn) */
+    --background: var(--walnut);
+    --foreground: var(--cream);
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --card: var(--surface-1);
+    --card-foreground: var(--cream);
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: var(--surface-2);
+    --popover-foreground: var(--cream);
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --primary: var(--brass);
+    --primary-foreground: var(--walnut);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --secondary: var(--surface-2);
+    --secondary-foreground: var(--cream);
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --muted: var(--surface-2);
+    --muted-foreground: 44 20% 65%;
+
+    --accent: var(--green);
+    --accent-foreground: var(--cream);
+
+    --destructive: 6 60% 45%;
+    --destructive-foreground: var(--cream);
+
+    --border: 44 30% 90% / 0.12;
+    --input: 44 30% 90% / 0.16;
+    --ring: var(--brass);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: var(--surface-1);
+    --sidebar-foreground: var(--cream);
+    --sidebar-primary: var(--brass);
+    --sidebar-primary-foreground: var(--walnut);
+    --sidebar-accent: var(--surface-2);
+    --sidebar-accent-foreground: var(--cream);
+    --sidebar-border: 44 30% 90% / 0.12;
+    --sidebar-ring: var(--brass);
   }
 
+  /* Single-theme product — .dark mirrors :root */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: var(--walnut);
+    --foreground: var(--cream);
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--cream) / 0.12);
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv01';
+    background-color: hsl(var(--walnut));
   }
+
+  ::selection {
+    background-color: hsl(var(--brass) / 0.35);
+    color: hsl(var(--cream));
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    font-feature-settings: 'liga', 'dlig';
+  }
+  .font-mono-tech {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  .font-ui {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .eyebrow {
+    @apply font-ui uppercase tracking-[0.18em] text-xs text-brass-bright/90;
+  }
+
+  .hairline {
+    background-color: hsl(var(--cream) / 0.12);
+  }
+
+  .grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
 }
