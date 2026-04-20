@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Mail } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
@@ -7,6 +7,35 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { loadDraft } from "@/lib/assessment";
 import { finaliseAssessment, sendMagicLink, SyncError } from "@/lib/sync";
+
+/**
+ * Dev-only: sign in a synthetic test user so the full flow can be
+ * walked end-to-end without waiting on a magic link. Activated by
+ * appending `?seed=1` to /assess/processing. No-op in production.
+ */
+async function seedDevSession(): Promise<void> {
+  if (!import.meta.env.DEV) return;
+  const email = `seed-${Date.now()}@deepgrain-test.dev`;
+  const password = `Seed!${crypto.randomUUID()}`;
+  const { error: signUpErr } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  });
+  if (signUpErr && !/already/i.test(signUpErr.message)) {
+    throw new SyncError(`Seed sign-up failed: ${signUpErr.message}`, signUpErr);
+  }
+  // signUp returns a session immediately when auto-confirm is on.
+  const { data } = await supabase.auth.getSession();
+  if (data.session) return;
+  const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+  if (signInErr) {
+    throw new SyncError(
+      `Seed sign-in failed: ${signInErr.message}. Enable auto-confirm signups in Cloud auth settings to use ?seed=1.`,
+      signInErr,
+    );
+  }
+}
 
 type Phase =
   | "checking"      // working out whether we already have a session
