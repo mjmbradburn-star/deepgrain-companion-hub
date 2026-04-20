@@ -13,6 +13,7 @@ import AssessReport from "./pages/AssessReport.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Pillars from "./pages/Pillars.tsx";
 import Ladder from "./pages/Ladder.tsx";
+import Benchmarks from "./pages/Benchmarks.tsx";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/pillars" element={<Pillars />} />
           <Route path="/ladder" element={<Ladder />} />
+          <Route path="/benchmarks" element={<Benchmarks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
