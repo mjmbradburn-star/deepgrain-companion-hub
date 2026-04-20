@@ -59,17 +59,17 @@
     --secondary-foreground: var(--cream);
 
     --muted: var(--surface-2);
-    --muted-foreground: 44 20% 65%;
+    --muted-foreground: 152 20% 28%;
 
-    --accent: var(--green);
-    --accent-foreground: var(--cream);
+    --accent: var(--brass);
+    --accent-foreground: 42 50% 96%;
 
-    --destructive: 6 60% 45%;
-    --destructive-foreground: var(--cream);
+    --destructive: 6 60% 38%;
+    --destructive-foreground: 42 50% 96%;
 
-    --border: 44 30% 90% / 0.12;
-    --input: 44 30% 90% / 0.16;
-    --ring: var(--brass);
+    --border: 152 30% 14% / 0.14;
+    --input: 152 30% 14% / 0.18;
+    --ring: var(--green);
 
     --radius: 0.5rem;
 
