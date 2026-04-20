@@ -547,6 +547,13 @@ function ReportTab({
           </ul>
         </div>
 
+        {/* Versus the field — print-tuned cohort comparison */}
+        <PrintableCohortStrip
+          slice={slice}
+          values={pillarValues}
+          userScore={report.aioi_score}
+        />
+
         {/* Plan */}
         {report.plan.length > 0 && (
           <div className="mt-8 border-t border-walnut/15 pt-6">
