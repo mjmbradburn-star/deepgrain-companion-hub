@@ -104,6 +104,17 @@ export async function syncDraft(draft: AssessmentDraft): Promise<SyncResult> {
     },
   });
 
+  // Score the responses (writes the reports row). Best-effort — if it fails the
+  // user still has their data; we surface a soft error and let them retry.
+  try {
+    const { error: scoreErr } = await supabase.functions.invoke("score-responses", {
+      body: { respondent_id: respondentId },
+    });
+    if (scoreErr) console.error("[sync] score-responses error", scoreErr);
+  } catch (err) {
+    console.error("[sync] score-responses threw", err);
+  }
+
   clearDraft();
 
   return { respondentId: respondentId!, slug: slug!, inserted: rows.length };
