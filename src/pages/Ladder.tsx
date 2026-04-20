@@ -1,0 +1,331 @@
+import { ArrowRight } from "lucide-react";
+import { SiteNav } from "@/components/aioi/SiteNav";
+import { SiteFooter } from "@/components/aioi/SiteFooter";
+import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
+
+interface TierEntry {
+  tier: Tier;
+  index: number;
+  scoreBand: string;
+  tag: string;
+  thesis: string;
+  feels: string[]; // what it feels like inside
+  proof: string[]; // proof points / observable signs
+  hazard: string; // the trap at this tier
+  next: string; // what gets you to the next rung
+  populationPct: number; // notional share of the cohort
+}
+
+const TIERS: TierEntry[] = [
+  {
+    tier: "Dormant",
+    index: 0,
+    scoreBand: "0 – 14",
+    tag: "AI is a rumour.",
+    thesis:
+      "AI exists as headlines and competitor anecdotes, not as anything that touches how the work actually happens. There is no owner, no budget, and no policy because there is nothing to govern yet.",
+    feels: [
+      "Nobody can name the person responsible.",
+      "Conversations stay at the slide level — never the workflow level.",
+      "If asked 'what AI do you use?', the honest answer is 'we don't'.",
+    ],
+    proof: [
+      "Zero approved AI tools in the stack.",
+      "No mention of AI in any function's quarterly plan.",
+      "No record of even an informal pilot in the last six months.",
+    ],
+    hazard: "Confusing 'we're cautious' with 'we're behind'. The first is a posture; the second is a position.",
+    next: "Pick one workflow. Find one person. Give them six weeks. That's it.",
+    populationPct: 18,
+  },
+  {
+    tier: "Reactive",
+    index: 1,
+    scoreBand: "15 – 29",
+    tag: "Used when forced.",
+    thesis:
+      "Individuals reach for ChatGPT when they're stuck — to draft a tricky email, summarise a long document, get unstuck on code. It's invisible, unsanctioned, and entirely personal. There is no shared playbook because there is no shared anything.",
+    feels: [
+      "People use it but don't talk about it.",
+      "Spend shows up on personal cards, not the function budget.",
+      "If you removed it tomorrow, no process would break — it isn't in any process.",
+    ],
+    proof: [
+      "Personal ChatGPT subscriptions outnumber team licences.",
+      "An informal 'don't paste customer data' rule, communicated verbally.",
+      "No measurement of any kind.",
+    ],
+    hazard: "A breach you only learn about when it's already in a headline. Shadow AI is a governance failure dressed as savings.",
+    next: "Sanction one tool. Write one page of policy. Name one owner. Today, not next quarter.",
+    populationPct: 27,
+  },
+  {
+    tier: "Exploratory",
+    index: 2,
+    scoreBand: "30 – 49",
+    tag: "Pilots and pet projects.",
+    thesis:
+      "A function or two — usually marketing, sales ops, or engineering — is running real experiments. There are wins. The wins are owned by believers and depend on those believers staying. None of it has reached the production workflow that pays the bills.",
+    feels: [
+      "Three slides at the leadership offsite, two of which are demos.",
+      "A monthly 'AI working group' meeting that is more interesting than useful.",
+      "Excitement that has not yet translated into a single line in a job description.",
+    ],
+    proof: [
+      "One or two team licences to mainstream copilots.",
+      "A written but lightly-enforced acceptable-use policy.",
+      "ROI claims expressed as anecdotes ('saves me an hour').",
+    ],
+    hazard: "The pilot purgatory: enough success to feel ahead, not enough to be ahead. Believers leave; the work goes with them.",
+    next: "Pick the pilot with the strongest ROI. Make it the default for that workflow. Write the playbook. Ship it.",
+    populationPct: 28,
+  },
+  {
+    tier: "Operational",
+    index: 3,
+    scoreBand: "50 – 69",
+    tag: "AI is in the workflow.",
+    thesis:
+      "Two or three named workflows now run through AI on production data, with playbooks and a measurement habit. Adoption is uneven — some teams are racing, others are watching — but the function has crossed the line from experimentation to operation.",
+    feels: [
+      "New joiners get an AI tooling section in their onboarding.",
+      "Quarterly reviews include hours-saved and cycle-time numbers.",
+      "Leadership talks about 'our AI stack', not 'AI'.",
+    ],
+    proof: [
+      "An approved stack with SSO, data controls, audit trails.",
+      "Hours-saved tracked on at least two workflows.",
+      "A single accountable lead with a budget and a roadmap.",
+    ],
+    hazard: "Plateau. Tooling stays the same; the world doesn't. Operational becomes legacy faster than anyone expects.",
+    next: "Move from 'AI in workflows' to 'workflows redesigned around AI'. Different work, different verb.",
+    populationPct: 17,
+  },
+  {
+    tier: "Integrated",
+    index: 4,
+    scoreBand: "70 – 87",
+    tag: "Default for most work.",
+    thesis:
+      "AI is the assumed first draft for most production work — content, code, analysis, customer comms — with humans on review. Skills are widespread; the median person, not the keenest one, is the level you measure. Governance, measurement and tooling all keep up.",
+    feels: [
+      "Meetings about 'should we use AI for this?' have stopped happening.",
+      "The function publishes a quarterly AI scorecard and means it.",
+      "Hiring criteria include AI fluency by default, not as a nice-to-have.",
+    ],
+    proof: [
+      "Internal copilots wired into core systems for at least three workflows.",
+      "Live monitoring, audit trails, model risk register.",
+      "Hours, quality and cycle time reported quarterly to leadership.",
+    ],
+    hazard: "Believing the journey is over. Integrated is a great place; AI-Native is a different sport.",
+    next: "Redesign the operating model around model capability. Hire and structure for it. Stop bolting AI onto an org chart written before it existed.",
+    populationPct: 8,
+  },
+  {
+    tier: "AI-Native",
+    index: 5,
+    scoreBand: "88 – 100",
+    tag: "Operating system, not tool.",
+    thesis:
+      "The function — sometimes the company — is designed model-first. Workflows assume model output; humans escalate exceptions. Hiring, structure and unit economics reflect what models can do this year and what they will do next year. Compounding leverage. Most companies will never be here, and that's fine.",
+    feels: [
+      "The org chart is unrecognisable from five years ago.",
+      "AI-attributable revenue is in the P&L, not a footnote.",
+      "Talent comes for the operating model, not the salary.",
+    ],
+    proof: [
+      "Bespoke agents in production, monitored, with fallbacks and SLAs.",
+      "Model risk register reviewed at board level.",
+      "Margin advantage attributable to AI, defensible in a board pack.",
+    ],
+    hazard: "Model brittleness at the edges. The further you push, the further you have to fall when a foundation model changes underneath you.",
+    next: "There's no next tier. The work becomes maintaining the lead while the rest of the index re-baselines around you.",
+    populationPct: 2,
+  },
+];
+
+export default function Ladder() {
+  const totalPct = TIERS.reduce((s, t) => s + t.populationPct, 0);
+
+  return (
+    <div className="min-h-screen bg-walnut text-cream">
+      <SiteNav />
+
+      {/* ─── Hero ────────────────────────────────────────────────── */}
+      <section className="relative pt-40 pb-24 sm:pt-48 sm:pb-32 border-b border-cream/10 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_hsl(var(--brass)/0.08),_transparent_60%)]" aria-hidden />
+        <div className="container relative max-w-5xl">
+          <p className="eyebrow mb-6">The Maturity Ladder</p>
+          <h1 className="font-display font-light text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[16ch] text-balance">
+            Six rungs.<br />
+            <span className="italic font-normal text-brass-bright">No participation prizes.</span>
+          </h1>
+          <p className="mt-8 max-w-2xl font-display text-xl sm:text-2xl text-cream/70 leading-snug">
+            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate — and the gap between your weakest and strongest pillar is usually the more interesting number than the average.
+          </p>
+        </div>
+      </section>
+
+      {/* ─── Visual ladder ───────────────────────────────────────── */}
+      <section className="border-b border-cream/10 bg-surface-0">
+        <div className="container max-w-6xl py-20">
+          <p className="eyebrow mb-8 text-cream/45">The cohort, distributed</p>
+          <div className="space-y-3">
+            {TIERS.map((t) => (
+              <a
+                key={t.tier}
+                href={`#${slug(t.tier)}`}
+                className="group grid grid-cols-12 items-center gap-4 border-b border-cream/10 py-4 hover:bg-surface-1/40 -mx-4 px-4 rounded-sm transition-colors"
+              >
+                <span className="col-span-1 font-mono text-xs text-cream/35 tabular-nums">
+                  0{t.index}
+                </span>
+                <span className="col-span-3 sm:col-span-2 font-display text-2xl sm:text-3xl text-cream group-hover:text-brass-bright transition-colors">
+                  {t.tier}
+                </span>
+                <span className="hidden sm:block sm:col-span-3 font-display italic text-cream/55">
+                  {t.tag}
+                </span>
+                <div className="col-span-6 sm:col-span-5">
+                  <div className="relative h-2 rounded-full bg-cream/8 overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 bg-brass/70 group-hover:bg-brass-bright transition-colors"
+                      style={{ width: `${t.populationPct * 3}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="col-span-2 sm:col-span-1 text-right font-mono text-xs text-cream/55 tabular-nums">
+                  {t.populationPct}%
+                </span>
+              </a>
+            ))}
+          </div>
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+            Notional cohort distribution · {totalPct}% · refreshed against the live benchmark
+          </p>
+        </div>
+      </section>
+
+      {/* ─── Tier deep-dives ─────────────────────────────────────── */}
+      <section className="py-20 sm:py-28">
+        <div className="container max-w-6xl space-y-28">
+          {TIERS.map((t) => (
+            <article
+              key={t.tier}
+              id={slug(t.tier)}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-10 scroll-mt-24"
+            >
+              <aside className="lg:col-span-4">
+                <div className="sticky top-24 space-y-6">
+                  <div className="flex items-baseline gap-4">
+                    <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
+                      {String(t.index).padStart(2, "0")}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                      Tier {t.index} of 5
+                    </span>
+                  </div>
+                  <TierBadge tier={t.tier} showIndex={false} />
+                  <div className="pt-4 border-t border-cream/10 space-y-3">
+                    <Stat label="Score band" value={t.scoreBand} />
+                    <Stat label="Cohort share" value={`${t.populationPct}%`} />
+                  </div>
+                </div>
+              </aside>
+
+              <div className="lg:col-span-8 space-y-8">
+                <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
+                  {t.tier}
+                </h2>
+                <p className="font-display italic text-2xl text-brass-bright/85 leading-snug">
+                  {t.tag}
+                </p>
+                <p className="font-display text-xl text-cream/75 leading-relaxed max-w-2xl">
+                  {t.thesis}
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+                  <List title="What it feels like" items={t.feels} />
+                  <List title="What you'd see" items={t.proof} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+                  <Callout kind="hazard" title="The trap at this tier" body={t.hazard} />
+                  <Callout kind="next" title="To climb a rung" body={t.next} />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── CTA ─────────────────────────────────────────────────── */}
+      <section className="border-t border-cream/10 bg-surface-0">
+        <div className="container max-w-4xl py-24 text-center">
+          <p className="eyebrow mb-5">Find your rung</p>
+          <h2 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
+            Eighteen minutes.<br />
+            <span className="italic text-brass-bright">A score you can argue with.</span>
+          </h2>
+          <a
+            href="/assess"
+            className="mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
+          >
+            Begin assessment <ArrowRight className="h-4 w-4" />
+          </a>
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+            Or read <a href="/pillars" className="underline underline-offset-4 hover:text-cream">the eight pillars</a> first
+          </p>
+        </div>
+      </section>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+function slug(t: Tier) {
+  return t.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">{label}</span>
+      <span className="font-display text-cream/85 tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function List({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-sm border border-cream/10 bg-surface-1/40 p-5">
+      <p className="eyebrow mb-3 text-cream/45">{title}</p>
+      <ul className="space-y-2">
+        {items.map((it, i) => (
+          <li key={i} className="font-display text-lg text-cream/80 leading-snug flex gap-3">
+            <span className="text-brass-bright/70 mt-2 h-px w-3 shrink-0 bg-brass-bright/70" aria-hidden />
+            <span>{it}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Callout({ kind, title, body }: { kind: "hazard" | "next"; title: string; body: string }) {
+  const isHazard = kind === "hazard";
+  return (
+    <div
+      className={`rounded-sm border p-5 ${
+        isHazard ? "border-pillar-7/30 bg-pillar-7/5" : "border-brass/30 bg-brass/5"
+      }`}
+    >
+      <p className={`eyebrow mb-2 ${isHazard ? "text-pillar-7/80" : "text-brass-bright/80"}`}>
+        {title}
+      </p>
+      <p className="font-display text-lg text-cream/85 leading-snug">{body}</p>
+    </div>
+  );
+}
