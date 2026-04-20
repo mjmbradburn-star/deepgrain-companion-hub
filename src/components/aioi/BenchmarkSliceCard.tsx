@@ -109,6 +109,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
   const overallDelta = cohortScore != null ? userScore - cohortScore : null;
 
   return (
+    <TooltipProvider delayDuration={150}>
     <section className="border border-cream/10 rounded-md bg-surface-1/40 overflow-hidden">
       <header className="px-6 sm:px-8 pt-6 pb-5 border-b border-cream/10 flex items-baseline justify-between flex-wrap gap-4">
         <div>
@@ -116,9 +117,20 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
           <p className="font-display text-2xl text-cream tracking-tight">
             {slice.label}
           </p>
-          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
-            {specificityHint(slice.specificity)}
-          </p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="mt-1.5 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 hover:text-cream/70 focus:text-cream/70 focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/60 rounded transition-colors cursor-help"
+              >
+                <span>{specificityHint(slice.specificity)}</span>
+                <span aria-hidden className="text-cream/35">(?)</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start" className="max-w-xs p-0">
+              <SpecificityLegend active={slice.specificity} />
+            </TooltipContent>
+          </Tooltip>
         </div>
         <div className="text-right space-y-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
