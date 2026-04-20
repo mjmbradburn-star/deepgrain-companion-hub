@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Mail } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
@@ -7,6 +7,35 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { loadDraft } from "@/lib/assessment";
 import { finaliseAssessment, sendMagicLink, SyncError } from "@/lib/sync";
+
+/**
+ * Dev-only: sign in a synthetic test user so the full flow can be
+ * walked end-to-end without waiting on a magic link. Activated by
+ * appending `?seed=1` to /assess/processing. No-op in production.
+ */
+async function seedDevSession(): Promise<void> {
+  if (!import.meta.env.DEV) return;
+  const email = `seed-${Date.now()}@deepgrain-test.dev`;
+  const password = `Seed!${crypto.randomUUID()}`;
+  const { error: signUpErr } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  });
+  if (signUpErr && !/already/i.test(signUpErr.message)) {
+    throw new SyncError(`Seed sign-up failed: ${signUpErr.message}`, signUpErr);
+  }
+  // signUp returns a session immediately when auto-confirm is on.
+  const { data } = await supabase.auth.getSession();
+  if (data.session) return;
+  const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+  if (signInErr) {
+    throw new SyncError(
+      `Seed sign-in failed: ${signInErr.message}. Enable auto-confirm signups in Cloud auth settings to use ?seed=1.`,
+      signInErr,
+    );
+  }
+}
 
 type Phase =
   | "checking"      // working out whether we already have a session
@@ -28,6 +57,8 @@ const SYNC_LINES = [
 
 export default function AssessProcessing() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const seedMode = import.meta.env.DEV && searchParams.get("seed") === "1";
   const [phase, setPhase] = useState<Phase>("checking");
   const [error, setError] = useState<string | null>(null);
   const [emailSentTo, setEmailSentTo] = useState<string | null>(null);
@@ -70,6 +101,18 @@ export default function AssessProcessing() {
             setError(err instanceof SyncError ? err.message : "Something went wrong saving your answers.");
           }
         }
+      } else if (seedMode) {
+        // Dev shortcut — bypass the magic-link wait by minting a synthetic session.
+        try {
+          await seedDevSession();
+          // onAuthStateChange will fire and re-enter handleSession with signedIn=true.
+        } catch (err) {
+          console.error("[seed] failed", err);
+          if (!cancelled) {
+            setPhase("error");
+            setError(err instanceof SyncError ? err.message : "Seed session failed.");
+          }
+        }
       } else {
         // Signed-out — the magic link was already sent on the email screen.
         const email = draft.qualifier?.email;
@@ -95,7 +138,7 @@ export default function AssessProcessing() {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, seedMode]);
 
   // 2. Animate the "build log" while syncing.
   useEffect(() => {
@@ -126,6 +169,12 @@ export default function AssessProcessing() {
   return (
     <AssessChrome ariaLabel="Building your report">
       <main className="container max-w-2xl w-full py-20 flex flex-col">
+        {seedMode && (
+          <div className="mb-6 inline-flex items-center gap-2 self-start rounded-sm border border-brass/40 bg-brass/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
+            <span className="h-1.5 w-1.5 rounded-full bg-brass-bright animate-pulse" />
+            Dev seed mode · synthetic session
+          </div>
+        )}
         {phase === "checking" && (
           <Headline eyebrow="One moment" line1="Checking your session…" />
         )}
