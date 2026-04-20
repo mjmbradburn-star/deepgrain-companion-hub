@@ -146,8 +146,6 @@ export default function AssessQuestion() {
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
               Question {stepNum} of {questions.length}
               <span className="mx-2 text-cream/20">·</span>
-              <span className="text-cream/60">{PILLAR_NAMES[question.pillar]}</span>
-              <span className="mx-2 text-cream/20">·</span>
               {pillarPosition.index} of {pillarPosition.total} in pillar
             </span>
           </div>
