@@ -190,6 +190,44 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         ))}
       </ol>
     </section>
+    </TooltipProvider>
+  );
+}
+
+function SpecificityLegend({ active }: { active: number }) {
+  const rows: { id: number; label: string; detail: string }[] = [
+    { id: 3, label: "Function + region", detail: "Tightest match — both fields shared" },
+    { id: 2, label: "Function or region", detail: "One field shared with the cohort" },
+    { id: 1, label: "Level fallback", detail: "Everyone at your assessment level" },
+    { id: 0, label: "Approximate", detail: "Best available row at this level" },
+  ];
+  return (
+    <div className="p-3 space-y-2">
+      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/60">
+        How specific is this cohort?
+      </p>
+      <ul className="space-y-1.5">
+        {rows.map((r) => {
+          const isActive = r.id === active;
+          return (
+            <li key={r.id} className="flex items-start gap-2 text-xs leading-snug">
+              <span
+                aria-hidden
+                className={isActive ? "text-brass-bright" : "text-cream/25"}
+              >
+                ●
+              </span>
+              <span>
+                <span className={isActive ? "text-brass-bright font-medium" : "text-cream/85"}>
+                  {r.label}
+                </span>
+                <span className="text-cream/50"> — {r.detail}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
