@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FUNCTIONS, LEVELS, REGIONS, loadDraft, saveDraft, type BusinessFunction, type Region } from "@/lib/assessment";
 import { sendMagicLink, SyncError } from "@/lib/sync";
+import { supabase } from "@/integrations/supabase/client";
 
 const ROLE_OPTIONS = [
   "Founder / CEO",
