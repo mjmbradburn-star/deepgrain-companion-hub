@@ -6,64 +6,25 @@
 // by re-checking respondents.user_id against the JWT's sub.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import {
+  PILLAR_NAMES,
+  PILLAR_WEIGHTS,
+  TIER_LABELS,
+  type TierLabel,
+  tierForScore,
+  tierLabel,
+  pillarTiers as computePillarTiers,
+  aioiScore,
+  topHotspots,
+  fallbackDiagnosis,
+  fallbackPlan,
+} from "./scoring.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-// ─── Domain constants ──────────────────────────────────────────────────────
-const PILLAR_NAMES: Record<number, string> = {
-  1: "Strategy & Mandate",
-  2: "Data Foundations",
-  3: "Tooling & Infrastructure",
-  4: "Workflow Integration",
-  5: "Skills & Fluency",
-  6: "Governance & Risk",
-  7: "Measurement & ROI",
-  8: "Culture & Adoption",
-};
-
-// Causal weighting — Strategy / Data / Workflow upstream of the rest.
-const PILLAR_WEIGHTS: Record<number, number> = {
-  1: 0.14,
-  2: 0.14,
-  3: 0.12,
-  4: 0.14,
-  5: 0.12,
-  6: 0.12,
-  7: 0.12,
-  8: 0.10,
-};
-
-const TIER_LABELS = [
-  "Dormant",
-  "Reactive",
-  "Exploratory",
-  "Operational",
-  "Integrated",
-  "AI-Native",
-] as const;
-
-type TierLabel = (typeof TIER_LABELS)[number];
-
-const SCORE_BANDS: Array<{ max: number; tier: TierLabel }> = [
-  { max: 14, tier: "Dormant" },
-  { max: 29, tier: "Reactive" },
-  { max: 49, tier: "Exploratory" },
-  { max: 69, tier: "Operational" },
-  { max: 87, tier: "Integrated" },
-  { max: 100, tier: "AI-Native" },
-];
-
-function tierForScore(score: number): TierLabel {
-  return SCORE_BANDS.find((b) => score <= b.max)!.tier;
-}
-
-function tierLabel(idx: number): TierLabel {
-  return TIER_LABELS[Math.max(0, Math.min(5, idx))];
-}
 
 // ─── Handler ───────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
@@ -124,48 +85,11 @@ Deno.serve(async (req) => {
     const pillarOf = new Map<string, number>();
     for (const q of questions) pillarOf.set(q.id, q.pillar);
 
-    // 4. Compute pillar tiers (mean tier of answered questions in each pillar)
-    const pillarSums: Record<number, { sum: number; n: number }> = {};
-    for (const r of responses) {
-      const pillar = pillarOf.get(r.question_id);
-      if (!pillar) continue;
-      pillarSums[pillar] ??= { sum: 0, n: 0 };
-      pillarSums[pillar].sum += r.tier;
-      pillarSums[pillar].n += 1;
-    }
-
-    const pillarTiers: Record<number, number> = {};
-    for (let p = 1; p <= 8; p++) {
-      const agg = pillarSums[p];
-      pillarTiers[p] = agg ? Math.round((agg.sum / agg.n) * 10) / 10 : 0;
-    }
-
-    // 5. Weighted overall AIOI on a 0–100 scale (tier 0..5 → 0..100 via /5)
-    let weighted = 0;
-    let weightUsed = 0;
-    for (let p = 1; p <= 8; p++) {
-      if (pillarSums[p]) {
-        weighted += (pillarTiers[p] / 5) * 100 * PILLAR_WEIGHTS[p];
-        weightUsed += PILLAR_WEIGHTS[p];
-      }
-    }
-    const aioi = Math.round(weightUsed > 0 ? weighted / weightUsed : 0);
+    // 4. Compute pillar tiers, weighted AIOI, and hotspots (pure helpers)
+    const { tiers: pillarTiers, answered } = computePillarTiers(responses, pillarOf);
+    const aioi = aioiScore(pillarTiers, answered);
     const overallTier = tierForScore(aioi);
-
-    // 6. Hotspots: bottom-quartile pillars (or weakest 3 if everyone clusters)
-    const ranked = Object.entries(pillarTiers)
-      .map(([p, t]) => ({ pillar: Number(p), tier: t }))
-      .sort((a, b) => a.tier - b.tier);
-    const cutoff = ranked[Math.min(2, ranked.length - 1)]?.tier ?? 0;
-    const hotspots = ranked
-      .filter((r) => r.tier <= cutoff)
-      .slice(0, 3)
-      .map((r) => ({
-        pillar: r.pillar,
-        name: PILLAR_NAMES[r.pillar],
-        tier: r.tier,
-        tierLabel: tierLabel(Math.round(r.tier)),
-      }));
+    const hotspots = topHotspots(pillarTiers, 3);
 
     // 7. Pull candidate interventions for hotspots from outcomes_library
     const hotspotPillars = hotspots.map((h) => h.pillar);
@@ -362,33 +286,4 @@ Compose:
   );
 
   return { diagnosisOut: String(parsed.diagnosis).trim(), planOut: plan };
-}
-
-function fallbackDiagnosis(
-  tier: TierLabel,
-  hotspots: Array<{ name: string }>,
-): string {
-  const weakest = hotspots[0]?.name ?? "the operating model";
-  return `Operating at ${tier}. The drag is in ${weakest} — that's where the next quarter has to land.`;
-}
-
-function fallbackPlan(
-  hotspots: Array<{ pillar: number; tier: number }>,
-  outcomes: Array<{ id: string; pillar: number; applies_to_tier: number; title: string }>,
-) {
-  const monthsArr: { month: number; title: string; rationale: string; outcome_ids: string[] }[] = [];
-  for (let m = 1; m <= 3; m++) {
-    const targetPillar = hotspots[(m - 1) % hotspots.length]?.pillar ?? 1;
-    const tier = hotspots[(m - 1) % hotspots.length]?.tier ?? 0;
-    const candidates = outcomes
-      .filter((o) => o.pillar === targetPillar && o.applies_to_tier >= Math.floor(tier))
-      .slice(0, 2);
-    monthsArr.push({
-      month: m,
-      title: candidates[0]?.title ?? `Month ${m}`,
-      rationale: "Foundations first, then leverage. This month tackles the lowest-scoring pillar.",
-      outcome_ids: candidates.map((c) => c.id),
-    });
-  }
-  return monthsArr;
 }
