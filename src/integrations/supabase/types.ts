@@ -502,6 +502,7 @@ export type Database = {
         Returns: number
       }
       gen_slug: { Args: never; Returns: string }
+      get_assessment_count: { Args: never; Returns: number }
       get_outcomes_for_report: {
         Args: { _slug: string }
         Returns: {
@@ -550,10 +551,10 @@ export type Database = {
       assessment_level: "company" | "function" | "individual"
       maturity_tier:
         | "Dormant"
-        | "Reactive"
-        | "Exploratory"
-        | "Operational"
+        | "Exploring"
+        | "Deployed"
         | "Integrated"
+        | "Leveraged"
         | "AI-Native"
     }
     CompositeTypes: {
@@ -685,10 +686,10 @@ export const Constants = {
       assessment_level: ["company", "function", "individual"],
       maturity_tier: [
         "Dormant",
-        "Reactive",
-        "Exploratory",
-        "Operational",
+        "Exploring",
+        "Deployed",
         "Integrated",
+        "Leveraged",
         "AI-Native",
       ],
     },

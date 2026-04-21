@@ -3,10 +3,10 @@ import { TierBadge, type Tier } from "./TierBadge";
 
 const TIERS: { tier: Tier; tag: string; body: string }[] = [
   { tier: "Dormant",     tag: "It hasn't really come up.",  body: "No one has been asked to own it. Nothing is in any workflow. People talk about AI in the abstract, not about anything they did with it last week." },
-  { tier: "Reactive",    tag: "Used quietly when stuck.",   body: "People reach for ChatGPT to draft an email or summarise a doc. It's on personal cards, not the function budget. There's no shared way of doing it." },
-  { tier: "Exploratory", tag: "Pilots and pet projects.",   body: "A team or two is running real experiments. There are wins, owned by the people who care most. Nothing has yet reached the work that pays the bills." },
-  { tier: "Operational", tag: "Now part of the work.",      body: "A few named workflows run through AI on real data, with playbooks and a measurement habit. Some teams are racing, some are watching." },
+  { tier: "Exploring",   tag: "Pilots and pet projects.",   body: "A team or two is running real experiments. There are wins, owned by the people who care most. Nothing has yet reached the work that pays the bills." },
+  { tier: "Deployed",    tag: "Now part of the work.",      body: "A few named workflows run through AI on real data, with playbooks and a measurement habit. Some teams are racing, some are watching." },
   { tier: "Integrated",  tag: "The default first draft.",   body: "AI is the assumed first pass for most production work, with humans on review. The average person uses it daily. Tooling, governance and measurement all keep up." },
+  { tier: "Leveraged",   tag: "Compounding leverage.",      body: "AI is no longer a tool, it's the operating leverage. Whole functions are designed around model output. The org outperforms peers on cost and speed, and the gap is widening." },
   { tier: "AI-Native",   tag: "How the work is designed.",  body: "Workflows assume model output. People escalate the exceptions. Hiring and structure reflect what models can do this year and next. Most companies will never be here, and that's fine." },
 ];
 
