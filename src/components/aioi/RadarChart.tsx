@@ -95,11 +95,19 @@ export function RadarChart({
         );
       })}
 
-      {/* Tier ring labels (T1, T3, T5).
+      {/* Tier ring labels.
+          The radial scale matches the 0–5 maturity ladder used in the pillar
+          breakdown (0 = Dormant at centre, 5 = AI-Native at the rim). We label
+          rings 1, 3 and 5 with both the numeric tier and the named maturity
+          stage so the legend on this chart reads the same as the comparison
+          bars elsewhere.
           Placed on a quiet diagonal spoke (between P8 at 315° and P1 at 0°/top)
-          so they never collide with the P1 "Strategy" label that sits at 12 o'clock.
-          Each label nudges outward slightly for visual breathing room. */}
-      {[1, 3, 5].map((tier) => {
+          so they never collide with the P1 "Strategy" label at 12 o'clock. */}
+      {([
+        [1, "Reactive"],
+        [3, "Operational"],
+        [5, "AI-Native"],
+      ] as const).map(([tier, name]) => {
         // -45° from horizontal, in canvas coords that's upper-left of centre.
         const a = -Math.PI / 2 - Math.PI / 4; // 315° equivalent
         const r = (tier / RINGS) * radius;
@@ -114,9 +122,10 @@ export function RadarChart({
             fontFamily="ui-monospace, monospace"
             letterSpacing={1.4}
             textAnchor="end"
-            fill="hsl(var(--cream) / 0.28)"
+            fill="hsl(var(--cream) / 0.32)"
           >
-            T{tier}
+            <tspan fill="hsl(var(--brass-bright) / 0.75)">T{tier}</tspan>
+            <tspan dx={4}>{name.toUpperCase()}</tspan>
           </text>
         );
       })}
