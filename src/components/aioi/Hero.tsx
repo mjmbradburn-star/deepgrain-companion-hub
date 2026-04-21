@@ -27,7 +27,7 @@ export function Hero() {
 
       {/* Top hairline meta — masthead */}
       <div className="relative z-10 border-b border-cream/15">
-        <div className="container flex items-center justify-between py-3 font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-cream/55">
+        <div className="container px-6 sm:px-8 lg:px-12 flex items-center justify-between py-3 font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-cream/55">
           <span>The AI Operating Index</span>
           <span className="hidden sm:inline">Volume I · MMXXVI</span>
           <span>Deepgrain</span>
@@ -35,9 +35,9 @@ export function Hero() {
       </div>
 
       {/* Headline block */}
-      <div className="container relative z-10 pt-10 sm:pt-16">
+      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-10 sm:pt-16">
         <p className="eyebrow mb-4 sm:mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
-        <h1 className="font-display font-light hero-headline text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up">
+        <h1 className="font-display font-light hero-headline text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up text-[3.5rem] sm:text-[6rem] md:text-[7.5rem] lg:text-[10rem] leading-[0.88]">
           Measure your<br />
           <span className="italic font-normal text-brass">AI debt.</span>
         </h1>
@@ -45,7 +45,7 @@ export function Hero() {
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container relative z-10 mt-6 sm:mt-auto pb-8 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-8 items-end">
+      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 mt-12 sm:mt-auto pb-8 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-8 items-end">
         <p className="md:col-span-6 md:col-start-7 font-display text-lg sm:text-2xl text-cream/80 leading-[1.4] sm:leading-[1.35] text-pretty animate-fade-in sm:animate-fade-up [animation-delay:200ms]">
           For companies, functions and individuals.
           Three minutes. Eight pillars, one question each,
