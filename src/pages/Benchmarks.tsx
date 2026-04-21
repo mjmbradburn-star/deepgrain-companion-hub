@@ -406,20 +406,38 @@ export default function Benchmarks() {
   // tiers so we can overlay a "You" marker against the cohort medians in the
   // pillar breakdown. Slug lives in localStorage; the public RPC keeps this
   // anonymous-safe (no PII in the response).
+  //
+  // We track *why* the overlay is unavailable so the breakdown can render a
+  // meaningful empty-state instead of silently dropping the marker:
+  //   - "loading"     → still resolving (don't message yet)
+  //   - "no-scan"     → no slug in localStorage (visitor hasn't started)
+  //   - "no-report"   → slug exists but report row missing/empty (mid-flow)
+  //   - "ready"       → pillar tiers loaded
+  type YouStatus = "loading" | "no-scan" | "no-report" | "ready";
   const [userPillars, setUserPillars] = useState<Record<number, number> | null>(null);
+  const [youStatus, setYouStatus] = useState<YouStatus>("loading");
   useEffect(() => {
     let cancelled = false;
     const slug = loadScan().slug;
-    if (!slug) return;
+    if (!slug) {
+      setYouStatus("no-scan");
+      return;
+    }
     (async () => {
       const { data, error } = await supabase.rpc("get_report_by_slug", { _slug: slug });
-      if (cancelled || error || !data) return;
-      // RPC payload includes report.pillar_tiers (Record<string, { tier, ... }>).
+      if (cancelled) return;
+      if (error || !data) {
+        setYouStatus("no-report");
+        return;
+      }
       const payload = data as unknown as {
         report?: { pillar_tiers?: Record<string, { tier?: number } | number> } | null;
       };
       const raw = payload?.report?.pillar_tiers;
-      if (!raw || typeof raw !== "object") return;
+      if (!raw || typeof raw !== "object") {
+        setYouStatus("no-report");
+        return;
+      }
       const out: Record<number, number> = {};
       for (const [k, v] of Object.entries(raw)) {
         const n = Number(k);
@@ -427,7 +445,12 @@ export default function Benchmarks() {
         if (typeof v === "number") out[n] = v;
         else if (v && typeof v === "object" && typeof v.tier === "number") out[n] = v.tier;
       }
-      setUserPillars(Object.keys(out).length ? out : null);
+      if (Object.keys(out).length) {
+        setUserPillars(out);
+        setYouStatus("ready");
+      } else {
+        setYouStatus("no-report");
+      }
     })();
     return () => { cancelled = true; };
   }, []);
