@@ -692,18 +692,27 @@ export default function Benchmarks() {
             <h2 className="font-display text-2xl sm:text-3xl tracking-tight">
               Pillar breakdown
             </h2>
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-              Median tier · 0–5
-            </span>
+            <div className="flex items-center gap-5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-3 rounded-full bg-brass/55" aria-hidden /> Median
+              </span>
+              {userPillars && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-[2px] rounded-full bg-brass-bright" aria-hidden /> You
+                </span>
+              )}
+              <span>Tier · 0–5</span>
+            </div>
           </div>
 
           <ol className="border-t border-cream/10">
             {PILLARS.map((p) => {
               const v = view?.pillars[p.id] ?? 0;
+              const yours = userPillars?.[p.id];
               return (
                 <li
                   key={p.id}
-                  className="grid grid-cols-12 gap-4 items-center py-5 border-b border-cream/10"
+                  className="grid grid-cols-12 gap-4 items-center py-6 border-b border-cream/10"
                 >
                   <span className="col-span-1 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
                     P{p.id}
@@ -713,7 +722,7 @@ export default function Benchmarks() {
                   </span>
                   <div className="col-span-4 sm:col-span-5 flex justify-start sm:justify-center">
                     {view ? (
-                      <PillarSparkline value={v} />
+                      <PillarComparisonBar median={v} user={yours} />
                     ) : (
                       <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.22em]">
                         no data
