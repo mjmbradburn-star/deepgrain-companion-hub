@@ -105,20 +105,38 @@ Deno.serve(async (req) => {
     const reportUrl = `${origin.replace(/\/$/, '')}/assess/r/${slug}`
 
     // 5. Trigger the transactional email.
+    //    Call directly with fetch so we control the Authorization header
+    //    (admin.functions.invoke does not forward the service-role key, which
+    //    causes UNAUTHORIZED_INVALID_JWT_FORMAT against verify_jwt=true funcs).
     const idempotencyKey = `report-pdf-${slug}-${email}`
-    const { error: sendErr } = await admin.functions.invoke('send-transactional-email', {
-      body: {
-        templateName: 'report-pdf-ready',
-        recipientEmail: email,
-        idempotencyKey,
-        templateData: {
-          score: payload.report.aioi_score,
-          tier: payload.report.overall_tier,
-          pdfUrl,
-          reportUrl,
+    let sendErr: { message: string; status?: number; body?: string } | null = null
+    try {
+      const sendRes = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
         },
-      },
-    })
+        body: JSON.stringify({
+          templateName: 'report-pdf-ready',
+          recipientEmail: email,
+          idempotencyKey,
+          templateData: {
+            score: payload.report.aioi_score,
+            tier: payload.report.overall_tier,
+            pdfUrl,
+            reportUrl,
+          },
+        }),
+      })
+      if (!sendRes.ok) {
+        const text = await sendRes.text().catch(() => '')
+        sendErr = { message: `send-transactional-email ${sendRes.status}`, status: sendRes.status, body: text }
+      }
+    } catch (e) {
+      sendErr = { message: e instanceof Error ? e.message : 'fetch failed' }
+    }
     if (sendErr) {
       console.error('[email-report-pdf] send-transactional-email failed', sendErr)
       // Even if the email send fails, the PDF has been generated. Return the
