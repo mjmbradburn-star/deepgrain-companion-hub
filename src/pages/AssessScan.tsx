@@ -174,8 +174,16 @@ export default function AssessScan() {
     [idx, answers, questions],
   );
 
+  // Re-entry guard. `submitting` lives in state and won't be visible to a
+  // second call that arrives in the same React tick — a ref gives us a
+  // synchronous lock so a fast double-click or an Enter+button race can't
+  // fire two report-generation requests in parallel.
+  const inflight = useRef(false);
+
   const submit = useCallback(
     async (finalAnswers: Record<string, number>) => {
+      if (inflight.current) return;
+      inflight.current = true;
       setSubmitting(true);
       setSubmitError(null);
       setLastAttempt(finalAnswers);
