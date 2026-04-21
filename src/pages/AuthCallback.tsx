@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Loader2, Mail, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { loadDraft, getQuestions } from "@/lib/assessment";
-import { ensureRespondent, flushAnswers } from "@/lib/sync";
+import { ensureRespondent, flushAnswers, sendMagicLink, SyncError } from "@/lib/sync";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -45,9 +46,14 @@ function detectLinkError(search: URLSearchParams, hash: URLSearchParams): {
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { toast } = useToast();
   const [status, setStatus] = useState<"working" | "error">("working");
   const [errorKind, setErrorKind] = useState<LinkErrorKind>("generic");
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [knownEmail, setKnownEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resentTo, setResentTo] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
 
   const next = params.get("next") || "/reports";
 
@@ -62,6 +68,12 @@ export default function AuthCallback() {
       setStatus("error");
       setErrorKind(linkError.kind);
       setErrorDetail(linkError.description ?? null);
+      try {
+        const draftEmail = loadDraft().qualifier?.email;
+        if (draftEmail) setKnownEmail(draftEmail);
+      } catch {
+        /* no-op */
+      }
       // Clean the URL so a refresh doesn't keep showing the error fragment.
       try {
         window.history.replaceState({}, "", window.location.pathname + window.location.search);
@@ -123,6 +135,12 @@ export default function AuthCallback() {
         if (!data.session) {
           setStatus("error");
           setErrorKind("invalid");
+          try {
+            const draftEmail = loadDraft().qualifier?.email;
+            if (draftEmail) setKnownEmail(draftEmail);
+          } catch {
+            /* no-op */
+          }
         }
       });
     }, 2500);
@@ -141,9 +159,35 @@ export default function AuthCallback() {
     };
   }, [navigate, params]);
 
+  // Cooldown countdown for resend
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const handleResend = async () => {
+    if (!knownEmail || resending || cooldown > 0) return;
+    setResending(true);
+    try {
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      await sendMagicLink(knownEmail, redirectTo);
+      setResentTo(knownEmail);
+      setCooldown(30);
+      toast({ title: "Check your inbox", description: "We just sent a fresh sign-in link." });
+    } catch (err) {
+      const msg = err instanceof SyncError ? err.message : "Could not send link. Try again.";
+      toast({ title: msg, variant: "destructive" });
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (status === "error") {
     const copy = errorCopy(errorKind);
-    const retryHref = `/signin?next=${encodeURIComponent(next)}`;
+    const retryHref = knownEmail
+      ? `/signin?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}`
+      : `/signin?next=${encodeURIComponent(next)}`;
     return (
       <AssessChrome ariaLabel="Sign-in problem">
         <main className="container max-w-xl w-full py-20 sm:py-28">
@@ -162,26 +206,55 @@ export default function AuthCallback() {
           )}
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3">
-            <Button
-              asChild
-              className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
-            >
-              <Link to={retryHref}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Request a new link
-              </Link>
-            </Button>
+            {knownEmail ? (
+              <Button
+                onClick={handleResend}
+                disabled={resending || cooldown > 0}
+                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+              >
+                {resending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</>
+                ) : cooldown > 0 ? (
+                  <>Resend in {cooldown}s</>
+                ) : resentTo ? (
+                  <><Mail className="h-4 w-4 mr-2" /> Resend link</>
+                ) : (
+                  <><RefreshCw className="h-4 w-4 mr-2" /> Resend link</>
+                )}
+              </Button>
+            ) : (
+              <Button
+                asChild
+                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+              >
+                <Link to={retryHref}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Request a new link
+                </Link>
+              </Button>
+            )}
             <Button
               asChild
               variant="outline"
               className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
             >
-              <Link to="/assess">
-                Take the assessment
+              <Link to={knownEmail ? retryHref : "/assess"}>
+                {knownEmail ? "Use a different email" : "Take the assessment"}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
           </div>
+
+          {resentTo && (
+            <div className="mt-8 rounded-sm border border-brass/30 bg-brass/5 p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright mb-2">
+                Link sent
+              </p>
+              <p className="font-display text-base text-cream/85">
+                Check <span className="text-cream">{resentTo}</span>. Open the link on this device to sign in.
+              </p>
+            </div>
+          )}
 
           <p className="mt-12 font-mono text-[11px] text-cream/40">
             Tip: open the link on the same device and browser where you requested it, and within 1 hour.
