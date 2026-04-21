@@ -84,8 +84,8 @@ const ReportPdfReadyEmail = ({
 )
 
 export const template = {
-  component: ReportPdfReadyEmail,
-  subject: (data: Record<string, any>) => {
+  component: ReportPdfReadyEmail as unknown as TemplateEntry['component'],
+  subject: (data: Record<string, unknown>) => {
     const score = typeof data?.score === 'number' ? data.score : null
     return score !== null
       ? `Your AIOI report (${score}/100) is ready`
