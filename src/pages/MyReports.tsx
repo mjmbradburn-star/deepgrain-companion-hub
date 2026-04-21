@@ -17,7 +17,7 @@ interface RespondentRow {
   region: string | null;
   submitted_at: string | null;
   created_at: string;
-  reports: { aioi_score: number | null; overall_tier: Tier | null }[] | null;
+  reports: { aioi_score: number | null; overall_tier: Tier | null } | null;
 }
 
 export default function MyReports() {
@@ -47,7 +47,7 @@ export default function MyReports() {
       if (error) {
         toast({ title: "Could not load your reports", description: error.message, variant: "destructive" });
       } else {
-        setRows((data ?? []) as RespondentRow[]);
+        setRows((data ?? []) as unknown as RespondentRow[]);
       }
       setLoading(false);
     })();
@@ -118,7 +118,7 @@ export default function MyReports() {
 }
 
 function ReportRow({ row }: { row: RespondentRow }) {
-  const report = row.reports?.[0] ?? null;
+  const report = row.reports ?? null;
   const inProgress = !row.submitted_at;
   const date = row.submitted_at ?? row.created_at;
 
