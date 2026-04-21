@@ -26,6 +26,93 @@ import { supabase } from "@/integrations/supabase/client";
 
 const VALID_LEVELS: Level[] = ["company", "function", "individual"];
 
+type ErrorKind = "timeout" | "offline" | "network" | "server" | "validation" | "unknown";
+interface SubmitError {
+  kind: ErrorKind;
+  title: string;
+  detail: string;
+  hint: string;
+}
+
+const SUBMIT_TIMEOUT_MS = 25_000;
+
+/**
+ * Classify a submit failure into something we can speak about plainly.
+ *
+ * The supabase-js `functions.invoke` call surfaces three meaningfully
+ * different shapes: a `FunctionsHttpError` for non-2xx responses (the
+ * function ran but returned an error), a `FunctionsRelayError` when the
+ * gateway can't reach the function, and a `FunctionsFetchError` when the
+ * fetch itself fails. We also handle our own `AbortError` (timeout) and
+ * the browser's `navigator.onLine` flag for offline detection.
+ */
+function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: string }): SubmitError {
+  // 1. Server returned a structured error from the function body
+  if (ctx.payloadError) {
+    return {
+      kind: "validation",
+      title: "We couldn't accept those answers",
+      detail: ctx.payloadError,
+      hint: "Review your answers below — one of them may be incomplete. If it looks right, try again.",
+    };
+  }
+
+  // 2. Browser is offline
+  if (ctx.offline || (typeof navigator !== "undefined" && !navigator.onLine)) {
+    return {
+      kind: "offline",
+      title: "You're offline",
+      detail: "Your device isn't connected to the internet right now.",
+      hint: "Check your connection — your answers are safe on this device, hit Try again once you're back online.",
+    };
+  }
+
+  const name = err instanceof Error ? err.name : "";
+  const message = err instanceof Error ? err.message : String(err ?? "");
+
+  // 3. Our own timeout (AbortController) — the request didn't come back in time
+  if (name === "AbortError" || /timeout|timed out|aborted/i.test(message)) {
+    return {
+      kind: "timeout",
+      title: "That took too long",
+      detail: "The scoring service didn't respond within 25 seconds.",
+      hint: "Usually a one-off — wait a few seconds and hit Try again. If it keeps timing out, refresh the page.",
+    };
+  }
+
+  // 4. Server-side error (function ran, returned non-2xx) — supabase wraps as FunctionsHttpError
+  if (name === "FunctionsHttpError" || /\b5\d\d\b/.test(message) || /server/i.test(message)) {
+    return {
+      kind: "server",
+      title: "Our scoring service hiccupped",
+      detail: message || "The function ran but returned an error.",
+      hint: "We've logged it. Try again in a moment — your answers are saved.",
+    };
+  }
+
+  // 5. Network / relay failure — couldn't reach the function at all
+  if (
+    name === "FunctionsRelayError" ||
+    name === "FunctionsFetchError" ||
+    name === "TypeError" ||
+    /failed to fetch|network|relay|load failed/i.test(message)
+  ) {
+    return {
+      kind: "network",
+      title: "Couldn't reach the scoring service",
+      detail: "We couldn't make it to the server — could be your connection or ours.",
+      hint: "Check your connection and try again. If it persists, refresh and we'll resume from your last answer.",
+    };
+  }
+
+  return {
+    kind: "unknown",
+    title: "Something snagged",
+    detail: message || "An unexpected error occurred.",
+    hint: "Try again — your answers are safe on this device.",
+  };
+}
+
 export default function AssessScan() {
   const navigate = useNavigate();
 
