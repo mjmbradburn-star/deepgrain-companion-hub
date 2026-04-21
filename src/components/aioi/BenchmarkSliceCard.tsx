@@ -149,12 +149,22 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
 
       {/* Headline numbers */}
       <div className="px-6 sm:px-8 py-6 grid grid-cols-3 gap-6 border-b border-cream/10">
-        <Stat label="You" value={userScore} accent />
-        <Stat label="Cohort median" value={cohortScore ?? "—"} />
+        <Stat
+          label="You"
+          value={userScore}
+          accent
+          hint="Your weighted AIOI score (0–100 score points, rounded to the nearest whole point)."
+        />
+        <Stat
+          label="Cohort median"
+          value={cohortScore ?? "—"}
+          hint="Median weighted AIOI score for this cohort (0–100 score points, rounded to the nearest whole point)."
+        />
         <Stat
           label="Gap"
           value={overallDelta == null ? "—" : `${overallDelta > 0 ? "+" : ""}${overallDelta}`}
           tone={overallDelta == null ? "neutral" : overallDelta >= 0 ? "ahead" : "behind"}
+          hint="You vs cohort median, in AIOI score points (0–100 scale). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5)."
         />
       </div>
 
