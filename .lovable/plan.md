@@ -1,44 +1,34 @@
 
 
-## Mobile alignment fix — Reset filters & Copy share link
+## Verify and fix bottom spacing around "See the eight pillars" prompt
 
-**Scope:** the two utility buttons above the filter rows on `/benchmarks` (`src/pages/Benchmarks.tsx`, lines 506–559).
+### Where this lives
 
-### What's wrong on mobile
+The "See the eight pillars" prompt sits at the bottom of the `BenchmarkCounter` section on the home page (`src/components/aioi/BenchmarkCounter.tsx`), which is rendered between `ThreeLevels` and `WhyDeepgrain` on `src/pages/Index.tsx`.
 
-- Both buttons already left-align (`justify-start sm:justify-end`), but they look uneven because:
-  - **Different border weights:** Reset uses `border-cream/15`, Copy uses `border-cream/25`.
-  - **Different text weights:** Reset is `text-cream/65`, Copy is `text-cream/75`.
-  - **Inconsistent tap target:** `py-1.5` gives ~30px height — under the 36px mobile minimum used elsewhere (e.g. `BenchmarkFilters.tsx` uses `py-2 min-h-[36px]`).
-  - **Icon optical alignment:** both icons are 12px but the chain-link glyph sits visually higher than the rotate-arrow because of stroke geometry; `gap-2` is fine but the icons need a shared baseline wrapper.
+### What to check
 
-### Changes
+1. Read `BenchmarkCounter.tsx` and confirm the bottom padding/margin currently applied to the section and to the inner prompt link.
+2. Read the parent `Index.tsx` to see if any wrapping container adds extra `py-*` / `space-y-*` that compounds with the section's own bottom padding.
+3. Compare against the standard `section-y` utility used elsewhere (Hero, PillarsGrid, ThreeLevels, WhyDeepgrain) so the rhythm matches the rest of the page.
+4. Verify at 375px, 768px, and 1280px in the preview that the gap below the prompt before the next section feels identical to the gap above it (symmetric breathing room) and matches the gap between other adjacent sections.
 
-1. **Unify the two buttons' visual weight** so they read as a matched pair:
-   - Same border: `border-cream/20`
-   - Same text: `text-cream/70`
-   - Same hover: `hover:border-cream/50 hover:text-cream`
+### Likely fix
 
-2. **Match the filter-pill tap sizing** used directly below them:
-   - `py-2 min-h-[36px]` on mobile, keeping `sm:py-1.5` for desktop density.
+Most often this kind of asymmetry comes from one of three things, and the fix is whichever applies:
 
-3. **Fix icon vertical alignment** by wrapping each `<svg>` in a `flex items-center justify-center w-3 h-3 shrink-0` span so both glyphs sit on the same optical centre regardless of stroke shape.
+- **Prompt link has its own `mt-*` plus the section already uses `section-y`** → remove the redundant top margin or normalise to the standard rhythm.
+- **Section uses `pb-*` smaller than its `pt-*`** → switch to `section-y` (or matching `pt`/`pb`) so top and bottom are equal.
+- **Parent in `Index.tsx` adds `space-y-*` on top of per-section padding** → drop the parent gap and rely on each section's own padding.
 
-4. **Tighten the row container** for mobile:
-   - `flex flex-wrap justify-start sm:justify-end gap-2 mb-4 sm:mb-4`
-   - Add `mb-5` on mobile to give the filter rows below proper breathing room (currently `mb-4` only).
-
-5. **Leave desktop untouched** — right-aligned, same density, same hover behaviour.
-
-### Files touched
-
-- `src/pages/Benchmarks.tsx` (lines 506–559 only)
+I'll pick the minimum change that gives a consistent gap on mobile and desktop without disturbing the surrounding sections.
 
 ### Verification
 
-After edits, view `/benchmarks` at 375px and 768px to confirm:
-- Buttons left-align flush with container padding on mobile.
-- Both buttons share identical border colour, text colour, height, and icon baseline.
-- Tap targets are ≥36px tall.
-- Desktop layout (right-aligned cluster) is unchanged.
+Screenshot `/` at 375 / 768 / 1280, eyeball the gap above and below the prompt, and confirm it matches the gap between `ThreeLevels` → `BenchmarkCounter` and `BenchmarkCounter` → `WhyDeepgrain`.
+
+### Files likely touched
+
+- `src/components/aioi/BenchmarkCounter.tsx` (most likely, one or two class changes)
+- `src/pages/Index.tsx` (only if a parent wrapper is the culprit)
 
