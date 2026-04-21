@@ -179,6 +179,15 @@ export default function AssessScan() {
       setSubmitting(true);
       setSubmitError(null);
       setLastAttempt(finalAnswers);
+
+      // Snapshot the connectivity state before kicking off the call so the
+      // classifier can describe the right failure even if the browser comes
+      // back online during the timeout window.
+      const wasOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
+
       try {
         const payload = {
           level,
@@ -191,14 +200,34 @@ export default function AssessScan() {
         };
         const { data, error } = await supabase.functions.invoke("submit-quickscan", {
           body: payload,
+          // supabase-js v2 forwards this onto the underlying fetch.
+          // @ts-expect-error -- signal is supported but missing from the types
+          signal: controller.signal,
         });
-        if (error || !data?.slug) {
+        if (error) {
           console.error("[scan] submit failed", error, data);
           setSubmitting(false);
           setSubmitError(
-            error?.message ||
-              data?.error ||
-              "We couldn't generate your report. Please try again.",
+            classifyError(error, {
+              offline: wasOffline,
+              payloadError: typeof data === "object" && data && "error" in data
+                ? String((data as { error?: unknown }).error ?? "")
+                : undefined,
+            }),
+          );
+          return;
+        }
+        if (!data?.slug) {
+          console.error("[scan] submit returned no slug", data);
+          setSubmitting(false);
+          setSubmitError(
+            classifyError(new Error("Missing slug in response"), {
+              offline: wasOffline,
+              payloadError:
+                typeof data === "object" && data && "error" in data
+                  ? String((data as { error?: unknown }).error ?? "")
+                  : undefined,
+            }),
           );
           return;
         }
@@ -208,9 +237,9 @@ export default function AssessScan() {
       } catch (err) {
         console.error("[scan] submit threw", err);
         setSubmitting(false);
-        setSubmitError(
-          err instanceof Error ? err.message : "Network error. Please try again.",
-        );
+        setSubmitError(classifyError(err, { offline: wasOffline }));
+      } finally {
+        window.clearTimeout(timeout);
       }
     },
     [level, fn, region, questions, navigate],
