@@ -137,7 +137,7 @@ export function PillarBarChart({
                     a per-row mount flag below. */}
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
-                    key={variant === "lollipop" ? `${userTier}-${cohortTier}` : undefined}
+                    key={variant === "lollipop" && gen > 0 ? `${gen}-${userTier}-${cohortTier}` : undefined}
                     aria-hidden
                     data-gap-segment
                     data-direction={ahead ? "ahead" : "behind"}
