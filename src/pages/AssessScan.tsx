@@ -77,6 +77,8 @@ export default function AssessScan() {
   const submit = useCallback(
     async (finalAnswers: Record<string, number>) => {
       setSubmitting(true);
+      setSubmitError(null);
+      setLastAttempt(finalAnswers);
       try {
         const payload = {
           level,
@@ -93,6 +95,11 @@ export default function AssessScan() {
         if (error || !data?.slug) {
           console.error("[scan] submit failed", error, data);
           setSubmitting(false);
+          setSubmitError(
+            error?.message ||
+              data?.error ||
+              "We couldn't generate your report. Please try again.",
+          );
           return;
         }
         saveScan({ ...loadScan(), slug: data.slug });
@@ -101,10 +108,18 @@ export default function AssessScan() {
       } catch (err) {
         console.error("[scan] submit threw", err);
         setSubmitting(false);
+        setSubmitError(
+          err instanceof Error ? err.message : "Network error. Please try again.",
+        );
       }
     },
     [level, fn, region, questions, navigate],
   );
+
+  const retry = useCallback(() => {
+    if (lastAttempt) void submit(lastAttempt);
+    else void submit(answers);
+  }, [lastAttempt, answers, submit]);
 
   const select = useCallback(
     (tier: number) => {
