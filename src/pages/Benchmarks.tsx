@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { RadarChart } from "@/components/aioi/RadarChart";
 import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
+import { loadScan } from "@/lib/quickscan";
 import type { Database } from "@/integrations/supabase/types";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
