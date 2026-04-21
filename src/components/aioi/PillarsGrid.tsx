@@ -19,7 +19,7 @@ export function PillarsGrid() {
           <p className="eyebrow mb-5">Eight Pillars</p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
             Eight things that decide<br />
-            <span className="italic text-brass-bright">where AI works for you.</span>
+            <span className="italic text-brass-bright">how AI works for you.</span>
           </h2>
           <p className="mt-6 font-display text-lg sm:text-xl text-cream/65 max-w-xl">
             Most surveys measure tools. This one looks at how you operate.
