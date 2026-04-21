@@ -5,3 +5,7 @@ project_id = "lschdkhtymifmxjcbtvb"
     verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
+  [functions.submit-quickscan]
+    verify_jwt = false
+  [functions.rescore-respondent]
+    verify_jwt = false
