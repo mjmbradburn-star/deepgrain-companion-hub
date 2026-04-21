@@ -19,10 +19,10 @@ export const PILLAR_WEIGHTS: Record<number, number> = {
 
 export const TIER_LABELS = [
   "Dormant",
-  "Reactive",
-  "Exploratory",
-  "Operational",
+  "Exploring",
+  "Deployed",
   "Integrated",
+  "Leveraged",
   "AI-Native",
 ] as const;
 
@@ -30,10 +30,10 @@ export type TierLabel = (typeof TIER_LABELS)[number];
 
 export const SCORE_BANDS: Array<{ max: number; tier: TierLabel }> = [
   { max: 14, tier: "Dormant" },
-  { max: 29, tier: "Reactive" },
-  { max: 49, tier: "Exploratory" },
-  { max: 69, tier: "Operational" },
-  { max: 87, tier: "Integrated" },
+  { max: 32, tier: "Exploring" },
+  { max: 54, tier: "Deployed" },
+  { max: 74, tier: "Integrated" },
+  { max: 89, tier: "Leveraged" },
   { max: 100, tier: "AI-Native" },
 ];
 

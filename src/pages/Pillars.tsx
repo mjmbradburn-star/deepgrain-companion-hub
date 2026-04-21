@@ -132,7 +132,7 @@ const PILLARS: PillarEntry[] = [
   },
 ];
 
-const TIER_LABEL_BY_INDEX: Tier[] = ["Dormant", "Reactive", "Exploratory", "Operational", "Integrated", "AI-Native"];
+const TIER_LABEL_BY_INDEX: Tier[] = ["Dormant", "Exploring", "Deployed", "Integrated", "Leveraged", "AI-Native"];
 
 export default function Pillars() {
   const totalWeight = PILLARS.reduce((s, p) => s + p.weight, 0);
