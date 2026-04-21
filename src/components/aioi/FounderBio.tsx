@@ -101,7 +101,7 @@ function BioBody() {
             aria-hidden
             className="absolute inset-0 flex items-center justify-center font-display text-[clamp(64px,18vw,96px)] text-brass/40 leading-none"
           >
-            MB
+            {" "}
           </div>
         </div>
         <div className="mt-4 sm:mt-5 space-y-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
