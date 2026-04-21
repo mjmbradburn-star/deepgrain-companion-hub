@@ -46,9 +46,10 @@ export function BenchmarkCounter() {
       if (cancelled) return;
       if (typeof countData === "number") setCount(countData);
       if (benchData) {
+        const row = benchData as unknown as { median_score: number | null; pillar_medians: CompanyBenchmark["pillar_medians"] };
         setBench({
-          median_score: (benchData as { median_score: number | null }).median_score ?? null,
-          pillar_medians: (benchData as { pillar_medians: CompanyBenchmark["pillar_medians"] }).pillar_medians,
+          median_score: row.median_score ?? null,
+          pillar_medians: row.pillar_medians,
         });
       }
     }
