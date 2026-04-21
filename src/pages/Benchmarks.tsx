@@ -406,20 +406,38 @@ export default function Benchmarks() {
   // tiers so we can overlay a "You" marker against the cohort medians in the
   // pillar breakdown. Slug lives in localStorage; the public RPC keeps this
   // anonymous-safe (no PII in the response).
+  //
+  // We track *why* the overlay is unavailable so the breakdown can render a
+  // meaningful empty-state instead of silently dropping the marker:
+  //   - "loading"     → still resolving (don't message yet)
+  //   - "no-scan"     → no slug in localStorage (visitor hasn't started)
+  //   - "no-report"   → slug exists but report row missing/empty (mid-flow)
+  //   - "ready"       → pillar tiers loaded
+  type YouStatus = "loading" | "no-scan" | "no-report" | "ready";
   const [userPillars, setUserPillars] = useState<Record<number, number> | null>(null);
+  const [youStatus, setYouStatus] = useState<YouStatus>("loading");
   useEffect(() => {
     let cancelled = false;
     const slug = loadScan().slug;
-    if (!slug) return;
+    if (!slug) {
+      setYouStatus("no-scan");
+      return;
+    }
     (async () => {
       const { data, error } = await supabase.rpc("get_report_by_slug", { _slug: slug });
-      if (cancelled || error || !data) return;
-      // RPC payload includes report.pillar_tiers (Record<string, { tier, ... }>).
+      if (cancelled) return;
+      if (error || !data) {
+        setYouStatus("no-report");
+        return;
+      }
       const payload = data as unknown as {
         report?: { pillar_tiers?: Record<string, { tier?: number } | number> } | null;
       };
       const raw = payload?.report?.pillar_tiers;
-      if (!raw || typeof raw !== "object") return;
+      if (!raw || typeof raw !== "object") {
+        setYouStatus("no-report");
+        return;
+      }
       const out: Record<number, number> = {};
       for (const [k, v] of Object.entries(raw)) {
         const n = Number(k);
@@ -427,7 +445,12 @@ export default function Benchmarks() {
         if (typeof v === "number") out[n] = v;
         else if (v && typeof v === "object" && typeof v.tier === "number") out[n] = v.tier;
       }
-      setUserPillars(Object.keys(out).length ? out : null);
+      if (Object.keys(out).length) {
+        setUserPillars(out);
+        setYouStatus("ready");
+      } else {
+        setYouStatus("no-report");
+      }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -734,16 +757,60 @@ export default function Benchmarks() {
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-3 rounded-full bg-brass/55" aria-hidden /> Median
               </span>
-              {userPillars && (
+              {youStatus === "ready" ? (
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-[2px] rounded-full bg-brass-bright" aria-hidden /> You
                 </span>
-              )}
+              ) : youStatus !== "loading" ? (
+                <span className="inline-flex items-center gap-1.5 text-cream/30">
+                  <span className="h-2.5 w-[2px] rounded-full bg-cream/20" aria-hidden /> You · n/a
+                </span>
+              ) : null}
               <span title="0 Dormant · 1 Reactive · 2 Exploratory · 3 Operational · 4 Integrated · 5 AI-Native">
                 Tier · 0 Dormant → 5 AI-Native
               </span>
             </div>
           </div>
+
+          {/* "You" overlay status banner — explains why the personal marker
+              is missing so users don't wonder if it's broken. */}
+          {youStatus === "no-scan" && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-sm border border-brass/25 bg-brass/5 px-4 py-3">
+              <div className="flex-1">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85">
+                  Your marker · not available
+                </p>
+                <p className="mt-1 font-display text-sm text-cream/75 leading-relaxed">
+                  Take the 2-minute Quickscan to overlay your tier on each pillar against the cohort median.
+                </p>
+              </div>
+              <a
+                href="/assess"
+                className="self-start sm:self-auto inline-flex items-center justify-center rounded-sm bg-brass px-4 py-2 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright transition-colors"
+              >
+                Start Quickscan
+              </a>
+            </div>
+          )}
+          {youStatus === "no-report" && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-sm border border-cream/15 bg-surface-1/40 px-4 py-3">
+              <div className="flex-1">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/55">
+                  Your marker · not available
+                </p>
+                <p className="mt-1 font-display text-sm text-cream/75 leading-relaxed">
+                  We found a scan on this device but couldn't load its results. Resume your Quickscan to
+                  unlock the "You" overlay.
+                </p>
+              </div>
+              <a
+                href="/assess"
+                className="self-start sm:self-auto inline-flex items-center justify-center rounded-sm border border-cream/25 px-4 py-2 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:border-cream/55 transition-colors"
+              >
+                Resume scan
+              </a>
+            </div>
+          )}
 
           <ol className="border-t border-cream/10">
             {PILLARS.map((p) => {
