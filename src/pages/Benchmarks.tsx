@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
-import { RadarChart } from "@/components/aioi/RadarChart";
+import { PillarBarChart } from "@/components/aioi/PillarBarChart";
 import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { loadScan } from "@/lib/quickscan";
@@ -298,12 +298,12 @@ function RadarTile({
         </p>
         <p className="font-display text-xl text-brass-bright tabular-nums">{view.median}</p>
       </div>
-      <RadarChart
+      <PillarBarChart
         values={view.pillars}
         cohort={cohort?.pillars}
         labels={PILLAR_LABELS}
-        size={300}
         showLabels={false}
+        showValues={false}
       />
       <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
         n = {view.sample.toLocaleString()}
@@ -656,16 +656,15 @@ export default function Benchmarks() {
 
           <div className="lg:col-span-7 w-full">
             {view ? (
-              <div className="w-full max-w-[520px] mx-auto">
-                <RadarChart
+              <div className="w-full max-w-[640px] mx-auto">
+                <PillarBarChart
                   values={view.pillars}
                   cohort={cohort?.pillars}
                   labels={PILLAR_LABELS}
-                  size={520}
                 />
               </div>
             ) : (
-              <div className="aspect-square border border-dashed border-cream/15 flex items-center justify-center">
+              <div className="aspect-[4/3] border border-dashed border-cream/15 flex items-center justify-center">
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/30">
                   no data for current slice
                 </p>
@@ -674,18 +673,18 @@ export default function Benchmarks() {
             {cohort && view && (
               <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="inline-block h-px w-4 bg-brass-bright align-middle" />
+                  <span aria-hidden className="inline-block h-2 w-3 rounded-sm bg-brass-bright" />
                   Selected slice
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="inline-block h-px w-4 border-t border-dashed border-cream/45 align-middle" />
+                  <span aria-hidden className="inline-block h-3 w-px bg-cream/70" />
                   Level cohort
                 </span>
               </div>
             )}
             {view && (
               <p className="mt-2 text-center font-mono text-[10px] normal-case tracking-[0.12em] text-cream/35">
-                Ring values map to the 0–5 maturity scale (Dormant → AI-Native).
+                Bars show the 0–5 maturity scale (Dormant → AI-Native).
               </p>
             )}
           </div>
