@@ -829,18 +829,18 @@ export default function Benchmarks() {
               return (
                 <li
                   key={p.id}
-                  className="grid grid-cols-12 gap-x-3 gap-y-2 sm:gap-4 items-center py-5 sm:py-6 border-b border-cream/10"
+                  className="grid grid-cols-12 gap-x-3 gap-y-3 sm:gap-4 items-center py-6 sm:py-6 border-b border-cream/10"
                 >
                   <span className="col-span-2 sm:col-span-1 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
                     P{p.id}
                   </span>
-                  <span className="col-span-7 sm:col-span-4 font-display text-base sm:text-lg text-cream/90">
+                  <span className="col-span-7 sm:col-span-4 font-display text-base sm:text-lg text-cream/90 leading-tight">
                     {p.name}
                   </span>
-                  <span className="col-span-3 sm:col-span-2 sm:order-last text-right font-display text-xl sm:text-2xl tracking-tight text-brass-bright tabular-nums">
+                  <span className="col-span-3 sm:col-span-2 sm:order-last text-right font-display text-lg sm:text-2xl tracking-tight text-brass-bright tabular-nums">
                     {view ? v.toFixed(1) : "—"}
                   </span>
-                  <div className="col-span-12 sm:col-span-5 flex justify-start sm:justify-center">
+                  <div className="col-span-12 sm:col-span-5 flex justify-start sm:justify-center pt-3 sm:pt-0">
                     {view ? (
                       <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
                     ) : (
