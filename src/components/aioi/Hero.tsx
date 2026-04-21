@@ -12,7 +12,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut">
+    <section className="relative min-h-[88svh] sm:min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut">
       {/* Soft tonal washes — give the cream page a gentle gravitational centre */}
       <div
         aria-hidden="true"
@@ -35,18 +35,18 @@ export function Hero() {
       </div>
 
       {/* Headline block */}
-      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-10 sm:pt-16">
-        <p className="eyebrow mb-4 sm:mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
-        <h1 className="font-display font-light hero-headline text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up text-[5.5rem] sm:text-[6rem] md:text-[7.5rem] lg:text-[10rem] leading-[0.88]">
+      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-8 sm:pt-16">
+        <p className="eyebrow mb-3 sm:mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
+        <h1 className="font-display font-light hero-headline text-cream max-w-[14ch] sm:max-w-[12ch] text-balance animate-fade-up text-[5.25rem] xs:text-[6rem] sm:text-[6rem] md:text-[7.5rem] lg:text-[10rem] leading-[0.9] sm:leading-[0.88]">
           Measure your<br />
           <span className="italic font-normal text-brass">AI debt.</span>
         </h1>
-        <div className="mt-5 sm:mt-6 h-px w-24 bg-brass/70 animate-fade-in [animation-delay:160ms]" />
+        <div className="mt-4 sm:mt-6 h-px w-20 sm:w-24 bg-brass/70 animate-fade-in [animation-delay:160ms]" />
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 mt-12 sm:mt-auto pb-8 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-8 items-end">
-        <p className="md:col-span-6 md:col-start-7 font-display text-lg sm:text-2xl text-cream/80 leading-[1.4] sm:leading-[1.35] text-pretty animate-fade-in sm:animate-fade-up [animation-delay:200ms]">
+      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 mt-auto pt-10 sm:pt-0 pb-10 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-8 items-end">
+        <p className="md:col-span-6 md:col-start-7 font-display text-base sm:text-2xl text-cream/80 leading-[1.45] sm:leading-[1.35] text-pretty animate-fade-in sm:animate-fade-up [animation-delay:200ms]">
           For companies, functions and individuals.
           Three minutes. Eight pillars, one question each,
           from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
