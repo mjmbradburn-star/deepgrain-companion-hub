@@ -68,6 +68,12 @@ export default function AuthCallback() {
       setStatus("error");
       setErrorKind(linkError.kind);
       setErrorDetail(linkError.description ?? null);
+      try {
+        const draftEmail = loadDraft().qualifier?.email;
+        if (draftEmail) setKnownEmail(draftEmail);
+      } catch {
+        /* no-op */
+      }
       // Clean the URL so a refresh doesn't keep showing the error fragment.
       try {
         window.history.replaceState({}, "", window.location.pathname + window.location.search);
