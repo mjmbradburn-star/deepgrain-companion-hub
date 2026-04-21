@@ -968,24 +968,39 @@ function EmailPdfButton({ slug }: { slug: string }) {
       const { data, error } = await supabase.functions.invoke("email-report-pdf", {
         body: { slug, email: trimmed },
       });
-      if (error) throw error;
-      if (data?.ok) {
-        setPdfUrl(data.pdfUrl ?? null);
+
+      // Recoverable case: the edge function returns HTTP 200 with
+      // { ok:false, pdfUrl, error } when the PDF was generated but the
+      // email queue handoff failed. Surface the download link instead of
+      // showing a destructive error.
+      const recoverablePdfUrl =
+        data && data.ok === false && typeof data.pdfUrl === "string"
+          ? (data.pdfUrl as string)
+          : null;
+
+      if (data?.ok && data?.pdfUrl) {
+        setPdfUrl(data.pdfUrl);
         toast({
           title: "On its way",
           description: `We've emailed the PDF to ${trimmed}. Check your inbox.`,
         });
-      } else if (data?.pdfUrl) {
-        // Email failed but the PDF was generated — offer direct download.
-        setPdfUrl(data.pdfUrl);
-        toast({
-          title: "PDF generated",
-          description: data.error ?? "Email couldn't be sent — use the download link instead.",
-          variant: "destructive",
-        });
-      } else {
-        throw new Error(data?.error ?? "Could not send the PDF.");
+        return;
       }
+
+      if (recoverablePdfUrl) {
+        setPdfUrl(recoverablePdfUrl);
+        toast({
+          title: "PDF ready — direct link below",
+          description:
+            data?.error ??
+            "We generated the PDF but couldn't queue the email. Use the download link in the popover.",
+        });
+        return;
+      }
+
+      // Genuine failure (no PDF generated).
+      if (error) throw error;
+      throw new Error(data?.error ?? "Could not send the PDF.");
     } catch (err) {
       console.error("[email-pdf] failed", err);
       toast({
@@ -999,7 +1014,7 @@ function EmailPdfButton({ slug }: { slug: string }) {
   };
 
   return (
-    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setPdfUrl(null); } }}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           size="sm"
@@ -1046,14 +1061,19 @@ function EmailPdfButton({ slug }: { slug: string }) {
             </Button>
           </div>
           {pdfUrl && (
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright hover:text-cream"
-            >
-              <Download className="h-3 w-3" /> Or download directly
-            </a>
+            <div className="rounded-sm border border-brass/40 bg-brass/5 p-3 space-y-1.5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brass-bright">
+                PDF ready
+              </p>
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 font-ui text-xs text-cream hover:text-brass-bright underline-offset-4 hover:underline break-all"
+              >
+                <Download className="h-3.5 w-3.5 shrink-0" /> Download the PDF directly
+              </a>
+            </div>
           )}
           <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
             By submitting, you agree to receive one transactional email at this address.
