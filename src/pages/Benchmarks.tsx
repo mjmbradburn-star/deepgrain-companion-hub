@@ -739,7 +739,9 @@ export default function Benchmarks() {
                   <span className="h-2.5 w-[2px] rounded-full bg-brass-bright" aria-hidden /> You
                 </span>
               )}
-              <span>Tier · 0–5</span>
+              <span title="0 Dormant · 1 Reactive · 2 Exploratory · 3 Operational · 4 Integrated · 5 AI-Native">
+                Tier · 0 Dormant → 5 AI-Native
+              </span>
             </div>
           </div>
 
