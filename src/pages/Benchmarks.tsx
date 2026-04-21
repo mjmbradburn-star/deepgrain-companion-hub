@@ -599,11 +599,16 @@ export default function Benchmarks() {
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
               Median AIOI score
             </span>
-            <div className="mt-3 font-display font-light text-[clamp(3.5rem,12vw,8rem)] leading-none tracking-[-0.04em] text-brass-bright">
-              {loading ? "—" : empty ? "—" : view!.median}
+            <div className="mt-3 flex items-baseline gap-3">
+              <span className="font-display font-light text-[clamp(3rem,16vw,8rem)] leading-none tracking-[-0.04em] text-brass-bright tabular-nums">
+                {loading ? "—" : empty ? "—" : view!.median}
+              </span>
+              <span className="font-mono text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-cream/40">
+                / 100
+              </span>
             </div>
-            <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/45">
-              0 — 100
+            <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
+              Scale · 0 Dormant → 100 AI-Native
             </div>
 
             <div className="mt-6 sm:mt-8 space-y-3 font-display text-cream/75 text-pretty">
