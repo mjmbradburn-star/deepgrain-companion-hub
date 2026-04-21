@@ -4,7 +4,7 @@ import { PillarsGrid } from "@/components/aioi/PillarsGrid";
 import { MaturityLadder } from "@/components/aioi/MaturityLadder";
 import { ThreeLevels } from "@/components/aioi/ThreeLevels";
 import { BenchmarkCounter } from "@/components/aioi/BenchmarkCounter";
-import { WhyDeepgrain } from "@/components/aioi/WhyDeepgrain";
+import { StudioSection } from "@/components/aioi/StudioSection";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { Reveal } from "@/components/aioi/Reveal";
 
@@ -17,7 +17,7 @@ const Index = () => {
       <Reveal index={1}><MaturityLadder /></Reveal>
       <Reveal index={0}><ThreeLevels /></Reveal>
       <Reveal index={1}><BenchmarkCounter /></Reveal>
-      <Reveal index={0}><WhyDeepgrain /></Reveal>
+      <Reveal index={0}><StudioSection /></Reveal>
       <SiteFooter />
     </main>
   );
