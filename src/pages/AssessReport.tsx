@@ -1014,7 +1014,7 @@ function EmailPdfButton({ slug }: { slug: string }) {
   };
 
   return (
-    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setPdfUrl(null); } }}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           size="sm"
@@ -1061,14 +1061,19 @@ function EmailPdfButton({ slug }: { slug: string }) {
             </Button>
           </div>
           {pdfUrl && (
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright hover:text-cream"
-            >
-              <Download className="h-3 w-3" /> Or download directly
-            </a>
+            <div className="rounded-sm border border-brass/40 bg-brass/5 p-3 space-y-1.5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brass-bright">
+                PDF ready
+              </p>
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 font-ui text-xs text-cream hover:text-brass-bright underline-offset-4 hover:underline break-all"
+              >
+                <Download className="h-3.5 w-3.5 shrink-0" /> Download the PDF directly
+              </a>
+            </div>
           )}
           <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
             By submitting, you agree to receive one transactional email at this address.
