@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
+import { FounderBio } from "@/components/aioi/FounderBio";
 import { PillarBarChart } from "@/components/aioi/PillarBarChart";
 import { PillarChartVariantToggle, usePillarChartVariant } from "@/components/aioi/PillarChartVariantToggle";
 import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
@@ -287,6 +288,7 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
       </TabsPrimitive.Root>
 
+      <FounderBio />
       <SiteFooter />
     </div>
   );
