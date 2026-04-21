@@ -53,20 +53,24 @@ export function Hero() {
           from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
         </p>
 
-        <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 animate-fade-in sm:animate-fade-up [animation-delay:320ms]">
-          <Button asChild size="lg" className="h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto">
+        <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 animate-fade-in sm:animate-fade-up [animation-delay:320ms]">
+          <Button
+            asChild
+            size="lg"
+            className="h-14 sm:h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto inline-flex items-center justify-center gap-2 leading-none shrink-0"
+          >
             <a href="/assess">
-              3-minute AI maturity scan
-              <ArrowRight className="ml-1 h-4 w-4" />
+              <span>3-minute AI maturity scan</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </a>
           </Button>
           <a
             href="/pillars"
-            className="font-ui text-sm text-cream/65 hover:text-cream underline-offset-4 hover:underline transition-colors text-center sm:text-left"
+            className="font-ui text-sm text-cream/70 hover:text-cream underline-offset-4 hover:underline transition-colors text-center sm:text-left leading-none py-1"
           >
             See the eight pillars
           </a>
-          <span className="sm:ml-auto font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 text-center sm:text-right">
+          <span className="sm:ml-auto font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 text-center sm:text-right leading-none">
             ~3 min · 8 questions · no email
           </span>
         </div>
