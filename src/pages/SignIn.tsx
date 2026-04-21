@@ -30,6 +30,42 @@ export default function SignIn() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [linkError, setLinkError] = useState<{ title: string; body: string } | null>(null);
+
+  // Detect error params bounced from the magic-link callback (Supabase puts
+  // them in the hash, e.g. #error=access_denied&error_code=otp_expired).
+  useEffect(() => {
+    const hash = new URLSearchParams(
+      window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash,
+    );
+    const code = hash.get("error_code") || params.get("error_code");
+    const error = hash.get("error") || params.get("error");
+    const desc = (hash.get("error_description") || params.get("error_description") || "").replace(/\+/g, " ");
+    if (!code && !error) return;
+
+    if (code === "otp_expired" || /expired/i.test(desc)) {
+      setLinkError({
+        title: "That sign-in link expired",
+        body: "Sign-in links are valid for a short window. Enter your email below and we'll send a fresh one.",
+      });
+    } else if (code === "otp_invalid" || /invalid/i.test(desc)) {
+      setLinkError({
+        title: "We couldn't verify that link",
+        body: "It may have already been used or opened in a different browser. Request a new link below.",
+      });
+    } else {
+      setLinkError({
+        title: "Sign-in didn't go through",
+        body: desc || "Try requesting a new link below.",
+      });
+    }
+
+    try {
+      window.history.replaceState({}, "", window.location.pathname + window.location.search);
+    } catch {
+      /* no-op */
+    }
+  }, [params]);
 
   // If already signed in, jump straight to "next"
   useEffect(() => {
@@ -93,6 +129,20 @@ export default function SignIn() {
         <p className="mt-6 font-display text-lg text-cream/65 max-w-md">
           We'll email you a one-time link. No passwords, no accounts to manage.
         </p>
+
+        {linkError && (
+          <div
+            role="alert"
+            className="mt-8 rounded-sm border border-destructive/40 bg-destructive/10 p-5"
+          >
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-destructive mb-2">
+              {linkError.title}
+            </p>
+            <p className="font-display text-base text-cream/85">
+              {linkError.body}
+            </p>
+          </div>
+        )}
 
         <form onSubmit={onSubmit} className="mt-10 space-y-4">
           <label className="block">
