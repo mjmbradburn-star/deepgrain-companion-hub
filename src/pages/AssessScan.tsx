@@ -40,6 +40,8 @@ export default function AssessScan() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<Record<string, number> | null>(null);
 
   // Persist + recompute prompts whenever function changes (level-=function only).
   const questions = useMemo(
