@@ -1,95 +1,191 @@
 // Lightweight health-check endpoint.
 //
-// Pings the scoring-related edge functions with a harmless probe payload and
-// reports back which are deployed and reachable. Intended as a quick triage
-// tool when the assess flow misbehaves — call it and you immediately know
-// whether the failure is in the scoring layer or somewhere else.
+// Reports reachability for the scoring functions and the email pipeline
+// (functions, DB tables, RPCs, queue config). No emails are ever sent.
 //
-// Public on purpose: no secrets returned, no destructive side effects.
-// Functions are invoked with the service-role key so JWT-protected ones still
-// respond. We treat any HTTP response (including 4xx) as "reachable" — only
-// network errors / 5xx count as "down". A 4xx means the function ran and
-// rejected our probe payload, which is exactly what we want to confirm.
+// Public on purpose: returns no secrets and has no destructive side effects.
+// Recipient addresses from email_send_log are NOT exposed — only aggregated
+// status counts.
+
+import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
+}
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-// The functions we care about for the assess/scoring flow. Add to this list
-// as the surface grows; nothing else needs to change.
+// Scoring + email functions we want to confirm are deployed.
 const TARGETS = [
-  "submit-quickscan",
-  "score-responses",
-  "rescore-respondent",
-  "email-report-pdf",
-] as const;
+  'submit-quickscan',
+  'score-responses',
+  'rescore-respondent',
+  'email-report-pdf',
+  'send-transactional-email',
+  'process-email-queue',
+] as const
+
+// Functions that expose ?health=1 for a no-side-effect probe.
+const HEALTH_PROBE_TARGETS = new Set<string>([
+  'send-transactional-email',
+  'process-email-queue',
+])
 
 interface ProbeResult {
-  name: string;
-  reachable: boolean;
-  status: number | null;
-  latencyMs: number;
-  note: string;
+  name: string
+  reachable: boolean
+  status: number | null
+  latencyMs: number
+  note: string
 }
 
 async function probe(name: string): Promise<ProbeResult> {
-  const url = `${SUPABASE_URL}/functions/v1/${name}`;
-  const started = performance.now();
+  const useHealthMode = HEALTH_PROBE_TARGETS.has(name)
+  const url = useHealthMode
+    ? `${SUPABASE_URL}/functions/v1/${name}?health=1`
+    : `${SUPABASE_URL}/functions/v1/${name}`
+  const started = performance.now()
   try {
-    // OPTIONS is the cheapest probe — every function answers it for CORS and
-    // it doesn't trigger any business logic.
+    // For health-mode endpoints we POST so the in-code service auth runs.
+    // For everything else, OPTIONS is the cheapest reachability ping.
     const res = await fetch(url, {
-      method: "OPTIONS",
+      method: useHealthMode ? 'POST' : 'OPTIONS',
       headers: {
         Authorization: `Bearer ${SERVICE_ROLE}`,
         apikey: SERVICE_ROLE,
-        "Access-Control-Request-Method": "POST",
-        "Access-Control-Request-Headers": "authorization, content-type",
-        Origin: "https://health-check.local",
+        'Content-Type': 'application/json',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'authorization, content-type',
+        Origin: 'https://health-check.local',
       },
-    });
-    const latencyMs = Math.round(performance.now() - started);
-    // 5xx from the gateway → function not deployed / crashed on boot.
-    const reachable = res.status < 500;
+      body: useHealthMode ? '{}' : undefined,
+    })
+    const latencyMs = Math.round(performance.now() - started)
+    // 5xx → function not deployed / crashed on boot.
+    // For health-mode probes we want a true 2xx; that proves both that the
+    // gateway is letting us through AND that in-code service auth is wired
+    // correctly.
+    const reachable = useHealthMode
+      ? res.status >= 200 && res.status < 300
+      : res.status < 500
     return {
       name,
       reachable,
       status: res.status,
       latencyMs,
-      note: reachable ? "ok" : `gateway returned ${res.status}`,
-    };
+      note: reachable ? 'ok' : `gateway returned ${res.status}`,
+    }
   } catch (err) {
     return {
       name,
       reachable: false,
       status: null,
       latencyMs: Math.round(performance.now() - started),
-      note: err instanceof Error ? err.message : "network error",
-    };
+      note: err instanceof Error ? err.message : 'network error',
+    }
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+// Aggregate the email-pipeline DB picture: required tables, RPCs, queue config,
+// and a sanitised status histogram from the last 24h of email_send_log.
+async function probeEmailDb() {
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
+  const result: Record<string, unknown> = {}
+
+  // Required tables — head:true count is cheap and errors if the table
+  // does not exist.
+  const tables = ['email_send_log', 'email_send_state', 'suppressed_emails', 'email_unsubscribe_tokens']
+  const tableStatus: Record<string, boolean> = {}
+  for (const t of tables) {
+    const { error } = await supabase.from(t as never).select('*', { count: 'exact', head: true })
+    tableStatus[t] = !error
+  }
+  result.tables = tableStatus
+
+  // Required RPCs — calling with empty args returns PGRST202 only when the
+  // function does not exist. Other errors mean it exists but rejected args.
+  const rpcs = ['enqueue_email', 'read_email_batch', 'delete_email', 'move_to_dlq']
+  const rpcStatus: Record<string, boolean> = {}
+  for (const fn of rpcs) {
+    let exists = true
+    try {
+      const { error } = await supabase.rpc(fn as never, {} as never)
+      if (error && (error as { code?: string }).code === 'PGRST202') exists = false
+    } catch {
+      // Network errors are not function-existence errors.
+    }
+    rpcStatus[fn] = exists
+  }
+  result.rpcs = rpcStatus
+
+  // Queue config row should exist (id=1) with sane defaults.
+  const { data: state } = await supabase
+    .from('email_send_state')
+    .select('id, batch_size, send_delay_ms, retry_after_until')
+    .eq('id', 1)
+    .maybeSingle()
+  result.queue_config_present = Boolean(state)
+  if (state) {
+    result.queue_config = {
+      batch_size: state.batch_size,
+      send_delay_ms: state.send_delay_ms,
+      rate_limited_until: state.retry_after_until,
+    }
   }
 
-  const results = await Promise.all(TARGETS.map(probe));
-  const allHealthy = results.every((r) => r.reachable);
+  // Status histogram — last 24h, no recipient addresses exposed.
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: rows } = await supabase
+    .from('email_send_log')
+    .select('status')
+    .gte('created_at', since)
+  const counts: Record<string, number> = {}
+  for (const r of rows ?? []) {
+    counts[r.status] = (counts[r.status] ?? 0) + 1
+  }
+  result.recent_status_counts_24h = counts
+
+  return result
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  const [functions, emailDb] = await Promise.all([
+    Promise.all(TARGETS.map(probe)),
+    probeEmailDb().catch((err) => ({ error: err instanceof Error ? err.message : 'unknown' })),
+  ])
+
+  const allFunctionsHealthy = functions.every((r) => r.reachable)
+  const tablesOk =
+    emailDb && typeof emailDb === 'object' && 'tables' in emailDb
+      ? Object.values((emailDb as { tables: Record<string, boolean> }).tables).every(Boolean)
+      : false
+  const rpcsOk =
+    emailDb && typeof emailDb === 'object' && 'rpcs' in emailDb
+      ? Object.values((emailDb as { rpcs: Record<string, boolean> }).rpcs).every(Boolean)
+      : false
+  const emailHealthy =
+    tablesOk &&
+    rpcsOk &&
+    Boolean((emailDb as { queue_config_present?: boolean }).queue_config_present)
+
+  const ok = allFunctionsHealthy && emailHealthy
 
   const body = {
-    ok: allHealthy,
+    ok,
     checkedAt: new Date().toISOString(),
-    functions: results,
-  };
+    functions,
+    email: emailDb,
+  }
 
   return new Response(JSON.stringify(body, null, 2), {
-    status: allHealthy ? 200 : 503,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-});
+    status: ok ? 200 : 503,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+})
