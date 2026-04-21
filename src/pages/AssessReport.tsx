@@ -366,10 +366,14 @@ function OverviewTab({
           </div>
           <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-4 sm:p-6 lg:p-8">
             <RadarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} />
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cream/40">
+              <span className="tabular-nums">1 Reactive</span>
+              <span aria-hidden className="text-cream/20">·</span>
+              <span className="tabular-nums">3 Operational</span>
+              <span aria-hidden className="text-cream/20">·</span>
+              <span className="tabular-nums">5 AI-Native</span>
+            </div>
           </div>
-          <p className="mt-3 text-center font-mono text-[10px] normal-case tracking-[0.12em] text-cream/35">
-            Ring values map to the 0–5 maturity scale (Dormant → AI-Native).
-          </p>
         </div>
       </div>
 
