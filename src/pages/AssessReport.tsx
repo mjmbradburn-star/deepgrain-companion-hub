@@ -351,34 +351,39 @@ function OverviewTab({
           )}
         </div>
 
-        {/* Right — radar */}
+        {/* Right — pillar chart */}
         <div className="lg:col-span-7">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <p className="eyebrow text-cream/45">Eight pillars</p>
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow text-cream/45">Eight pillars</p>
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-cream/40">
+                Tier 0–5 · {cohort ? "you vs cohort median" : "your scores"}
+              </p>
+            </div>
             <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
           </div>
-          <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-4 sm:p-6 lg:p-8">
+          <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-6 sm:p-8">
             <PillarBarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} variant={chartVariant} />
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cream/45">
-              <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden className="inline-block h-2 w-3 rounded-sm bg-brass-bright" />
-                You
-              </span>
-              {cohort && (
+            {cohort && (
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-[0.18em] text-cream/45">
+                <span className="inline-flex items-center gap-1.5">
+                  <span aria-hidden className="inline-block h-2 w-3 rounded-sm bg-brass-bright" />
+                  You
+                </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span aria-hidden className="inline-block h-3 w-px bg-cream/70" />
                   Cohort median
                 </span>
-              )}
-              <span aria-hidden className="text-cream/20">·</span>
-              <span className="tabular-nums">0–5 maturity scale</span>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Cohort delta card — full width below the score + radar */}
-      <div className="mt-16">
+      {/* Cohort delta card — full width below the score + chart.
+          Spacing scale: 12 (mobile) / 16 (desktop) keeps the same rhythm
+          as the gap between the two columns above. */}
+      <div className="mt-12 lg:mt-16">
         <BenchmarkSliceCard
           values={pillarValues}
           userScore={report.aioi_score}
