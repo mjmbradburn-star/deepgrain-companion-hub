@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
 
@@ -174,8 +174,16 @@ export default function AssessScan() {
     [idx, answers, questions],
   );
 
+  // Re-entry guard. `submitting` lives in state and won't be visible to a
+  // second call that arrives in the same React tick — a ref gives us a
+  // synchronous lock so a fast double-click or an Enter+button race can't
+  // fire two report-generation requests in parallel.
+  const inflight = useRef(false);
+
   const submit = useCallback(
     async (finalAnswers: Record<string, number>) => {
+      if (inflight.current) return;
+      inflight.current = true;
       setSubmitting(true);
       setSubmitError(null);
       setLastAttempt(finalAnswers);
@@ -248,15 +256,17 @@ export default function AssessScan() {
         setSubmitError(classifyError(err, { offline: wasOffline }));
       } finally {
         window.clearTimeout(timeout);
+        inflight.current = false;
       }
     },
     [level, fn, region, questions, navigate],
   );
 
   const retry = useCallback(() => {
+    if (submitting || inflight.current) return;
     if (lastAttempt) void submit(lastAttempt);
     else void submit(answers);
-  }, [lastAttempt, answers, submit]);
+  }, [lastAttempt, answers, submit, submitting]);
 
   const select = useCallback(
     (tier: number) => {
@@ -287,6 +297,10 @@ export default function AssessScan() {
   // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // While the loading or retry UI is up, swallow all shortcuts so a
+      // stray Enter/digit can't trigger a duplicate submit or change the
+      // answer underneath the spinner.
+      if (submitting || submitError || inflight.current) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (!question) return;
@@ -309,7 +323,7 @@ export default function AssessScan() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [question, selected, step, questions.length, select, goBack, submit, answers]);
+  }, [question, selected, step, questions.length, select, goBack, submit, answers, submitting, submitError]);
 
   if (submitting || submitError) {
     return (
@@ -357,10 +371,17 @@ export default function AssessScan() {
                 <div className="mt-8 flex items-center justify-center gap-4">
                   <Button
                     onClick={retry}
-                    disabled={submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine}
-                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
+                    disabled={
+                      submitting ||
+                      (submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine)
+                    }
+                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    {submitError?.kind === "offline" ? "Try again when online" : "Try again"}
+                    {submitting
+                      ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Retrying…</>
+                      : submitError?.kind === "offline"
+                      ? "Try again when online"
+                      : "Try again"}
                   </Button>
                   <button
                     onClick={() => { setSubmitError(null); }}
