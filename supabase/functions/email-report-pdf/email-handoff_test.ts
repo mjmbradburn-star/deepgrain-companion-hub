@@ -40,20 +40,22 @@ function makeMockFetch(opts: {
   body: string
 }): { fetch: typeof fetch; captured: CapturedRequest[] } {
   const captured: CapturedRequest[] = []
-  const mock: typeof fetch = (input, init) => {
+  const mock: typeof fetch = (input, rawInit) => {
     const url = typeof input === 'string' ? input : (input as URL | Request).toString()
-    const headersIn = new Headers(init?.headers)
+    const init = (rawInit ?? {}) as RequestInit
+    const headersIn = new Headers(init.headers ?? {})
     const headers: Record<string, string> = {}
     headersIn.forEach((v, k) => { headers[k.toLowerCase()] = v })
     let parsedBody: unknown = null
+    const rawBody = init.body
     try {
-      parsedBody = init?.body ? JSON.parse(init.body as string) : null
+      parsedBody = typeof rawBody === 'string' ? JSON.parse(rawBody) : (rawBody ?? null)
     } catch {
-      parsedBody = init?.body ?? null
+      parsedBody = rawBody ?? null
     }
     captured.push({
       url,
-      method: (init?.method ?? 'GET').toUpperCase(),
+      method: (init.method ?? 'GET').toUpperCase(),
       headers,
       body: parsedBody,
     })
