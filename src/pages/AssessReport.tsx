@@ -292,14 +292,17 @@ function ReportView({ data }: { data: ReportData }) {
 
 // ─── Overview ─────────────────────────────────────────────────────────────
 function OverviewTab({
-  report, pillarValues, cohort, slice,
+  report, pillarValues, cohort, slice, slug, hasDeepdive,
 }: {
   report: NonNullable<ReportData["report"]>;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
   slice: MatchedSlice | null;
+  slug: string;
+  hasDeepdive: boolean;
 }) {
   return (
+    <>
     <section className="container max-w-6xl py-16 sm:py-20">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
         {/* Left — score + diagnosis */}
