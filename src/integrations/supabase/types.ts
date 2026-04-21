@@ -322,7 +322,6 @@ export type Database = {
           hotspots: Json | null
           id: string
           overall_tier: Database["public"]["Enums"]["maturity_tier"] | null
-          pdf_path: string | null
           pillar_tiers: Json | null
           plan: Json | null
           respondent_id: string
@@ -337,7 +336,6 @@ export type Database = {
           hotspots?: Json | null
           id?: string
           overall_tier?: Database["public"]["Enums"]["maturity_tier"] | null
-          pdf_path?: string | null
           pillar_tiers?: Json | null
           plan?: Json | null
           respondent_id: string
@@ -352,7 +350,6 @@ export type Database = {
           hotspots?: Json | null
           id?: string
           overall_tier?: Database["public"]["Enums"]["maturity_tier"] | null
-          pdf_path?: string | null
           pillar_tiers?: Json | null
           plan?: Json | null
           respondent_id?: string
