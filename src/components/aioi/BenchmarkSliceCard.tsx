@@ -149,12 +149,22 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
 
       {/* Headline numbers */}
       <div className="px-6 sm:px-8 py-6 grid grid-cols-3 gap-6 border-b border-cream/10">
-        <Stat label="You" value={userScore} accent />
-        <Stat label="Cohort median" value={cohortScore ?? "—"} />
+        <Stat
+          label="You"
+          value={userScore}
+          accent
+          hint="Your weighted AIOI score (0–100 score points, rounded to the nearest whole point)."
+        />
+        <Stat
+          label="Cohort median"
+          value={cohortScore ?? "—"}
+          hint="Median weighted AIOI score for this cohort (0–100 score points, rounded to the nearest whole point)."
+        />
         <Stat
           label="Gap"
           value={overallDelta == null ? "—" : `${overallDelta > 0 ? "+" : ""}${overallDelta}`}
           tone={overallDelta == null ? "neutral" : overallDelta >= 0 ? "ahead" : "behind"}
+          hint="You vs cohort median, in AIOI score points (0–100 scale). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5)."
         />
       </div>
 
@@ -174,18 +184,27 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
             <div className="col-span-4">
               <DeltaBar user={d.user} cohort={d.cohort} />
             </div>
-            <span
-              className={`col-span-2 text-right font-mono text-xs tracking-wide tabular-nums ${
-                d.delta > 0
-                  ? "text-brass-bright"
-                  : d.delta < 0
-                  ? "text-pillar-7"
-                  : "text-cream/45"
-              }`}
-            >
-              {d.delta > 0 ? "+" : ""}
-              {d.delta.toFixed(1)}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className={`col-span-2 text-right font-mono text-xs tracking-wide tabular-nums focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/60 rounded cursor-help ${
+                    d.delta > 0
+                      ? "text-brass-bright"
+                      : d.delta < 0
+                      ? "text-pillar-7"
+                      : "text-cream/45"
+                  }`}
+                >
+                  {d.delta > 0 ? "+" : ""}
+                  {d.delta.toFixed(1)}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left" align="center" className="max-w-xs text-xs leading-snug">
+                You vs cohort median for {d.name}, in tier points (0–5 scale, rounded to 1 decimal).
+                You: {d.user.toFixed(1)} · Cohort: {d.cohort.toFixed(1)}.
+              </TooltipContent>
+            </Tooltip>
           </li>
         ))}
       </ol>
@@ -236,11 +255,13 @@ function Stat({
   value,
   accent,
   tone = "neutral",
+  hint,
 }: {
   label: string;
   value: number | string;
   accent?: boolean;
   tone?: "neutral" | "ahead" | "behind";
+  hint?: string;
 }) {
   const colour =
     tone === "ahead"
@@ -250,11 +271,29 @@ function Stat({
       : accent
       ? "text-brass-bright"
       : "text-cream";
+  const labelEl = hint ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-2 inline-flex items-center gap-1 hover:text-cream/70 focus:text-cream/70 focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/60 rounded cursor-help"
+        >
+          <span>{label}</span>
+          <span aria-hidden className="text-cream/30">(?)</span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top" align="start" className="max-w-xs text-xs leading-snug">
+        {hint}
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-2">
+      {label}
+    </p>
+  );
   return (
     <div>
-      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-2">
-        {label}
-      </p>
+      {labelEl}
       <p className={`font-display font-light text-4xl sm:text-5xl tracking-tight tabular-nums ${colour}`}>
         {value}
       </p>
