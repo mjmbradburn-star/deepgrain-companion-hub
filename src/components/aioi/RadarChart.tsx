@@ -2,6 +2,14 @@
 // weights and brass tinting line up with the rest of the editorial system.
 //
 // Tier scale: 0 (centre) to 5 (outer ring).
+//
+// Labelling philosophy (rewritten):
+//  - One label per pillar (just the name, small caps). No P1/P2 eyebrow.
+//  - Ring numerals appear ONLY on a single quiet axis (12 o'clock spoke,
+//    nudged off-spoke) so each ring gets one tick, not three competing tags.
+//  - Maturity-stage names (Reactive / Operational / AI-Native) move out of
+//    the chart entirely and live in a discrete legend strip rendered by the
+//    consumer below the SVG — keeps the chart itself uncluttered.
 
 import { cn } from "@/lib/utils";
 
@@ -15,7 +23,7 @@ interface RadarChartProps {
   /** Side length in px. Internal padding is automatic. */
   size?: number;
   className?: string;
-  /** Renders pillar labels (mono, uppercase) around the rim. */
+  /** Renders pillar labels around the rim. */
   showLabels?: boolean;
 }
 
@@ -32,10 +40,8 @@ export function RadarChart({
 }: RadarChartProps) {
   const cx = size / 2;
   const cy = size / 2;
-  // leave room for labels — labels render at 5.55 × radius then nudge ±6px,
-  // so the inner radius needs ~92px of padding to keep the "P{n}" caption
-  // and pillar name from clipping at any edge of the SVG bounding box.
-  const padding = showLabels ? 92 : 24;
+  // Tighter padding now that labels are single-line — chart can breathe more.
+  const padding = showLabels ? 72 : 24;
   const radius = size / 2 - padding;
 
   // Convert (pillarIndex, tier) → (x, y) on the polar grid.
@@ -95,37 +101,27 @@ export function RadarChart({
         );
       })}
 
-      {/* Tier ring labels.
-          The radial scale matches the 0–5 maturity ladder used in the pillar
-          breakdown (0 = Dormant at centre, 5 = AI-Native at the rim). We label
-          rings 1, 3 and 5 with both the numeric tier and the named maturity
-          stage so the legend on this chart reads the same as the comparison
-          bars elsewhere.
-          Placed on a quiet diagonal spoke (between P8 at 315° and P1 at 0°/top)
-          so they never collide with the P1 "Strategy" label at 12 o'clock. */}
-      {([
-        [1, "Reactive"],
-        [3, "Operational"],
-        [5, "AI-Native"],
-      ] as const).map(([tier, name]) => {
-        // -45° from horizontal, in canvas coords that's upper-left of centre.
-        const a = -Math.PI / 2 - Math.PI / 4; // 315° equivalent
+      {/* Single-axis ring numerals.
+          Each ring gets one tiny numeral (1..5) on a quiet diagonal between
+          P8 and P1, nudged just off the spoke so it never touches geometry
+          or the P1 label. No stage names, no T-prefix — those live in a
+          legend strip outside the SVG. */}
+      {[1, 2, 3, 4, 5].map((tier) => {
+        const a = -Math.PI / 2 - Math.PI / 4; // 315° quiet diagonal
         const r = (tier / RINGS) * radius;
         const x = cx + r * Math.cos(a);
         const y = cy + r * Math.sin(a);
         return (
           <text
             key={`ring-${tier}`}
-            x={x - 4}
-            y={y - 4}
-            fontSize={9}
+            x={x - 3}
+            y={y - 3}
+            fontSize={8.5}
             fontFamily="ui-monospace, monospace"
-            letterSpacing={1.4}
             textAnchor="end"
-            fill="hsl(var(--cream) / 0.32)"
+            fill="hsl(var(--cream) / 0.28)"
           >
-            <tspan fill="hsl(var(--brass-bright) / 0.75)">T{tier}</tspan>
-            <tspan dx={4}>{name.toUpperCase()}</tspan>
+            {tier}
           </text>
         );
       })}
@@ -172,35 +168,29 @@ export function RadarChart({
         />
       ))}
 
-      {/* Pillar labels */}
+      {/* Pillar labels — single line, small caps, no P-prefix.
+          Sits just outside the rim; vertical offset baked into y so the text
+          is optically centred against its spoke. */}
       {showLabels && PILLAR_INDICES.map((i) => {
-        const [x, y] = pointFor(i, 5.55);
+        const [x, y] = pointFor(i, 5.32);
         const angle = (-90) + ((i - 1) * 45);
         const anchor = labelAnchor(angle);
+        // Nudge top/bottom labels vertically so they don't sit on the rim.
+        const a = ((angle % 360) + 360) % 360;
+        const dy = a < 22 || a > 338 ? -2 : (a > 158 && a < 202) ? 10 : 4;
         return (
-          <g key={`label-${i}`}>
-            <text
-              x={x}
-              y={y - 6}
-              fontSize={9.5}
-              fontFamily="ui-monospace, monospace"
-              letterSpacing={1.6}
-              textAnchor={anchor}
-              fill="hsl(var(--brass-bright) / 0.7)"
-            >
-              P{i}
-            </text>
-            <text
-              x={x}
-              y={y + 7}
-              fontSize={11}
-              fontFamily="'Cormorant Garamond', Georgia, serif"
-              textAnchor={anchor}
-              fill="hsl(var(--cream) / 0.85)"
-            >
-              {labels[i] ?? ""}
-            </text>
-          </g>
+          <text
+            key={`label-${i}`}
+            x={x}
+            y={y + dy}
+            fontSize={10.5}
+            fontFamily="ui-monospace, monospace"
+            letterSpacing={1.4}
+            textAnchor={anchor}
+            fill="hsl(var(--cream) / 0.78)"
+          >
+            {(labels[i] ?? "").toUpperCase()}
+          </text>
         );
       })}
     </svg>
