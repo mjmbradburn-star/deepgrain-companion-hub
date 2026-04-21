@@ -9,6 +9,14 @@ import { useMemo } from "react";
 import { PILLAR_NAMES } from "@/lib/assessment";
 import { pillarsFromRow, type MatchedSlice } from "@/lib/benchmarks";
 import {
+  computeOverallGap,
+  computePillarDelta,
+  formatOverallGap,
+  formatPillarDelta,
+  formatScore,
+  formatTier,
+} from "@/lib/benchmark-slice-format";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -83,7 +91,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         name: PILLAR_NAMES[p as 1|2|3|4|5|6|7|8],
         user,
         cohort,
-        delta: Math.round((user - cohort) * 10) / 10,
+        delta: computePillarDelta(user, cohort),
       };
     }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
     // cohortPillars is derived from `slice` — the slice ref is the real dep.
@@ -106,7 +114,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
     : null;
   const sample = slice.row.sample_size;
 
-  const overallDelta = cohortScore != null ? userScore - cohortScore : null;
+  const overallDelta = computeOverallGap(userScore, cohortScore);
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -151,13 +159,13 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
       <div className="px-6 sm:px-8 py-6 grid grid-cols-3 gap-6 border-b border-cream/10">
         <Stat
           label="You"
-          value={userScore}
+          value={formatScore(userScore)}
           accent
           hint="Your weighted AIOI score (0–100 score points, rounded to the nearest whole point)."
         />
         <Stat
           label="Cohort median"
-          value={cohortScore ?? "—"}
+          value={cohortScore == null ? "—" : formatScore(cohortScore)}
           hint={
             cohortScore == null
               ? "Cohort median is unavailable: this slice does not yet publish a median score (the underlying benchmark row has no median_score, usually because the cohort is still below the minimum sample threshold)."
@@ -166,12 +174,12 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         />
         <Stat
           label="Gap"
-          value={overallDelta == null ? "—" : `${overallDelta > 0 ? "+" : ""}${overallDelta}`}
+          value={formatOverallGap(overallDelta)}
           tone={overallDelta == null ? "neutral" : overallDelta >= 0 ? "ahead" : "behind"}
           hint={
             overallDelta == null
               ? "Gap can't be calculated: it needs both your score and a cohort median, and the cohort median for this slice is unavailable. Once the slice publishes a median, the gap will appear here."
-              : "You vs cohort median, in AIOI score points (0–100 scale). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5)."
+              : `You vs cohort median: ${formatOverallGap(overallDelta)} AIOI score points (0–100 scale; You ${formatScore(userScore)} − Cohort ${formatScore(cohortScore!)}). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5).`
           }
         />
       </div>
@@ -204,13 +212,12 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
                       : "text-cream/45"
                   }`}
                 >
-                  {d.delta > 0 ? "+" : ""}
-                  {d.delta.toFixed(1)}
+                  {formatPillarDelta(d.delta)}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="left" align="center" className="max-w-xs text-xs leading-snug">
-                You vs cohort median for {d.name}, in tier points (0–5 scale, rounded to 1 decimal).
-                You: {d.user.toFixed(1)} · Cohort: {d.cohort.toFixed(1)}.
+                You vs cohort median for {d.name}: {formatPillarDelta(d.delta)} tier points
+                (0–5 scale, rounded to 1 decimal). You: {formatTier(d.user)} · Cohort: {formatTier(d.cohort)}.
               </TooltipContent>
             </Tooltip>
           </li>
