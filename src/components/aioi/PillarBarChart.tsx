@@ -93,7 +93,7 @@ export function PillarBarChart({
 
           const trackAndValue = (
             <div className={cn("flex-1 min-w-0", trackValueGrid)}>
-              <div className="relative h-3 sm:h-3.5">
+              <div className="relative h-3.5 sm:h-3.5">
                 {/* Track */}
                 <div className="absolute inset-0 rounded-sm bg-cream/[0.06]" />
                 {/* Subtle interior gridlines at each tier */}
