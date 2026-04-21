@@ -15,7 +15,7 @@ export const OptionCard = forwardRef<HTMLButtonElement, OptionCardProps>(
       type="button"
       className={cn(
         "group relative w-full text-left rounded-lg border bg-surface-1/60 backdrop-blur-sm",
-        "px-4 sm:px-5 py-4 sm:py-4 min-h-[56px] transition-all duration-200",
+        "px-4 sm:px-5 py-4 sm:py-4 min-h-[56px] transition-all duration-200 motion-tap",
         "hover:border-brass/60 hover:bg-surface-2/80",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-walnut",
         selected ? "border-brass bg-surface-2 shadow-[0_0_0_1px_hsl(var(--brass)/0.6)]" : "border-cream/10",

@@ -16,7 +16,7 @@ export function HotspotCard({ pillar, pillarLabel, tier, diagnosis, intervention
     <article
       className={cn(
         "rounded-lg border border-cream/10 bg-surface-1/70 backdrop-blur-sm p-6",
-        "transition-colors hover:border-brass/40",
+        "motion-lift motion-tap hover:border-brass/40",
         className,
       )}
     >
