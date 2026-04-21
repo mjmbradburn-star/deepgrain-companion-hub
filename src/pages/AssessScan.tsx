@@ -185,8 +185,18 @@ export default function AssessScan() {
       // back online during the timeout window.
       const wasOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
+      // Race the invoke against a timeout so a hung request surfaces as an
+      // explicit `timeout` error instead of spinning forever. supabase-js
+      // doesn't expose an AbortSignal pass-through, so Promise.race is the
+      // cleanest way to bound this.
+      let timeout: number | undefined;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeout = window.setTimeout(() => {
+          const err = new Error("Request timed out");
+          err.name = "AbortError";
+          reject(err);
+        }, SUBMIT_TIMEOUT_MS);
+      });
 
       try {
         const payload = {
@@ -198,9 +208,10 @@ export default function AssessScan() {
             tier: finalAnswers[q.id],
           })).filter((a) => typeof a.tier === "number"),
         };
-        const { data, error } = await supabase.functions.invoke("submit-quickscan", {
-          body: payload,
-        });
+        const { data, error } = await Promise.race([
+          supabase.functions.invoke("submit-quickscan", { body: payload }),
+          timeoutPromise,
+        ]);
         if (error) {
           console.error("[scan] submit failed", error, data);
           setSubmitting(false);
