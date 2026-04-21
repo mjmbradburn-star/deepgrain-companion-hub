@@ -756,14 +756,13 @@ function PrintCohortBar({ user, cohort }: { user: number; cohort: number }) {
   );
 }
 
-// Bigger, darker radar variant for the printable cream sheet
+// Variant for the printable cream sheet — same component, inverted via wrapper
 function RadarChartPrintable({
   values, cohort,
 }: { values: Record<number, number>; cohort?: Record<number, number> }) {
-  // We re-use the same component, just inverted via wrapping styles.
   return (
     <div className="text-walnut">
-      <RadarChart values={values} cohort={cohort} labels={PILLAR_NAMES} size={420} />
+      <PillarBarChart values={values} cohort={cohort} labels={PILLAR_NAMES} />
     </div>
   );
 }
