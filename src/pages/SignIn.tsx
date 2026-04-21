@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
+import { loadDraft } from "@/lib/assessment";
 
 const emailSchema = z
   .string()
