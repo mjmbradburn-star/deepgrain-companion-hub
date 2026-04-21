@@ -48,14 +48,14 @@ export function Hero() {
       <div className="container relative z-10 mt-auto pb-24 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
         <p className="md:col-span-6 md:col-start-7 font-display text-xl sm:text-2xl text-cream/80 leading-[1.35] text-pretty animate-fade-up [animation-delay:200ms]">
           For companies, functions and individuals.
-          Twenty minutes. One report. Eight pillars,
+          Three minutes. Eight pillars, one question each,
           from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
         </p>
 
         <div className="md:col-span-12 flex flex-wrap items-center gap-5 animate-fade-up [animation-delay:320ms]">
           <Button asChild size="lg" className="h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase">
             <a href="/assess">
-              Begin assessment
+              3-minute AI maturity scan
               <ArrowRight className="ml-1 h-4 w-4" />
             </a>
           </Button>
@@ -63,7 +63,7 @@ export function Hero() {
             See the eight pillars
           </a>
           <span className="ml-auto hidden sm:inline font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
-            ~18 min · 8 questions
+            ~3 min · 8 questions · no email
           </span>
         </div>
       </div>
