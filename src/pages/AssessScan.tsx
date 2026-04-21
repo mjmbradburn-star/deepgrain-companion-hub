@@ -434,39 +434,88 @@ export default function AssessScan() {
           {/* Inline picker on Q1 — function (function-level only) + region.
               Skippable; both default to "—". */}
           {step === 1 && (
-            <div className="mb-10 rounded-md border border-cream/10 bg-surface-1/50 p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              className={`mb-10 rounded-md border border-cream/10 bg-surface-1/50 p-5 grid grid-cols-1 ${
+                level === "function" ? "sm:grid-cols-2" : ""
+              } gap-x-4 gap-y-2 sm:[grid-template-rows:auto_auto] items-end`}
+            >
               {level === "function" && (
-                <label className="block">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+                <>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 sm:row-start-1">
                     Function (optional)
                   </span>
-                  <select
-                    value={fn ?? ""}
-                    onChange={(e) => setFn((e.target.value || undefined) as BusinessFunction | undefined)}
-                    className="mt-2 w-full rounded-sm bg-surface-0 border border-cream/15 text-cream font-ui text-sm px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass"
-                  >
-                    <option value="">— Skip</option>
-                    {FUNCTIONS.map((f) => (
-                      <option key={f.id} value={f.id}>{f.title}</option>
-                    ))}
-                  </select>
-                </label>
+                  <div className="sm:row-start-2">
+                    <Select
+                      value={fn ?? "__skip"}
+                      onValueChange={(v) =>
+                        setFn(v === "__skip" ? undefined : (v as BusinessFunction))
+                      }
+                    >
+                      <SelectTrigger
+                        aria-label="Function"
+                        className="w-full h-10 rounded-sm bg-surface-0 border-cream/15 text-cream font-ui text-sm hover:border-cream/30 focus:ring-brass focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-0 transition-colors [&>svg]:text-cream/55 [&>svg]:opacity-100"
+                      >
+                        <SelectValue placeholder="Skip" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-walnut border-cream/15 text-cream font-ui">
+                        <SelectItem value="__skip" className="focus:bg-cream/10 focus:text-cream">
+                          Skip
+                        </SelectItem>
+                        {FUNCTIONS.map((f) => (
+                          <SelectItem
+                            key={f.id}
+                            value={f.id}
+                            className="focus:bg-cream/10 focus:text-cream"
+                          >
+                            {f.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
               )}
-              <label className={`block ${level !== "function" ? "sm:col-span-2" : ""}`}>
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
-                  Region (optional — sharpens the benchmark)
-                </span>
-                <select
-                  value={region ?? ""}
-                  onChange={(e) => setRegion((e.target.value || undefined) as Region | undefined)}
-                  className="mt-2 w-full rounded-sm bg-surface-0 border border-cream/15 text-cream font-ui text-sm px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass"
+
+              <span
+                className={`font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 sm:row-start-1 ${
+                  level !== "function" ? "sm:col-span-2" : ""
+                }`}
+              >
+                Region (optional · sharpens the benchmark)
+              </span>
+              <div
+                className={`sm:row-start-2 ${
+                  level !== "function" ? "sm:col-span-2" : ""
+                }`}
+              >
+                <Select
+                  value={region ?? "__skip"}
+                  onValueChange={(v) =>
+                    setRegion(v === "__skip" ? undefined : (v as Region))
+                  }
                 >
-                  <option value="">— Skip</option>
-                  {REGIONS.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-              </label>
+                  <SelectTrigger
+                    aria-label="Region"
+                    className="w-full h-10 rounded-sm bg-surface-0 border-cream/15 text-cream font-ui text-sm hover:border-cream/30 focus:ring-brass focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-0 transition-colors [&>svg]:text-cream/55 [&>svg]:opacity-100"
+                  >
+                    <SelectValue placeholder="Skip" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-walnut border-cream/15 text-cream font-ui">
+                    <SelectItem value="__skip" className="focus:bg-cream/10 focus:text-cream">
+                      Skip
+                    </SelectItem>
+                    {REGIONS.map((r) => (
+                      <SelectItem
+                        key={r}
+                        value={r}
+                        className="focus:bg-cream/10 focus:text-cream"
+                      >
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
