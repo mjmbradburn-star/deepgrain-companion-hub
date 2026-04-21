@@ -46,9 +46,14 @@ function detectLinkError(search: URLSearchParams, hash: URLSearchParams): {
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { toast } = useToast();
   const [status, setStatus] = useState<"working" | "error">("working");
   const [errorKind, setErrorKind] = useState<LinkErrorKind>("generic");
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [knownEmail, setKnownEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resentTo, setResentTo] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
 
   const next = params.get("next") || "/reports";
 
