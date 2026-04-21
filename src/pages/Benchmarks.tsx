@@ -147,34 +147,88 @@ function rowMatches(
   return true;
 }
 
-function PillarSparkline({ value }: { value: number }) {
-  const w = 120;
-  const h = 28;
+/**
+ * Per-pillar comparison row used in the breakdown list.
+ *
+ * Replaces the old wavy sparkline (which read as decoration, not data) with
+ * a clean 0–5 scale bar:
+ *  - The cohort median is drawn as a solid brass bar from 0 to its value.
+ *  - If we know the visitor's own tier for this pillar, a vertical brass-bright
+ *    tick is overlaid at their position with a small "You" caption above it.
+ *  - Five faint tick marks (one per tier) anchor the eye to the scale.
+ */
+function PillarComparisonBar({
+  median,
+  user,
+}: {
+  median: number;
+  user?: number;
+}) {
   const max = 5;
-  const clamped = Math.max(0, Math.min(max, value));
-  const fillW = (clamped / max) * w;
-  const points: string[] = [];
-  const steps = 18;
-  for (let i = 0; i <= steps; i++) {
-    const x = (i / steps) * w;
-    const t = i / steps;
-    const wave = Math.sin(t * Math.PI * 2) * 2;
-    const baseline = h - 6 - (clamped / max) * (h - 12);
-    points.push(`${x.toFixed(1)},${(baseline + wave).toFixed(1)}`);
-  }
+  const clampedMedian = Math.max(0, Math.min(max, median));
+  const medianPct = (clampedMedian / max) * 100;
+  const userPct =
+    typeof user === "number"
+      ? (Math.max(0, Math.min(max, user)) / max) * 100
+      : null;
+  const delta = typeof user === "number" ? Math.round((user - median) * 10) / 10 : null;
+
   return (
-    <svg width={w} height={h} className="block" aria-hidden="true">
-      <line x1={0} y1={h - 4} x2={w} y2={h - 4} stroke="hsl(var(--cream) / 0.1)" strokeWidth={1} />
-      <line x1={0} y1={h - 4} x2={fillW} y2={h - 4} stroke="hsl(var(--brass) / 0.55)" strokeWidth={1} />
-      <polyline
-        points={points.join(" ")}
-        fill="none"
-        stroke="hsl(var(--brass-bright))"
-        strokeWidth={1.25}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div className="w-full max-w-[260px]">
+      <div className="relative h-2 w-full bg-cream/8 rounded-full overflow-visible">
+        {/* Cohort median fill */}
+        <span
+          className="absolute top-0 left-0 h-full bg-brass/55 rounded-full"
+          style={{ width: `${medianPct}%` }}
+          aria-hidden
+        />
+        {/* Tier ticks at 1..4 (0 and 5 are the bar edges) */}
+        {[1, 2, 3, 4].map((t) => (
+          <span
+            key={t}
+            className="absolute top-1/2 -translate-y-1/2 h-1 w-px bg-cream/20"
+            style={{ left: `${(t / max) * 100}%` }}
+            aria-hidden
+          />
+        ))}
+        {/* User marker — vertical tick + tiny caption */}
+        {userPct != null && (
+          <>
+            <span
+              className="absolute -top-1 -bottom-1 w-[2px] bg-brass-bright rounded-full"
+              style={{ left: `calc(${userPct}% - 1px)` }}
+              aria-hidden
+            />
+            <span
+              className="absolute -top-4 font-mono text-[8px] uppercase tracking-[0.18em] text-brass-bright whitespace-nowrap"
+              style={{
+                left: `${userPct}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              You
+            </span>
+          </>
+        )}
+      </div>
+      <div className="mt-1.5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
+        <span>0</span>
+        {delta != null && (
+          <span
+            className={
+              delta > 0
+                ? "text-brass-bright"
+                : delta < 0
+                ? "text-pillar-7"
+                : "text-cream/40"
+            }
+          >
+            You {delta > 0 ? "+" : ""}{delta.toFixed(1)} vs median
+          </span>
+        )}
+        <span>5</span>
+      </div>
+    </div>
   );
 }
 
