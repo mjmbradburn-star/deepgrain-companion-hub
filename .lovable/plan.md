@@ -1,102 +1,82 @@
 
 
-## Align Benchmarks Pillar breakdown rows with the Deepgrain `PillarBarChart` grammar
+## Add a proper sign-in & "My reports" experience, lock down PDF storage
 
-### What's inconsistent today
+Right now the only way to authenticate is to start a new assessment — the magic link is sent as a side-effect of the qualifier email step. There's no Sign-in button, no way back to past reports, and PDFs in the `report-pdfs` bucket are readable by anyone with the URL. This plan fixes all three.
 
-The `/benchmarks` "Pillar breakdown" list (`src/pages/Benchmarks.tsx`, lines 677–713) uses a bespoke 12-col grid with a tiny `P{n}` chip in `sm:col-span-1`, while the canonical `PillarBarChart` (used in the Assessment report and the Deepgrain hero strip) uses a flex row with a fixed-basis label column (`sm:basis-[max(110px,22%)] sm:shrink-0`) and absolutely-positioned `0…5` axis labels above the track. The bespoke `PillarComparisonBar` inside each row also only shows `0` on the left and a delta text on the right — there is no proper `0 / 5` axis under the bar to mirror the chart's axis header.
+---
 
-Result: at every breakpoint the P-prefix column width drifts (too cramped on tablet, too wide on mobile because of the inline chip), and the bar's "axis" reads as "0 ··· delta" rather than the consistent `0 1 2 3 4 5` cadence seen elsewhere.
+### 1. Add a real sign-in entry point
 
-### Fix — single file, two surgical edits
+**Site nav (`SiteNav.tsx`)**
+- Add a "Sign in" link (desktop + mobile sheet) that:
+  - When signed-out → routes to `/signin`
+  - When signed-in → shows the user's email (truncated) as a dropdown with "My reports" and "Sign out"
+- Reactive to `supabase.auth.onAuthStateChange` so it updates instantly on magic-link return.
 
-`src/pages/Benchmarks.tsx`
+**New page `/signin` (`src/pages/SignIn.tsx`)**
+- Single email field + "Send sign-in link" button (reuses `sendMagicLink` from `src/lib/sync.ts`).
+- Honest copy: "We'll email you a one-time link. No passwords."
+- Optional `?next=/path` query param honoured by the existing `/auth/callback` flow.
+- Zod validation, rate-limit-friendly UX (disable for 30s after send, show "Resend" affordance).
+- If already signed-in, redirect straight to `/reports`.
 
-**1. P-prefix column sizing (lines 682–697)**
+**`AuthCallback.tsx`** — already handles `?next`. Small tweak: if there's no draft AND no `next`, send the user to `/reports` (today it sends them to `/`).
 
-Drop the 12-col grid in favour of the same flex layout `PillarBarChart` uses, with a unified label slot that absorbs the P-prefix:
+---
 
-```tsx
-<li
-  key={p.id}
-  className="flex flex-col gap-y-2 sm:flex-row sm:items-center sm:gap-x-4 py-5 sm:py-6 border-b border-cream/10"
->
-  {/* Label column — same basis as PillarBarChart so columns line up */}
-  <div className="flex items-baseline gap-x-2 min-w-0 sm:basis-[max(140px,24%)] sm:shrink-0">
-    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 tabular-nums shrink-0 w-[2.25rem]">
-      P{p.id}
-    </span>
-    <span className="font-display text-base sm:text-lg text-cream/90 leading-tight break-words">
-      {p.name}
-    </span>
-  </div>
+### 2. New "My reports" page (`/reports`)
 
-  {/* Bar + score share the remaining track, with score pinned right */}
-  <div className="flex items-center gap-x-3 sm:gap-x-4 flex-1 min-w-0">
-    <div className="flex-1 min-w-0">
-      {view ? (
-        <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
-      ) : (
-        <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.2em] sm:tracking-[0.22em]">
-          no data
-        </span>
-      )}
-    </div>
-    <span className="text-right font-display text-lg sm:text-2xl tracking-tight text-brass-bright tabular-nums w-[2.5rem] sm:w-[3rem] shrink-0">
-      {view ? v.toFixed(1) : "—"}
-    </span>
-  </div>
-</li>
-```
+`src/pages/MyReports.tsx`
+- Auth-gated: if no session, redirect to `/signin?next=/reports`.
+- Lists every respondent for the signed-in user (RLS already scopes this), most recent first:
+  - Level (Company / Function / Individual) + function/region badges
+  - Submitted date, AIOI score + tier badge (from joined `reports`)
+  - "In progress" pill if `submitted_at` is null
+  - Primary action → `/assess/r/<slug>` (View report)
+  - Secondary action → "Resume" for in-progress respondents (jumps back into `/assess/q/<n>`)
+- Empty state: short copy + CTA to `/assess`.
+- Sign-out button in the page header.
 
-This:
-- Gives the `P{id}` token a fixed `w-[2.25rem]` slot at every breakpoint, so the eight `P1…P8` labels stack in a perfect column on mobile **and** desktop instead of jittering.
-- Removes the redundant inline duplicate `P{n}` chip from the name span.
-- Adopts the same `sm:basis-[max(140px,24%)] sm:shrink-0` rhythm as `PillarBarChart` so the bars start at the same x-coord across both pages.
+No new tables or columns — uses existing `respondents` + `reports` rows the user already owns.
 
-**2. 0 / 5 axis labels under the bar (lines 219–286 in `PillarComparisonBar`)**
+---
 
-Replace the lone `0` + delta footer with a proper axis row that mirrors the `PillarBarChart` axis cadence:
+### 3. Lock down report PDF storage (security fix)
 
-```tsx
-<div className="mt-1.5 relative h-3 font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
-  {[0, 5].map((t) => (
-    <span
-      key={t}
-      className="absolute top-0 -translate-x-1/2 tabular-nums"
-      style={{ left: `${(t / max) * 100}%` }}
-    >
-      {t}
-    </span>
-  ))}
-</div>
-{delta != null && (
-  <div className="mt-1 flex justify-end font-mono text-[9px] uppercase tracking-[0.2em]">
-    {/* existing delta tooltip button, unchanged */}
-  </div>
-)}
-```
+Today: bucket `report-pdfs` is public; the SELECT policy lets any anon with the URL fetch any PDF. Slugs are 12 hex chars — guessable enough that this counts as a leak surface.
 
-This:
-- Anchors `0` and `5` at exactly `0%` and `100%` of the track (matching `PillarBarChart`'s axis).
-- Splits the delta caption onto its own row so it never collides with the `5` label on narrow phones.
-- Keeps the existing tooltip behaviour, only its container wrapper changes.
+New approach (single new migration):
+1. Flip the bucket to **private** (`UPDATE storage.buckets SET public = false WHERE id = 'report-pdfs'`).
+2. Drop the public SELECT policy. PDFs are no longer reachable by URL.
+3. Add a security-definer RPC `get_report_pdf_url(_slug text)` that:
+   - Looks up the respondent by slug.
+   - Verifies `auth.uid() = respondent.user_id` (i.e. the report belongs to the caller).
+   - Returns a fresh signed URL (60 min TTL) for the stored `pdf_path`, generated server-side via the storage admin API… **or, simpler and equivalent**: returns the `pdf_path`, and the client calls `supabase.storage.from('report-pdfs').createSignedUrl(path, 3600)` while signed-in. We add a storage RLS SELECT policy that only allows signed-URL creation for objects whose path matches a respondent owned by the caller (lookup via `is_my_respondent`).
+4. `AssessReport.tsx` and the email-PDF flow switch from public URLs to signed URLs.
 
-### What stays the same
+Result: a PDF can only be fetched by the report owner (or via a signed URL Deepgrain mints in the email — which is already short-lived).
 
-- `PillarComparisonBar`'s bar visuals (median fill, ticks, "You" marker) — untouched.
-- The section heading row, legend chips, filters, and the "Resume scan" CTA — untouched.
-- Desktop right-aligned filters, mobile-left filters from the previous fix — untouched.
+---
 
-### Verification
+### 4. Tighten DB RLS gaps surfaced by the audit
 
-Reload `/benchmarks` at 375px, 768px, and 1280px:
-- All eight `P1…P8` tokens align in a vertical column at every breakpoint.
-- Pillar names start at the same x as the chart axis labels in the report (`PillarBarChart`).
-- Bar axis reads `0` ··· `5` with the `5` flush at the bar's right edge, mirroring the report chart.
-- Delta caption sits on its own row, never overlapping the `5`.
+While we're here, three small hardenings:
+- `events` — currently allows `anon` inserts with `user_id = NULL`. Keep that (we need anonymous funnel telemetry) but add a length cap on `name` and a JSON size guard via a `BEFORE INSERT` trigger to prevent log-stuffing.
+- `respondents` — add a CHECK that `user_id IS NOT NULL` on **new** rows by amending the INSERT policy `WITH CHECK` to `(user_id = auth.uid() AND user_id IS NOT NULL)`. Belt-and-braces against null-uid abuse.
+- `reports` — already good (own-respondent only via `is_my_respondent`), no change.
+
+---
 
 ### Files touched
 
-- `src/pages/Benchmarks.tsx` (rows 219–286 inside `PillarComparisonBar`, and rows 682–712 inside the breakdown list).
+- **New**: `src/pages/SignIn.tsx`, `src/pages/MyReports.tsx`
+- **Edit**: `src/components/aioi/SiteNav.tsx` (auth-aware nav), `src/App.tsx` (routes for `/signin`, `/reports`), `src/pages/AuthCallback.tsx` (default redirect → `/reports`), `src/pages/AssessReport.tsx` (use signed URL for PDF download)
+- **Edit edge fn**: `supabase/functions/email-report-pdf/index.ts` (mint signed URL instead of public URL when emailing)
+- **New migration**: bucket → private, replace storage policies with owner-scoped, tighten respondents INSERT, add events guard trigger.
+
+### Out of scope (call out so you can confirm)
+
+- No password auth or social providers — magic-link only, matching the current product tone.
+- No admin role or "share report with someone else" flow — the existing `/assess/r/<slug>` public view already covers shareable links; we're only securing the PDF asset.
 
