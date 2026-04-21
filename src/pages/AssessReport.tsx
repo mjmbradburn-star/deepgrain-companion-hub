@@ -199,7 +199,30 @@ function ReportView({ data }: { data: ReportData }) {
                   </span>
                 )}
               </div>
-              <ResendReportLink slug={respondent.slug} />
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(window.location.href);
+                  }}
+                  className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+                >
+                  <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
+                </Button>
+                {!data.hasDeepdive && (
+                  <Button
+                    size="sm"
+                    asChild
+                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+                  >
+                    <Link to={`/assess/deep/${respondent.slug}`}>
+                      Go deeper <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Link>
+                  </Button>
+                )}
+                <ResendReportLink slug={respondent.slug} />
+              </div>
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
