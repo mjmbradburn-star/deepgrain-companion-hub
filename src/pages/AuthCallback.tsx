@@ -185,7 +185,9 @@ export default function AuthCallback() {
 
   if (status === "error") {
     const copy = errorCopy(errorKind);
-    const retryHref = `/signin?next=${encodeURIComponent(next)}`;
+    const retryHref = knownEmail
+      ? `/signin?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}`
+      : `/signin?next=${encodeURIComponent(next)}`;
     return (
       <AssessChrome ariaLabel="Sign-in problem">
         <main className="container max-w-xl w-full py-20 sm:py-28">
