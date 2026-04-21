@@ -150,7 +150,7 @@ export default function AssessQuestion() {
             </span>
           </div>
 
-          <h1 className="font-display text-[clamp(2rem,4.5vw,3rem)] leading-[1.08] text-cream tracking-tight text-balance">
+          <h1 className="font-display text-[clamp(1.5rem,4.5vw,3rem)] leading-[1.12] sm:leading-[1.08] text-cream tracking-tight text-balance">
             {question.prompt}
           </h1>
 

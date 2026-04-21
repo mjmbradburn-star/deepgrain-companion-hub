@@ -1,7 +1,7 @@
 export function SiteFooter() {
   return (
     <footer className="border-t border-cream/10 bg-surface-0">
-      <div className="container py-12">
+      <div className="container py-10 sm:py-12">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <p className="font-display text-2xl text-cream">AIOI</p>
@@ -17,7 +17,7 @@ export function SiteFooter() {
             <a href="https://deepgrain.ai" target="_blank" rel="noopener noreferrer" className="hover:text-brass-bright">deepgrain.ai ↗</a>
           </nav>
         </div>
-        <div className="mt-10 pt-6 border-t border-cream/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/30">
+        <div className="mt-8 pt-5 border-t border-cream/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.2em] text-cream/30">
           <span>© {new Date().getFullYear()} Deepgrain Studio</span>
           <span>v1.0 · {new Date().toISOString().slice(0, 10)}</span>
         </div>

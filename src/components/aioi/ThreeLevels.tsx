@@ -26,31 +26,31 @@ const LEVELS = [
 
 export function ThreeLevels() {
   return (
-    <section id="levels" className="relative py-28 sm:py-36 border-t border-cream/10">
+    <section id="levels" className="relative section-y border-t border-cream/10">
       <div className="container">
-        <div className="max-w-3xl mb-14">
+        <div className="max-w-3xl mb-10 sm:mb-14">
           <p className="eyebrow mb-5">Three Levels</p>
-          <h2 className="font-display text-5xl sm:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
             Pick the lens<br />
             <span className="italic text-brass-bright">that matters.</span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
           {LEVELS.map((l, i) => (
             <a
               key={l.tag}
               href="/assess"
-              className="group relative rounded-lg border border-cream/10 bg-surface-1/60 p-7 hover:border-brass/60 hover:bg-surface-1 transition-all duration-200 flex flex-col min-h-[340px]"
+              className="group relative rounded-lg border border-cream/10 bg-surface-1/60 p-5 sm:p-7 hover:border-brass/60 hover:bg-surface-1 transition-all duration-200 flex flex-col min-h-[280px] sm:min-h-[340px]"
             >
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
                   Level 0{i + 1}
                 </span>
                 <span className="font-mono text-xs text-cream/40">{l.time}</span>
               </div>
-              <h3 className="font-display text-3xl text-cream leading-tight mb-3">{l.tag}</h3>
-              <p className="font-display italic text-xl text-cream/60 mb-4">{l.title}</p>
+              <h3 className="font-display text-2xl sm:text-3xl text-cream leading-tight mb-3">{l.tag}</h3>
+              <p className="font-display italic text-lg sm:text-xl text-cream/60 mb-4">{l.title}</p>
               <p className="text-sm text-cream/60 leading-relaxed">{l.body}</p>
               <div className="mt-auto pt-6 flex items-center justify-between border-t border-cream/10">
                 <span className="font-ui text-xs text-cream/40">{l.audience}</span>

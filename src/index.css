@@ -127,7 +127,19 @@
   }
 
   .eyebrow {
-    @apply font-ui uppercase tracking-[0.18em] text-xs text-brass/90;
+    @apply font-ui uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[11px] sm:text-xs text-brass/90;
+  }
+
+  /* Standardised vertical rhythm for top-level sections. */
+  .section-y {
+    @apply py-16 sm:py-24 lg:py-32;
+  }
+
+  /* Standard giant headline clamp used across hero sections. */
+  .headline-xl {
+    font-size: clamp(2.25rem, 9vw, 6.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
   }
 
   .hairline {

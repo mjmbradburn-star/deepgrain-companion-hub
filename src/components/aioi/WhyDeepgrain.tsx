@@ -2,16 +2,16 @@ import { ArrowUpRight } from "lucide-react";
 
 export function WhyDeepgrain() {
   return (
-    <section className="relative py-28 sm:py-36 border-t border-cream/10">
-      <div className="container grid grid-cols-1 lg:grid-cols-12 gap-12">
+    <section className="relative section-y border-t border-cream/10">
+      <div className="container grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12">
         <div className="lg:col-span-5">
           <p className="eyebrow mb-5">Why Deepgrain</p>
-          <h2 className="font-display text-5xl text-cream leading-[1.05] tracking-tight text-balance">
+          <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
             We rebuild operating systems<br />
             <span className="italic text-brass-bright">around the model.</span>
           </h2>
         </div>
-        <div className="lg:col-span-6 lg:col-start-7 space-y-6 font-display text-xl text-cream/75 leading-snug">
+        <div className="lg:col-span-6 lg:col-start-7 space-y-5 sm:space-y-6 font-display text-lg sm:text-xl text-cream/75 leading-snug">
           <p>
             Deepgrain is a small studio for companies that have decided AI is not a feature. We work with founders and exec teams to redesign how the work actually gets done — function by function, workflow by workflow.
           </p>

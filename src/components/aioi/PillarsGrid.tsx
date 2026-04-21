@@ -13,27 +13,27 @@ const PILLARS: { i: PillarIndex; name: string; blurb: string }[] = [
 
 export function PillarsGrid() {
   return (
-    <section id="pillars" className="relative py-28 sm:py-36 border-t border-cream/10">
+    <section id="pillars" className="relative section-y border-t border-cream/10">
       <div className="container">
-        <div className="max-w-3xl mb-16">
+        <div className="max-w-3xl mb-10 sm:mb-16">
           <p className="eyebrow mb-5">Eight Pillars</p>
-          <h2 className="font-display text-5xl sm:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
             Eight things that decide<br />
             <span className="italic text-brass-bright">where AI works for you.</span>
           </h2>
-          <p className="mt-6 font-display text-xl text-cream/65 max-w-xl">
+          <p className="mt-6 font-display text-lg sm:text-xl text-cream/65 max-w-xl">
             Most surveys measure tools. This one looks at how you operate.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-cream/10 border border-cream/10 rounded-lg overflow-hidden">
           {PILLARS.map((p) => (
-            <article key={p.i} className="bg-walnut p-7 hover:bg-surface-1 transition-colors group">
-              <div className="flex items-center justify-between mb-6">
+            <article key={p.i} className="bg-walnut p-5 sm:p-7 hover:bg-surface-1 transition-colors group">
+              <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <PillarChip index={p.i} label="" number />
                 <span className="font-mono text-xs text-cream/30">0{p.i}</span>
               </div>
-              <h3 className="font-display text-2xl text-cream leading-snug mb-3">{p.name}</h3>
+              <h3 className="font-display text-xl sm:text-2xl text-cream leading-snug mb-3">{p.name}</h3>
               <p className="text-sm text-cream/75 leading-relaxed">{p.blurb}</p>
             </article>
           ))}

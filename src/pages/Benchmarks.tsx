@@ -485,13 +485,13 @@ export default function Benchmarks() {
     <main className="min-h-screen bg-walnut text-cream">
       <SiteNav />
 
-      <section className="pt-32 pb-12 border-b border-cream/10">
+      <section className="pt-24 sm:pt-32 pb-10 sm:pb-12 border-b border-cream/10">
         <div className="container">
-          <p className="eyebrow text-cream/55 mb-5">Volume I — Benchmarks</p>
-          <h1 className="font-display font-light text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.025em] text-balance max-w-[18ch]">
+          <p className="eyebrow text-cream/55 mb-4 sm:mb-5">Volume I — Benchmarks</p>
+          <h1 className="font-display font-light text-[clamp(2.25rem,7vw,5rem)] leading-[0.95] tracking-[-0.025em] text-balance max-w-[18ch]">
             Where the field <span className="italic text-brass-bright">actually stands.</span>
           </h1>
-          <p className="mt-6 max-w-2xl font-display text-lg text-cream/70 leading-[1.5] text-pretty">
+          <p className="mt-5 sm:mt-6 max-w-2xl font-display text-base sm:text-lg text-cream/70 leading-[1.5] text-pretty">
             Live medians from every assessment that opted in. Slice by level, function,
             organisation size, sector, and region — then compare functions side by side.
           </p>
@@ -593,23 +593,23 @@ export default function Benchmarks() {
       </section>
 
       {/* Big number + radar */}
-      <section className="py-16 border-t border-cream/10">
-        <div className="container grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section className="py-10 sm:py-16 border-t border-cream/10">
+        <div className="container grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           <div className="lg:col-span-5">
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
               Median AIOI score
             </span>
-            <div className="mt-3 font-display font-light text-[clamp(4rem,12vw,8rem)] leading-none tracking-[-0.04em] text-brass-bright">
+            <div className="mt-3 font-display font-light text-[clamp(3.5rem,12vw,8rem)] leading-none tracking-[-0.04em] text-brass-bright">
               {loading ? "—" : empty ? "—" : view!.median}
             </div>
-            <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.22em] text-cream/45">
+            <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/45">
               0 — 100
             </div>
 
-            <div className="mt-8 space-y-3 font-display text-cream/75 text-pretty">
+            <div className="mt-6 sm:mt-8 space-y-3 font-display text-cream/75 text-pretty">
               {loading && <p className="text-cream/50">Loading aggregates…</p>}
               {empty && (
-                <p className="text-lg leading-[1.5]">
+                <p className="text-base sm:text-lg leading-[1.5]">
                   No benchmark data yet for this slice.{" "}
                   <span className="italic text-cream/55">
                     Aggregates publish once enough respondents in this cohort opt in.
@@ -618,7 +618,7 @@ export default function Benchmarks() {
               )}
               {view && (
                 <>
-                  <p className="text-lg leading-[1.5]">
+                  <p className="text-base sm:text-lg leading-[1.5]">
                     Drawn from{" "}
                     <span className="text-cream font-normal">
                       {view.sample.toLocaleString()}
@@ -633,7 +633,7 @@ export default function Benchmarks() {
                     {sector !== "All" && <> · {sector}</>}
                     {region !== "All" && <> · {region}</>}.
                   </p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35 flex items-center gap-2 flex-wrap">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35 flex items-center gap-2 flex-wrap">
                     <span>Refreshed {new Date(view.refreshedAt).toLocaleDateString()}</span>
                     <span className="text-cream/20">·</span>
                     <span
@@ -649,23 +649,25 @@ export default function Benchmarks() {
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 w-full">
             {view ? (
-              <RadarChart
-                values={view.pillars}
-                cohort={cohort?.pillars}
-                labels={PILLAR_LABELS}
-                size={520}
-              />
+              <div className="w-full max-w-[520px] mx-auto">
+                <RadarChart
+                  values={view.pillars}
+                  cohort={cohort?.pillars}
+                  labels={PILLAR_LABELS}
+                  size={520}
+                />
+              </div>
             ) : (
               <div className="aspect-square border border-dashed border-cream/15 flex items-center justify-center">
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/30">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/30">
                   no data for current slice
                 </p>
               </div>
             )}
             {cohort && view && (
-              <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+              <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
                 <span className="inline-block h-px w-4 bg-brass-bright align-middle mr-1.5" />
                 Selected slice
                 <span className="mx-3 text-cream/20">·</span>
@@ -747,13 +749,13 @@ export default function Benchmarks() {
       </section>
 
       {/* Pillar breakdown */}
-      <section className="py-16 border-t border-cream/10">
+      <section className="py-10 sm:py-16 border-t border-cream/10">
         <div className="container">
-          <div className="flex items-baseline justify-between mb-8">
-            <h2 className="font-display text-2xl sm:text-3xl tracking-tight">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 mb-6 sm:mb-8">
+            <h2 className="font-display text-xl sm:text-2xl lg:text-3xl tracking-tight">
               Pillar breakdown
             </h2>
-            <div className="flex items-center gap-5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-5 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/45">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-3 rounded-full bg-brass/55" aria-hidden /> Median
               </span>
@@ -767,7 +769,7 @@ export default function Benchmarks() {
                 </span>
               ) : null}
               <span title="0 Dormant · 1 Reactive · 2 Exploratory · 3 Operational · 4 Integrated · 5 AI-Native">
-                Tier · 0 Dormant → 5 AI-Native
+                Tier · 0 → 5
               </span>
             </div>
           </div>
@@ -819,26 +821,26 @@ export default function Benchmarks() {
               return (
                 <li
                   key={p.id}
-                  className="grid grid-cols-12 gap-4 items-center py-6 border-b border-cream/10"
+                  className="grid grid-cols-12 gap-x-3 gap-y-2 sm:gap-4 items-center py-5 sm:py-6 border-b border-cream/10"
                 >
-                  <span className="col-span-1 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+                  <span className="col-span-2 sm:col-span-1 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
                     P{p.id}
                   </span>
-                  <span className="col-span-5 sm:col-span-4 font-display text-lg text-cream/90">
+                  <span className="col-span-7 sm:col-span-4 font-display text-base sm:text-lg text-cream/90">
                     {p.name}
                   </span>
-                  <div className="col-span-4 sm:col-span-5 flex justify-start sm:justify-center">
+                  <span className="col-span-3 sm:col-span-2 sm:order-last text-right font-display text-xl sm:text-2xl tracking-tight text-brass-bright tabular-nums">
+                    {view ? v.toFixed(1) : "—"}
+                  </span>
+                  <div className="col-span-12 sm:col-span-5 flex justify-start sm:justify-center">
                     {view ? (
                       <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
                     ) : (
-                      <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.22em]">
+                      <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.2em] sm:tracking-[0.22em]">
                         no data
                       </span>
                     )}
                   </div>
-                  <span className="col-span-2 text-right font-display text-2xl tracking-tight text-brass-bright tabular-nums">
-                    {view ? v.toFixed(1) : "—"}
-                  </span>
                 </li>
               );
             })}

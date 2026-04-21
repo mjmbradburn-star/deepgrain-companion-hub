@@ -18,22 +18,22 @@ export function BenchmarkCounter() {
   }, []);
 
   return (
-    <section className="relative py-24 border-t border-b border-cream/10 bg-green-deep/40">
-      <div className="container grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4">
+    <section className="relative py-16 sm:py-24 border-t border-b border-cream/10 bg-green-deep/40">
+      <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-4">
         <div>
           <p className="eyebrow mb-3">Live benchmark</p>
-          <p className="font-display text-6xl text-cream tabular-nums">{count.toLocaleString()}</p>
-          <p className="mt-2 font-display italic text-lg text-cream/55">assessments completed</p>
+          <p className="font-display text-5xl sm:text-6xl text-cream tabular-nums">{count.toLocaleString()}</p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">assessments completed</p>
         </div>
         <div>
           <p className="eyebrow mb-3">Median AIOI</p>
-          <p className="font-display text-6xl text-brass-bright tabular-nums">{score}<span className="text-cream/30 text-3xl ml-1">/100</span></p>
-          <p className="mt-2 font-display italic text-lg text-cream/55">— most companies are <span className="text-cream/80">Reactive</span>.</p>
+          <p className="font-display text-5xl sm:text-6xl text-brass-bright tabular-nums">{score}<span className="text-cream/30 text-2xl sm:text-3xl ml-1">/100</span></p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">— most companies are <span className="text-cream/80">Reactive</span>.</p>
         </div>
         <div>
           <p className="eyebrow mb-3">Most painful pillar</p>
-          <p className="font-display text-6xl text-cream">P2</p>
-          <p className="mt-2 font-display italic text-lg text-cream/55">Data Foundations. By a long way.</p>
+          <p className="font-display text-5xl sm:text-6xl text-cream">P2</p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">Data Foundations. By a long way.</p>
         </div>
       </div>
     </section>
