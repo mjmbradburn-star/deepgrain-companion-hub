@@ -385,7 +385,7 @@ export type Database = {
           started_at: string
           submitted_at: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           consent_benchmark?: boolean
@@ -403,7 +403,7 @@ export type Database = {
           started_at?: string
           submitted_at?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           consent_benchmark?: boolean
@@ -421,7 +421,7 @@ export type Database = {
           started_at?: string
           submitted_at?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -505,6 +505,29 @@ export type Database = {
         Returns: number
       }
       gen_slug: { Args: never; Returns: string }
+      get_outcomes_for_report: {
+        Args: { _slug: string }
+        Returns: {
+          active: boolean
+          applies_to_tier: number
+          body: string
+          created_at: string
+          effort: number | null
+          id: string
+          impact: number | null
+          pillar: number
+          time_to_value: string | null
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "outcomes_library"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_report_by_slug: { Args: { _slug: string }; Returns: Json }
       is_my_respondent: { Args: { _respondent_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
