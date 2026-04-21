@@ -109,6 +109,24 @@ export function PillarBarChart({
                     style={{ left: `${(t / MAX_TIER) * 100}%` }}
                   />
                 ))}
+
+                {/* Gap segment — coloured strip between cohort tick and the
+                    user mark, so the deficit/lead is legible at a glance.
+                    Brass when ahead, clay when behind. */}
+                {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full",
+                      ahead ? "bg-brass-bright/35" : "bg-pillar-7/45",
+                    )}
+                    style={{
+                      left: `${Math.min(userPct, cohortPct)}%`,
+                      width: `${Math.abs(userPct - cohortPct)}%`,
+                    }}
+                  />
+                )}
+
                 {/* User mark — bar fill OR lollipop dot */}
                 {variant === "bar" ? (
                   <div
@@ -119,34 +137,39 @@ export function PillarBarChart({
                     style={{ width: `${Math.max(userPct, 1.5)}%` }}
                   />
                 ) : (
-                  <>
-                    {/* Faint connector from origin to the user's tier */}
+                  <span
+                    aria-label={`You: ${userTier.toFixed(1)}`}
+                    className={cn(
+                      "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_2px_hsl(var(--walnut))]",
+                      "h-2.5 w-2.5 sm:h-3 sm:w-3",
+                    )}
+                    style={{ left: `${userPct}%` }}
+                  />
+                )}
+
+                {/* Cohort median — taller vertical tick (bar variant) or
+                    outline dot (lollipop variant). Same data, glyph picked
+                    to rhyme with the user mark in each style. */}
+                {cohortPct != null && (
+                  variant === "bar" ? (
                     <span
-                      aria-hidden
-                      className="absolute top-1/2 left-0 h-px -translate-y-1/2 bg-brass-bright/35"
-                      style={{ width: `${userPct}%` }}
-                    />
-                    {/* User dot */}
+                      aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
+                      className="absolute -top-1.5 -bottom-1.5 w-[2px] bg-cream/80"
+                      style={{ left: `${cohortPct}%`, transform: "translateX(-1px)" }}
+                    >
+                      <span className="absolute -top-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cream/85" />
+                      <span className="absolute -bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cream/85" />
+                    </span>
+                  ) : (
                     <span
-                      aria-label={`You: ${userTier.toFixed(1)}`}
+                      aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className={cn(
-                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_2px_hsl(var(--walnut))]",
+                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-cream/75 bg-walnut",
                         "h-2.5 w-2.5 sm:h-3 sm:w-3",
                       )}
-                      style={{ left: `${userPct}%` }}
+                      style={{ left: `${cohortPct}%` }}
                     />
-                  </>
-                )}
-                {/* Cohort median tick */}
-                {cohortPct != null && (
-                  <span
-                    aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
-                    className="absolute -top-1 -bottom-1 w-px bg-cream/70"
-                    style={{ left: `${cohortPct}%` }}
-                  >
-                    <span className="absolute -top-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-cream/80" />
-                    <span className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-cream/80" />
-                  </span>
+                  )
                 )}
               </div>
 
