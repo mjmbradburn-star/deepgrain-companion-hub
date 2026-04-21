@@ -3,6 +3,7 @@ import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { PillarChip, type PillarIndex } from "@/components/aioi/PillarChip";
 import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
+import { Reveal } from "@/components/aioi/Reveal";
 
 interface PillarEntry {
   index: PillarIndex;
@@ -144,22 +145,27 @@ export default function Pillars() {
       <section className="relative pt-28 pb-16 sm:pt-40 sm:pb-24 lg:pt-48 lg:pb-32 border-b border-cream/10 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(var(--brass)/0.08),_transparent_60%)]" aria-hidden />
         <div className="container relative max-w-5xl">
-          <p className="eyebrow mb-6">The Eight Pillars</p>
+          <p className="eyebrow mb-6 motion-safe:animate-fade-up-soft">The Eight Pillars</p>
           <h1 className="font-display font-light headline-xl text-cream max-w-[14ch] text-balance">
-            Eight axes.<br />
-            <span className="italic font-normal text-brass-bright">One operating picture.</span>
+            <span className="block overflow-hidden">
+              <span className="block motion-safe:animate-slide-up-mask [animation-delay:120ms]">Eight axes.</span>
+            </span>
+            <span className="block overflow-hidden">
+              <span className="block italic font-normal text-brass-bright motion-safe:animate-slide-up-mask [animation-delay:240ms]">One operating picture.</span>
+            </span>
           </h1>
-          <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug">
+          <div className="mt-5 h-px w-20 sm:w-24 bg-brass/70 origin-left motion-safe:animate-underline-draw [animation-delay:480ms]" />
+          <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug motion-safe:animate-fade-up-soft [animation-delay:580ms]">
             The AIOI doesn't ask whether you "use AI". It asks eight questions about how you operate, across strategy, data, tooling, workflow, skills, governance, measurement and culture, and scores each one on the same six-tier ladder.
           </p>
-          <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
+          <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4 motion-safe:animate-fade-up-soft [animation-delay:720ms]">
             <a
               href="/assess"
-              className="inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors w-full sm:w-auto justify-center motion-tap"
             >
               Begin assessment <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="/ladder" className="font-ui text-sm text-cream/60 hover:text-cream underline-offset-4 hover:underline">
+            <a href="/ladder" className="story-link font-ui text-sm text-cream/60 hover:text-cream">
               See the maturity ladder
             </a>
           </div>
@@ -192,11 +198,14 @@ export default function Pillars() {
       <section className="py-12 sm:py-20 lg:py-24">
         <div className="container max-w-6xl space-y-16 sm:space-y-24">
           {PILLARS.map((p, i) => (
-            <article
+            <Reveal
+              as="article"
               key={p.index}
-              id={`p${p.index}`}
+              index={i % 3}
               className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
             >
+              {/* article id is set via the wrapper id below — Reveal forwards props through Tag */}
+              <span id={`p${p.index}`} aria-hidden className="absolute" />
               {/* Left rail — pillar number, chip, weight */}
               <aside className="lg:col-span-4">
                 <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6">
