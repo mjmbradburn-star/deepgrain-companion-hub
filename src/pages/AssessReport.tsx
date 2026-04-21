@@ -386,8 +386,8 @@ function OverviewTab({
 
 // ─── Plan ─────────────────────────────────────────────────────────────────
 function PlanTab({
-  plan, outcomes,
-}: { plan: PlanMonth[]; outcomes: OutcomeRow[] }) {
+  plan, outcomes, slug, hasDeepdive,
+}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; hasDeepdive: boolean }) {
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
 
   if (plan.length === 0) {
