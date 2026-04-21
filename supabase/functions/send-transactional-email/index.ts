@@ -30,9 +30,18 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth note: verify_jwt=false in config.toml. We validate the service
+// credential directly here so any caller (cron, other edge functions) can
+// authenticate by presenting SUPABASE_SERVICE_ROLE_KEY in either the
+// Authorization or apikey header. The gateway no longer rejects requests
+// based on JWT format, which broke when the service key isn't a JWT.
+function extractServiceCredential(req: Request): string | null {
+  const auth = req.headers.get('Authorization')
+  if (auth?.startsWith('Bearer ')) return auth.slice('Bearer '.length).trim()
+  const apikey = req.headers.get('apikey')
+  if (apikey) return apikey.trim()
+  return null
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -52,6 +61,26 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // In-code service authentication — only accept requests bearing the
+  // project service-role key. Avoid timing leaks with a constant-time check.
+  const presented = extractServiceCredential(req)
+  if (!presented || presented !== supabaseServiceKey) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
+  // No-send health probe — lets health-check confirm the function code runs
+  // (i.e. the gateway isn't blocking) without enqueuing anything.
+  const url = new URL(req.url)
+  if (url.searchParams.get('health') === '1') {
+    return new Response(JSON.stringify({ ok: true, function: 'send-transactional-email' }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 
   // Parse request body
