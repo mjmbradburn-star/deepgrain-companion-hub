@@ -34,11 +34,13 @@ describe("Hero H1 responsive contract", () => {
     setViewport(width);
     render(<Hero />);
     const h1 = screen.getByRole("heading", { level: 1 });
-    const lines = h1.querySelectorAll("span.block");
-    expect(lines).toHaveLength(3);
-    expect(lines[0]).toHaveTextContent(/^Measure$/);
-    expect(lines[1]).toHaveTextContent(/^your$/);
-    expect(lines[2]).toHaveTextContent(/^AI debt\.$/);
+    // Each line is wrapped in an overflow:hidden mask containing a single
+    // animated child span — find the inner animated spans.
+    const animated = h1.querySelectorAll("span.motion-safe\\:animate-slide-up-mask");
+    expect(animated).toHaveLength(3);
+    expect(animated[0]).toHaveTextContent(/^Measure$/);
+    expect(animated[1]).toHaveTextContent(/^your$/);
+    expect(animated[2]).toHaveTextContent(/^AI debt\.$/);
   });
 
   it("clamps mobile font-size so the longest word ('Measure') fits at 360px", () => {
