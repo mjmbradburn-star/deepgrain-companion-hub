@@ -1,124 +1,81 @@
 
 
-## Deep fix for “Email me the PDF” failures
+## Content & tone audit — pre-launch sweep
 
-### What is failing
+I've read every user-facing string across the marketing pages (Hero, PillarsGrid, MaturityLadder, ThreeLevels, BenchmarkCounter, WhyDeepgrain, SiteNav, SiteFooter), the long-form pages (Pillars, Ladder, Benchmarks), the assessment flow (Assess, AssessStart, AssessQuestion, AssessProcessing, AssessScan, AssessReport), the question library (`assessment.ts`, `quickscan.ts`), and supporting components (DeepDiveUnlock, BenchmarkSliceCard, AssessChrome).
 
-The PDF generation itself is working: the function creates and uploads the PDF, then fails only when trying to queue the email.
+### Verdict on tone
 
-The latest backend logs show:
+The voice is already consistent and on-brand: dry, declarative, British-spelling, lower-case-where-it-can-be, allergic to corporate-deck language ("It hasn't really come up", "An informal 'don't paste customer data' rule and crossed fingers", "Pilots that never become how the work actually gets done"). No rewrites needed for tone — only **a handful of small consistency nits** plus the em-dash sweep.
 
-- `email-report-pdf` reaches the email handoff step.
-- The call to `send-transactional-email` is rejected with `401 Invalid JWT`.
-- `send-transactional-email` has no logs for that request, which means the request is being blocked at the backend gateway before its code runs.
-- `email_send_log` is empty, confirming the email is never being queued.
+### 1. Em-dash removal (the main job)
 
-So the current `502` is a wrapper error from `email-report-pdf`: “I made the PDF, but I could not reach the email queue.”
+**~30 user-facing em-dashes to remove.** They split into two categories:
 
-## Implementation plan
+**A. Prose em-dashes → replace with the right punctuation** (period, comma, colon, or "and"/"so", chosen per sentence to preserve cadence).
 
-### 1. Remove the brittle gateway-JWT dependency for internal email functions
+| File | Line | Current → Proposed |
+|---|---|---|
+| `Hero.tsx` | (no prose em-dashes — only in JSX comments, which I'll leave) | — |
+| `PillarsGrid.tsx` | clean | — |
+| `MaturityLadder.tsx` | clean | — |
+| `ThreeLevels.tsx` | 7 | "across every function — and where to" → "across every function, and where to" |
+| `ThreeLevels.tsx` | 14 | "function leads — product, marketing, ops, finance, legal" → "function leads: product, marketing, ops, finance, legal" |
+| `BenchmarkCounter.tsx` | 31 | "— most companies are Reactive." → "Most companies are Reactive." |
+| `WhyDeepgrain.tsx` | 16 | "how the work actually gets done — function by function" → "how the work actually gets done. Function by function" |
+| `DeepDiveUnlock.tsx` | 36 | "eight pillars — not just the top three hotspots" → "eight pillars, not just the top three hotspots" |
+| `DeepDiveUnlock.tsx` | 91 | "Eight more — one per pillar — sharpens" → "Eight more, one per pillar, sharpens" |
+| `BenchmarkSliceCard.tsx` | 106 | "No matching cohort yet — your slice publishes" → "No matching cohort yet. Your slice publishes" |
+| `BenchmarkSliceCard.tsx` | 233, 258 | "Tightest match — both fields shared" → "Tightest match. Both fields shared" |
+| `assessment.ts` | 413 | "AI is the operating model — strategy and AI are inseparable." → "AI is the operating model. Strategy and AI are inseparable." |
+| `assessment.ts` | 489 | "No — org chart and processes unchanged." → "No. Org chart and processes unchanged." |
+| `assessment.ts` | 507 | "Builds reusable assets — prompts, templates, mini-tools." → "Builds reusable assets: prompts, templates, mini-tools." |
+| `Assess.tsx` | 28 | "Step 01 — Choose your level · 3-minute scan" → "Step 01 · Choose your level · 3-minute scan" (use the existing middot separator) |
+| `Assess.tsx` | 34 | "one per pillar — score on screen" → "one per pillar. Score on screen" |
+| `AssessProcessing.tsx` | 206 | "Click the link to sign in — your answers are saved" → "Click the link to sign in. Your answers are saved" |
+| `AssessReport.tsx` | 409 | "Try refreshing — the engine may still be drafting it." → "Try refreshing. The engine may still be drafting it." |
+| `AssessReport.tsx` | 430 | "interventions to ship — sequenced so" → "interventions to ship, sequenced so" |
+| `AssessReport.tsx` | 431 | "need the deep dive — eight more questions tighten" → "need the deep dive. Eight more questions tighten" |
+| `AssessReport.tsx` | 801 | "in the next phase — for now your colleagues" → "in the next phase. For now your colleagues" |
+| `AssessReport.tsx` | 1001 | "PDF ready — direct link below" → "PDF ready · direct link below" |
+| `AssessStart.tsx` | 192 | "regional benchmark — adoption looks very different" → "regional benchmark. Adoption looks very different" |
+| `AssessStart.tsx` | 332 | "while you answer — your results page" → "while you answer. Your results page" |
+| `AssessStart.tsx` | 363 | "Deepgrain's occasional notes — no more than once a fortnight" → "Deepgrain's occasional notes. No more than once a fortnight" |
+| `AssessScan.tsx` | 63, 73, 86, 96, 110, 119 | six error-hint em-dashes → replace with periods/commas (e.g. "Review your answers below. One of them may be incomplete.") |
+| `Benchmarks.tsx` | 492 | "Volume I — Benchmarks" → "Volume I · Benchmarks" (matches the masthead's middot style) |
+| `Benchmarks.tsx` | 498 | "sector, and region — then compare" → "sector, and region. Then compare" |
+| `Benchmarks.tsx` | 569 | "Sales runs hotter than Legal — always has." → "Sales runs hotter than Legal. Always has." |
 
-Update these backend function settings:
+**B. UI placeholder em-dashes — keep as-is.** The single `"—"` glyph used as a "no data" symbol in tables, score cells, and the gap-formatter (`Benchmarks.tsx` lines 606, 859; `BenchmarkSliceCard.tsx` 168; `benchmark-slice-format.ts`; `AssessReport.tsx` 550) is a typographic convention, not prose. Removing it would mean inventing a substitute ("n/a", blank cell) that reads worse. **Recommendation: leave these.** Flag if you'd rather swap to "n/a" or blank.
 
-- `send-transactional-email`
-- `process-email-queue`
+**C. Code-comment em-dashes — leave.** Roughly 25 hits inside `//` comments and JSDoc. Not user-facing. No change.
 
-Change them from gateway-level JWT validation to in-function service validation.
+### 2. Small consistency nits (suggested, not required)
 
-This avoids the current `Invalid JWT` gateway failure while keeping the functions protected.
+1. **`Ladder.tsx` line 134** has a clunky double comparative: *"is usually the more interesting number than the average."* → *"is usually a more interesting number than the average."*
+2. **`Ladder.tsx` line 201**: *"Tier {t.index} of 5"* — but there are six tiers (0–5). → *"Tier {t.index} of 5"* is technically correct (zero-indexed of five) but reads wrong. Suggest *"Rung {t.index + 1} of 6"* to match the "Six rungs" headline above it.
+3. **`Pillars.tsx` line 153** uses curly quotes inside JS string: *`doesn't ask whether you "use AI"`* — straight quotes, fine, but inconsistent with the curly-quote ‑styled `"…"` used in Pillars line 233 and Ladder lines 31, 47, 77, 95. Pick one. Recommend straight quotes everywhere (renders fine in Inter/Cormorant and avoids encoding surprises).
+4. **`Pillars.tsx` line 272** says *"Twelve questions"* on the Pillars CTA, but the Hero and Assess pages now consistently say *"Eight questions, one per pillar"* for the scan. Either update the CTA to *"Eight questions"* or clarify *"Eight to scan, twelve to deep-dive"*.
+5. **`SiteFooter.tsx` line 16** links to `/manifesto` — confirm that route exists; I didn't see it in the page list. If not, remove the link.
 
-### 2. Add explicit service-call authorization inside the email functions
+### 3. What I'm NOT changing
 
-In `send-transactional-email`:
+- Headlines (`Measure your AI debt.`, `Six rungs. Climb the one in front of you.`, etc.) — on tone, no em-dashes.
+- The 8 pillar blurbs and 6 tier descriptions — they're the strongest copy on the site.
+- Question text in the assessment (already em-dash-free in the prompts themselves).
+- Email templates under `supabase/functions/_shared/email-templates/` — these are outside the in-app site review. Flag if you want them included.
 
-- Require the caller to present the project service credential in either:
-  - `Authorization: Bearer ...`, or
-  - `apikey: ...`
-- Reject anything else with `401`.
-- Keep this function service-only because the current app only calls it from `email-report-pdf`, not directly from the browser.
+### Process
 
-In `process-email-queue`:
+1. Apply em-dash sweep across the ~30 prose locations (single coordinated edit per file).
+2. Apply the four nits above (assuming you agree).
+3. After edits: load Hero, Pillars, Ladder, Benchmarks, Assess flow, and Report at desktop + mobile widths and visually verify no awkward sentence breaks resulted from punctuation swaps.
+4. Report back with a diff summary and any spots where a period felt too abrupt and a comma read better.
 
-- Keep it service-only.
-- Validate the bearer credential directly instead of parsing it as a JWT.
-- This also protects the cron-driven queue processor from the same token-format issue.
+### Decisions I need from you before I push
 
-### 3. Harden `email-report-pdf`
-
-Update `email-report-pdf` so it:
-
-- Validates required backend environment values before doing any work.
-- Calls `send-transactional-email` with the service credential explicitly.
-- Logs sanitized upstream error details.
-- Does not surface the raw backend error to users.
-- If the PDF was generated but email queuing fails, returns a successful HTTP response with:
-  - `ok: false`
-  - `pdfUrl`
-  - a clear fallback message
-
-That prevents the UI/runtime overlay from appearing when the email handoff fails after the PDF already exists.
-
-### 4. Improve the “Email me the PDF” UI fallback
-
-Update `EmailPdfButton` so it handles the new fallback response cleanly:
-
-- If email queues successfully: show “On its way”.
-- If the PDF was generated but email queuing failed: show the direct download link in the popover and toast.
-- If PDF generation itself fails: show a normal error.
-- Avoid throwing a runtime error for the recoverable “PDF exists, email queue failed” case.
-
-### 5. Add a no-send health check for the email pipeline
-
-Extend the existing `health-check` endpoint so it diagnoses the email path, not just scoring functions.
-
-Add no-send health modes to:
-
-- `send-transactional-email`
-- `process-email-queue`
-
-Then update `health-check` to report:
-
-- PDF email sender reachable
-- transactional email function reachable
-- queue processor reachable
-- email database tables present
-- queue RPC functions present
-- queue configuration row present
-- recent email status counts, without exposing recipient addresses
-
-This will make future diagnosis much faster than relying on screenshots or runtime overlays.
-
-### 6. Refresh backend email infrastructure
-
-After the code changes, re-run the managed email infrastructure setup to refresh the queue processor’s stored service credential and cron wiring.
-
-This is safe and idempotent, and specifically addresses the possibility that the queue processor has a stale service credential.
-
-### 7. Deploy and verify
-
-Deploy the changed backend functions:
-
-- `email-report-pdf`
-- `send-transactional-email`
-- `process-email-queue`
-- `health-check`
-
-Then verify:
-
-1. Email domain is still verified.
-2. Health check reports the email pipeline as healthy.
-3. `send-transactional-email` health mode reaches function code rather than being gateway-blocked.
-4. `process-email-queue` health mode reaches function code.
-5. A PDF request no longer returns a 502 when the PDF exists.
-6. A successful email request creates a `pending` row in the email log, followed by `sent` after the queue processor runs.
-
-## Files to change
-
-- `supabase/config.toml`
-- `supabase/functions/send-transactional-email/index.ts`
-- `supabase/functions/process-email-queue/index.ts`
-- `supabase/functions/email-report-pdf/index.ts`
-- `supabase/functions/health-check/index.ts`
-- `src/pages/AssessReport.tsx`
+1. **UI placeholder `"—"` glyphs** — leave as-is, or swap to "n/a" / blank?
+2. **Curly vs straight quotes** — straighten everything?
+3. **Pillars CTA** — *"Eight questions"* or *"Eight to scan, twelve to deep-dive"*?
+4. **Email templates** — in scope for this sweep?
 
