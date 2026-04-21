@@ -1,8 +1,6 @@
 import type { CSSProperties } from "react";
 import { PillarChip, type PillarIndex } from "./PillarChip";
 
-// Re-import React only for the JSX namespace; not needed because of new JSX runtime.
-
 const PILLARS: { i: PillarIndex; name: string; blurb: string }[] = [
   { i: 1, name: "Strategy & Mandate",       blurb: "Whether anyone has actually been told to own this." },
   { i: 2, name: "Data Foundations",         blurb: "What a model would find if it tried to read your work." },
@@ -34,7 +32,7 @@ export function PillarsGrid() {
             <article
               key={p.i}
               className="reveal motion-tap bg-walnut p-5 sm:p-7 hover:bg-surface-1 transition-colors group"
-              style={{ ['--i' as string]: String(i) } as React.CSSProperties}
+              style={{ ['--i' as string]: String(i) } as CSSProperties}
             >
               <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <PillarChip index={p.i} label="" number />
