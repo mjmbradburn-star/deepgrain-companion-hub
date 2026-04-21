@@ -302,6 +302,7 @@ function OverviewTab({
   slug: string;
   hasDeepdive: boolean;
 }) {
+  const [chartVariant, setChartVariant] = usePillarChartVariant();
   return (
     <>
     <section className="container max-w-6xl py-10 sm:py-20">
