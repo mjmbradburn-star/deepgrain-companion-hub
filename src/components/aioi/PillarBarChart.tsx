@@ -83,7 +83,7 @@ export function PillarBarChart({
         </div>
       </div>
 
-      <ul className="space-y-3 sm:space-y-2.5">
+      <ul className="space-y-4 sm:space-y-2.5">
         {PILLAR_INDICES.map((i) => {
           const userTier = clamp(values[i] ?? 0);
           const cohortTier = cohort && cohort[i] != null ? clamp(cohort[i]) : null;
