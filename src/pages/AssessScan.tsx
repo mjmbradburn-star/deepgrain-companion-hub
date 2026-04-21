@@ -200,9 +200,6 @@ export default function AssessScan() {
         };
         const { data, error } = await supabase.functions.invoke("submit-quickscan", {
           body: payload,
-          // supabase-js v2 forwards this onto the underlying fetch.
-          // @ts-expect-error -- signal is supported but missing from the types
-          signal: controller.signal,
         });
         if (error) {
           console.error("[scan] submit failed", error, data);
