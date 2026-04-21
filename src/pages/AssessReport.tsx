@@ -262,11 +262,13 @@ function ReportView({ data }: { data: ReportData }) {
             pillarValues={pillarValues}
             cohort={cohort ?? undefined}
             slice={data.slice}
+            slug={respondent.slug}
+            hasDeepdive={data.hasDeepdive}
           />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} />
+          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} hasDeepdive={data.hasDeepdive} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
