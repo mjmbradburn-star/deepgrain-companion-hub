@@ -63,7 +63,7 @@ export default function AuthCallback() {
       } else if (draft.level) {
         navigate("/assess/q/1", { replace: true });
       } else {
-        navigate("/", { replace: true });
+        navigate("/reports", { replace: true });
       }
     };
 

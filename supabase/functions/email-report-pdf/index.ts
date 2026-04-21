@@ -94,8 +94,15 @@ Deno.serve(async (req) => {
       return json({ error: 'Could not save the PDF' }, 500)
     }
 
-    const { data: pub } = admin.storage.from('report-pdfs').getPublicUrl(objectPath)
-    const pdfUrl = pub.publicUrl
+    // Bucket is private — mint a short-lived signed URL for the email link.
+    const { data: signed, error: signErr } = await admin.storage
+      .from('report-pdfs')
+      .createSignedUrl(objectPath, 60 * 60 * 24 * 7) // 7 days
+    if (signErr || !signed?.signedUrl) {
+      console.error('[email-report-pdf] sign failed', signErr)
+      return json({ error: 'Could not prepare the download link' }, 500)
+    }
+    const pdfUrl = signed.signedUrl
 
     // 4. Build the report URL from the request's Origin (or fall back to the
     //    custom domain configured for this app).

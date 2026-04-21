@@ -1,15 +1,44 @@
-import { ArrowUpRight, Menu } from "lucide-react";
-import { useState } from "react";
+import { ArrowUpRight, FileText, LogOut, Menu, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setEmail(data.session?.user.email ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setEmail(session?.user.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const links = [
     { href: "/pillars", label: "Pillars" },
     { href: "/ladder", label: "Ladder" },
     { href: "/benchmarks", label: "Benchmarks" },
   ];
+
+  const onSignOut = async () => {
+    await supabase.auth.signOut();
+    setOpen(false);
+    navigate("/", { replace: true });
+  };
+
+  const truncatedEmail = email ? (email.length > 22 ? email.slice(0, 20) + "…" : email) : null;
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-walnut/70 border-b border-cream/10">
@@ -37,6 +66,39 @@ export function SiteNav() {
             deepgrain.ai
             <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
+
+          {email ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center gap-1.5 text-cream/80 hover:text-brass-bright transition-colors focus-visible:outline-none">
+                <User className="h-3.5 w-3.5" />
+                <span className="text-xs">{truncatedEmail}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-walnut border border-cream/15 text-cream min-w-[180px]"
+              >
+                <DropdownMenuItem asChild className="focus:bg-cream/10 focus:text-cream cursor-pointer">
+                  <Link to="/reports">
+                    <FileText className="h-3.5 w-3.5 mr-2" /> My reports
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-cream/10" />
+                <DropdownMenuItem
+                  onClick={onSignOut}
+                  className="focus:bg-cream/10 focus:text-cream cursor-pointer"
+                >
+                  <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/signin"
+              className="text-cream/85 hover:text-brass-bright transition-colors"
+            >
+              Sign in
+            </Link>
+          )}
         </nav>
 
         {/* Mobile trigger */}
@@ -63,6 +125,37 @@ export function SiteNav() {
                   {l.label}
                 </a>
               ))}
+
+              {email ? (
+                <>
+                  <Link
+                    to="/reports"
+                    onClick={() => setOpen(false)}
+                    className="py-3 text-cream/85 hover:text-brass-bright transition-colors"
+                  >
+                    My reports
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={onSignOut}
+                    className="py-3 text-left text-cream/85 hover:text-brass-bright transition-colors"
+                  >
+                    Sign out
+                  </button>
+                  <p className="pt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40 truncate">
+                    {email}
+                  </p>
+                </>
+              ) : (
+                <Link
+                  to="/signin"
+                  onClick={() => setOpen(false)}
+                  className="py-3 text-cream/85 hover:text-brass-bright transition-colors"
+                >
+                  Sign in
+                </Link>
+              )}
+
               <a
                 href="https://deepgrain.ai"
                 target="_blank"

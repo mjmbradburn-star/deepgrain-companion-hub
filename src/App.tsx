@@ -17,6 +17,8 @@ import Pillars from "./pages/Pillars.tsx";
 import Ladder from "./pages/Ladder.tsx";
 import Benchmarks from "./pages/Benchmarks.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import SignIn from "./pages/SignIn.tsx";
+import MyReports from "./pages/MyReports.tsx";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ const App = () => (
           <Route path="/ladder" element={<Ladder />} />
           <Route path="/benchmarks" element={<Benchmarks />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/reports" element={<MyReports />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
