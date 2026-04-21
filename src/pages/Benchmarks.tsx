@@ -668,6 +668,45 @@ export default function Benchmarks() {
         </div>
       </section>
 
+      {/* Cohort chart — main pillar comparison for the current slice. */}
+      <section className="py-10 sm:py-14 border-t border-cream/10">
+        <div className="container">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 sm:mb-8">
+            <div>
+              <p className="eyebrow text-cream/45 mb-2">Current slice</p>
+              <h2 className="font-display text-xl sm:text-2xl lg:text-3xl tracking-tight">
+                Cohort across the eight pillars
+              </h2>
+              {view && (
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+                  Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
+                </p>
+              )}
+            </div>
+            <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
+          </div>
+
+          {loading ? (
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+              Loading cohort…
+            </p>
+          ) : empty || !view ? (
+            <p className="font-display italic text-cream/55">
+              No data for this slice yet. Try widening the filters above.
+            </p>
+          ) : (
+            <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-5 sm:p-8">
+              <PillarBarChart
+                values={view.pillars}
+                cohort={cohort?.pillars}
+                labels={PILLAR_LABELS}
+                variant={chartVariant}
+              />
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Pillar breakdown */}
       <section className="py-10 sm:py-16 border-t border-cream/10">
         <div className="container">
