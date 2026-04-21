@@ -40,6 +40,8 @@ export default function AssessScan() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<Record<string, number> | null>(null);
 
   // Persist + recompute prompts whenever function changes (level-=function only).
   const questions = useMemo(
@@ -75,6 +77,8 @@ export default function AssessScan() {
   const submit = useCallback(
     async (finalAnswers: Record<string, number>) => {
       setSubmitting(true);
+      setSubmitError(null);
+      setLastAttempt(finalAnswers);
       try {
         const payload = {
           level,
@@ -91,6 +95,11 @@ export default function AssessScan() {
         if (error || !data?.slug) {
           console.error("[scan] submit failed", error, data);
           setSubmitting(false);
+          setSubmitError(
+            error?.message ||
+              data?.error ||
+              "We couldn't generate your report. Please try again.",
+          );
           return;
         }
         saveScan({ ...loadScan(), slug: data.slug });
@@ -99,10 +108,18 @@ export default function AssessScan() {
       } catch (err) {
         console.error("[scan] submit threw", err);
         setSubmitting(false);
+        setSubmitError(
+          err instanceof Error ? err.message : "Network error. Please try again.",
+        );
       }
     },
     [level, fn, region, questions, navigate],
   );
+
+  const retry = useCallback(() => {
+    if (lastAttempt) void submit(lastAttempt);
+    else void submit(answers);
+  }, [lastAttempt, answers, submit]);
 
   const select = useCallback(
     (tier: number) => {
@@ -157,16 +174,49 @@ export default function AssessScan() {
     return () => window.removeEventListener("keydown", handler);
   }, [question, selected, step, questions.length, select, goBack, submit, answers]);
 
-  if (submitting) {
+  if (submitting || submitError) {
     return (
-      <AssessChrome ariaLabel="Building your report">
+      <AssessChrome ariaLabel={submitError ? "Report generation failed" : "Building your report"}>
         <main className="container flex-1 flex items-center justify-center py-24">
-          <div className="text-center">
-            <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
-            <p className="mt-6 font-display text-2xl text-cream/85">Scoring your scan…</p>
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-              A few seconds.
-            </p>
+          <div className="text-center max-w-md">
+            {submitting ? (
+              <>
+                <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
+                <p className="mt-6 font-display text-2xl text-cream/85">Scoring your scan…</p>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+                  A few seconds.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
+                  Something snagged
+                </p>
+                <p className="mt-4 font-display text-2xl text-cream/90">
+                  We couldn't build your report.
+                </p>
+                <p className="mt-3 font-display text-sm text-cream/60 leading-relaxed">
+                  {submitError}
+                </p>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                  Your answers are safe on this device.
+                </p>
+                <div className="mt-8 flex items-center justify-center gap-4">
+                  <Button
+                    onClick={retry}
+                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
+                  >
+                    Try again
+                  </Button>
+                  <button
+                    onClick={() => { setSubmitError(null); }}
+                    className="font-ui text-xs uppercase tracking-[0.16em] text-cream/55 hover:text-cream"
+                  >
+                    Review answers
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </main>
       </AssessChrome>
