@@ -672,13 +672,16 @@ export default function Benchmarks() {
               </div>
             )}
             {cohort && view && (
-              <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
-                <span className="inline-block h-px w-4 bg-brass-bright align-middle mr-1.5" />
-                Selected slice
-                <span className="mx-3 text-cream/20">·</span>
-                <span className="inline-block h-px w-4 border-t border-dashed border-cream/45 align-middle mr-1.5" />
-                Level cohort
-              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-px w-4 bg-brass-bright align-middle" />
+                  Selected slice
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-px w-4 border-t border-dashed border-cream/45 align-middle" />
+                  Level cohort
+                </span>
+              </div>
             )}
           </div>
         </div>
