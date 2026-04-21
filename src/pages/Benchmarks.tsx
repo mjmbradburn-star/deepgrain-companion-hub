@@ -179,7 +179,7 @@ function PillarComparisonBar({
   const delta = typeof user === "number" ? Math.round((user - median) * 10) / 10 : null;
 
   return (
-    <div className="w-full max-w-full sm:max-w-[260px]">
+    <div className="w-full">
       <div className="relative h-2 w-full bg-cream/8 rounded-full overflow-visible">
         {/* Cohort median fill */}
         <span
