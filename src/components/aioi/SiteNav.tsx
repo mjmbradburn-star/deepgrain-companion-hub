@@ -112,47 +112,72 @@ export function SiteNav() {
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="bg-walnut border-l border-cream/10 w-[78%] max-w-sm">
+          <SheetContent
+            side="right"
+            className="bg-walnut border-l border-cream/10 w-[82%] max-w-sm p-0 flex flex-col"
+          >
             <SheetTitle className="sr-only">Site navigation</SheetTitle>
-            <nav className="mt-10 flex flex-col gap-1 font-display text-2xl">
+
+            {/* Primary nav links */}
+            <nav className="px-6 pt-16 pb-2 flex flex-col font-display text-2xl">
               {links.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="py-3 text-cream/85 hover:text-brass-bright transition-colors"
+                  className="min-h-[52px] flex items-center text-cream/85 active:text-brass-bright hover:text-brass-bright transition-colors border-b border-cream/5"
                 >
                   {l.label}
                 </a>
               ))}
+            </nav>
+
+            {/* Account section */}
+            <div className="mt-auto px-6 pt-6 pb-8 border-t border-cream/10 bg-cream/[0.02]">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-4">
+                Account
+              </p>
 
               {email ? (
-                <>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 rounded-sm bg-cream/5 border border-cream/10 px-4 py-3">
+                    <div className="h-9 w-9 rounded-full bg-brass/15 border border-brass/30 flex items-center justify-center shrink-0">
+                      <User className="h-4 w-4 text-brass-bright" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-cream/50">
+                        Signed in
+                      </p>
+                      <p className="font-display text-sm text-cream truncate">{email}</p>
+                    </div>
+                  </div>
+
                   <Link
                     to="/reports"
                     onClick={() => setOpen(false)}
-                    className="py-3 text-cream/85 hover:text-brass-bright transition-colors"
+                    className="min-h-[52px] flex items-center justify-between rounded-sm bg-brass text-walnut hover:bg-brass-bright active:bg-brass-bright transition-colors px-4 font-ui text-xs uppercase tracking-[0.2em]"
                   >
-                    My reports
+                    <span className="inline-flex items-center gap-2">
+                      <FileText className="h-4 w-4" /> My reports
+                    </span>
+                    <ArrowUpRight className="h-4 w-4" />
                   </Link>
+
                   <button
                     type="button"
                     onClick={onSignOut}
-                    className="py-3 text-left text-cream/85 hover:text-brass-bright transition-colors"
+                    className="w-full min-h-[52px] flex items-center justify-center gap-2 rounded-sm border border-cream/20 text-cream/85 hover:text-cream hover:bg-cream/5 active:bg-cream/10 transition-colors px-4 font-ui text-xs uppercase tracking-[0.2em]"
                   >
-                    Sign out
+                    <LogOut className="h-4 w-4" /> Sign out
                   </button>
-                  <p className="pt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40 truncate">
-                    {email}
-                  </p>
-                </>
+                </div>
               ) : (
                 <Link
                   to="/signin"
                   onClick={() => setOpen(false)}
-                  className="py-3 text-cream/85 hover:text-brass-bright transition-colors"
+                  className="min-h-[52px] flex items-center justify-center gap-2 rounded-sm bg-brass text-walnut hover:bg-brass-bright active:bg-brass-bright transition-colors px-4 font-ui text-xs uppercase tracking-[0.2em]"
                 >
-                  Sign in
+                  <User className="h-4 w-4" /> Sign in
                 </Link>
               )}
 
@@ -160,12 +185,13 @@ export function SiteNav() {
                 href="https://deepgrain.ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 pt-4 border-t border-cream/10 inline-flex items-center gap-2 py-3 text-cream/65 hover:text-brass-bright text-base font-ui uppercase tracking-[0.18em]"
+                onClick={() => setOpen(false)}
+                className="mt-6 inline-flex items-center gap-2 text-cream/55 hover:text-brass-bright text-[11px] font-mono uppercase tracking-[0.2em]"
               >
                 deepgrain.ai
-                <ArrowUpRight className="h-4 w-4" />
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
-            </nav>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
