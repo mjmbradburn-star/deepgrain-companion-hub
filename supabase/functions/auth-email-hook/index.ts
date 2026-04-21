@@ -26,13 +26,14 @@ const EMAIL_SUBJECTS: Record<string, string> = {
 }
 
 // Template mapping
-const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
-  signup: SignupEmail,
-  invite: InviteEmail,
-  magiclink: MagicLinkEmail,
-  recovery: RecoveryEmail,
-  email_change: EmailChangeEmail,
-  reauthentication: ReauthenticationEmail,
+type EmailTemplateProps = Record<string, unknown>
+const EMAIL_TEMPLATES: Record<string, React.ComponentType<EmailTemplateProps>> = {
+  signup: SignupEmail as unknown as React.ComponentType<EmailTemplateProps>,
+  invite: InviteEmail as unknown as React.ComponentType<EmailTemplateProps>,
+  magiclink: MagicLinkEmail as unknown as React.ComponentType<EmailTemplateProps>,
+  recovery: RecoveryEmail as unknown as React.ComponentType<EmailTemplateProps>,
+  email_change: EmailChangeEmail as unknown as React.ComponentType<EmailTemplateProps>,
+  reauthentication: ReauthenticationEmail as unknown as React.ComponentType<EmailTemplateProps>,
 }
 
 // Configuration
@@ -142,7 +143,20 @@ async function handleWebhook(req: Request): Promise<Response> {
   }
 
   // Verify signature + timestamp, then parse payload.
-  let payload: any
+  // Shape mirrors @lovable.dev/email-js parseEmailWebhookPayload output.
+  type AuthHookPayload = {
+    version: string
+    run_id: string
+    type: string
+    data: {
+      action_type: string
+      email: string
+      url?: string
+      token?: string
+      new_email?: string
+    }
+  }
+  let payload: AuthHookPayload
   let run_id = ''
   try {
     const verified = await verifyWebhookRequest({
@@ -150,7 +164,7 @@ async function handleWebhook(req: Request): Promise<Response> {
       secret: apiKey,
       parser: parseEmailWebhookPayload,
     })
-    payload = verified.payload
+    payload = verified.payload as unknown as AuthHookPayload
     run_id = payload.run_id
   } catch (error) {
     if (error instanceof WebhookError) {
