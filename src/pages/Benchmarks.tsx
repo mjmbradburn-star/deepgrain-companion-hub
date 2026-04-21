@@ -503,7 +503,7 @@ export default function Benchmarks() {
       {/* Four filter rows */}
       <section className="py-6">
         <div className="container">
-          <div className="flex justify-end gap-2 mb-4">
+          <div className="flex justify-start sm:justify-end gap-2 mb-4">
             {/* Reset = clear every query param so all filters return to defaults
                 (level=function, all secondaries=All, compare collapsed). */}
             <button
