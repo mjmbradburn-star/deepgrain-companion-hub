@@ -683,6 +683,11 @@ export default function Benchmarks() {
                 </span>
               </div>
             )}
+            {view && (
+              <p className="mt-2 text-center font-mono text-[10px] normal-case tracking-[0.12em] text-cream/35">
+                Ring values map to the 0–5 maturity scale (Dormant → AI-Native).
+              </p>
+            )}
           </div>
         </div>
       </section>
