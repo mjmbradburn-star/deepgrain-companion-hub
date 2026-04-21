@@ -183,11 +183,6 @@ export default function Ladder() {
       </section>
 
       {/* ─── Tier deep-dives ─────────────────────────────────────── */}
-      <section className="py-20 sm:py-28">
-        <div className="container max-w-6xl space-y-28">
-          {TIERS.map((t) => (
-            <article
-              key={t.tier}
       <section className="py-12 sm:py-20 lg:py-28">
         <div className="container max-w-6xl space-y-16 sm:space-y-24">
           {TIERS.map((t) => (
