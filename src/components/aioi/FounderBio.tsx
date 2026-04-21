@@ -79,11 +79,12 @@ export function FounderBio({ variant = "section" }: Props) {
 
 function BioBody() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-start">
-      {/* Portrait */}
-      <div className="lg:col-span-4">
-        <p className="eyebrow mb-5">The Author</p>
-        <div className="relative aspect-[4/5] max-w-[280px] overflow-hidden rounded-sm border border-cream/10 bg-surface-1">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-12 items-start">
+      {/* Portrait — centered on mobile so it doesn't orphan against the
+          left edge, left-aligned in the column from lg up. */}
+      <div className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left">
+        <p className="eyebrow mb-5 self-start lg:self-auto">The Author</p>
+        <div className="relative aspect-[4/5] w-full max-w-[220px] sm:max-w-[260px] lg:max-w-[280px] overflow-hidden rounded-sm border border-cream/10 bg-surface-1">
           <img
             src="/matt-bradburn.jpg"
             alt="Matt Bradburn, founder of Deepgrain and People X AI"
@@ -94,15 +95,16 @@ function BioBody() {
               (e.currentTarget as HTMLImageElement).style.display = "none";
             }}
           />
-          {/* Initials fallback — sits behind the img, visible if onError fires. */}
+          {/* Initials fallback — sits behind the img, visible if onError fires.
+              Fluid size so it scales with the smaller mobile portrait. */}
           <div
             aria-hidden
-            className="absolute inset-0 flex items-center justify-center font-display text-[96px] text-brass/40 leading-none"
+            className="absolute inset-0 flex items-center justify-center font-display text-[clamp(64px,18vw,96px)] text-brass/40 leading-none"
           >
             MB
           </div>
         </div>
-        <div className="mt-5 space-y-2 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+        <div className="mt-4 sm:mt-5 space-y-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
           <p>Matt Bradburn</p>
           <p>Founder · Deepgrain &amp; People X AI</p>
         </div>
@@ -110,8 +112,8 @@ function BioBody() {
 
       {/* Bio copy */}
       <div className="lg:col-span-7 lg:col-start-6">
-        <h3 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
-          Built by an operator,<br />
+        <h3 className="font-display text-[2rem] sm:text-4xl lg:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
+          Built by an operator,{" "}
           <span className="italic text-brass-bright">not a slide deck.</span>
         </h3>
 
