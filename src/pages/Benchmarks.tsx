@@ -364,6 +364,36 @@ export default function Benchmarks() {
     };
   }, []);
 
+  // If the visitor has completed a scan on this device, fetch their pillar
+  // tiers so we can overlay a "You" marker against the cohort medians in the
+  // pillar breakdown. Slug lives in localStorage; the public RPC keeps this
+  // anonymous-safe (no PII in the response).
+  const [userPillars, setUserPillars] = useState<Record<number, number> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const slug = loadScan().slug;
+    if (!slug) return;
+    (async () => {
+      const { data, error } = await supabase.rpc("get_report_by_slug", { _slug: slug });
+      if (cancelled || error || !data) return;
+      // RPC payload includes report.pillar_tiers (Record<string, { tier, ... }>).
+      const payload = data as unknown as {
+        report?: { pillar_tiers?: Record<string, { tier?: number } | number> } | null;
+      };
+      const raw = payload?.report?.pillar_tiers;
+      if (!raw || typeof raw !== "object") return;
+      const out: Record<number, number> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        const n = Number(k);
+        if (!Number.isFinite(n)) continue;
+        if (typeof v === "number") out[n] = v;
+        else if (v && typeof v === "object" && typeof v.tier === "number") out[n] = v.tier;
+      }
+      setUserPillars(Object.keys(out).length ? out : null);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const filtered = useMemo(
     () => rows.filter((r) => rowMatches(r, level, fn, size, sector, region)),
     [rows, level, fn, size, sector, region],
