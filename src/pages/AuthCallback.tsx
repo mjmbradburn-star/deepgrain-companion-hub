@@ -135,6 +135,12 @@ export default function AuthCallback() {
         if (!data.session) {
           setStatus("error");
           setErrorKind("invalid");
+          try {
+            const draftEmail = loadDraft().qualifier?.email;
+            if (draftEmail) setKnownEmail(draftEmail);
+          } catch {
+            /* no-op */
+          }
         }
       });
     }, 2500);
