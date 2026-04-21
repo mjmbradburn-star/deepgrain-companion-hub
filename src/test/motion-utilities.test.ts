@@ -10,10 +10,9 @@ import { describe, it, expect } from "vitest";
 import tailwindConfig from "../../tailwind.config";
 
 describe("motion utilities", () => {
-  // @ts-expect-error - tailwind types are deep; we only need the extend block
-  const animation = tailwindConfig.theme?.extend?.animation as Record<string, string>;
-  // @ts-expect-error - same
-  const keyframes = tailwindConfig.theme?.extend?.keyframes as Record<string, unknown>;
+  const extend = (tailwindConfig.theme as { extend?: { animation?: Record<string, string>; keyframes?: Record<string, unknown> } }).extend ?? {};
+  const animation = extend.animation ?? {};
+  const keyframes = extend.keyframes ?? {};
 
   const REQUIRED_ANIMATIONS = [
     "fade-up",
