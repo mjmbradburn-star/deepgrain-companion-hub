@@ -3,7 +3,9 @@
 // by slug) and updates the existing report row. Used by the deep-dive page
 // when the user has answered the additional questions.
 //
-// Anonymous-friendly: slug is the auth.
+// Security: requires a valid Supabase JWT. The caller's user_id MUST match
+// respondent.user_id — the slug alone is NOT sufficient authentication
+// because slugs are visible in shareable report URLs.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import {
@@ -28,20 +30,51 @@ Deno.serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    // 1. Require a Bearer token. We do in-code auth because verify_jwt is
+    //    disabled at the gateway (the signing-keys system doesn't validate
+    //    non-JWT tokens reliably).
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.toLowerCase().startsWith("bearer ")
+      ? authHeader.slice("bearer ".length).trim()
+      : "";
+    if (!token) return json({ error: "Unauthorized" }, 401);
+
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    let userId: string;
+    try {
+      const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+      if (claimsErr || !claimsData?.claims?.sub) {
+        return json({ error: "Unauthorized" }, 401);
+      }
+      userId = claimsData.claims.sub as string;
+    } catch {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
+    // 2. Validate input.
     const body = await req.json().catch(() => ({}));
-    const slug = typeof body.slug === "string" ? body.slug : null;
-    if (!slug) return json({ error: "slug is required" }, 400);
+    const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+    if (!slug || slug.length > 64) return json({ error: "slug is required" }, 400);
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // 3. Look up respondent + ownership. Return generic 404 for both
+    //    "not found" and "not yours" so callers can't enumerate slugs.
     const { data: respondent, error: rErr } = await admin
       .from("respondents")
-      .select("id, slug")
+      .select("id, slug, user_id")
       .eq("slug", slug)
       .maybeSingle();
-    if (rErr || !respondent) return json({ error: "Not found" }, 404);
+    if (rErr || !respondent || respondent.user_id !== userId) {
+      return json({ error: "Not found" }, 404);
+    }
 
     const { data: responses, error: respErr } = await admin
       .from("responses")
@@ -102,13 +135,14 @@ Deno.serve(async (req) => {
 
     void admin.from("events").insert({
       name: "deepdive_completed",
+      user_id: userId,
       payload: { respondent_id: respondent.id, slug, score: aioi, response_count: responses.length },
     });
 
     return json({ ok: true, slug, score: aioi, tier: overallTier });
   } catch (err) {
     console.error("[rescore-respondent] error:", err);
-    return json({ error: err instanceof Error ? err.message : "Unknown error" }, 500);
+    return json({ error: "Internal server error" }, 500);
   }
 });
 
