@@ -1,6 +1,49 @@
 import { ArrowRight, ArrowUpRight, Calendar, Linkedin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { BOOKING_URL } from "@/lib/booking";
+
+interface TrustProof {
+  /** Big number / headline figure. */
+  figure: string;
+  /** Short label below the figure. */
+  label: string;
+  /** Expandable detail — 1–3 sentences. */
+  detail: string;
+}
+
+const TRUST_PROOFS: TrustProof[] = [
+  {
+    figure: "12+",
+    label: "years building operating systems",
+    detail:
+      "From scaling People Collective to a successful exit, through to building AI operating systems at Deepgrain. The pattern is the same: redesign how the work gets done, then pick the tools.",
+  },
+  {
+    figure: "50–600",
+    label: "person companies, scaling stage",
+    detail:
+      "Sized for orgs past product–market fit but before the operating model has been formalised. Big enough to have real operating debt, small enough to actually rewire.",
+  },
+  {
+    figure: "4 sectors",
+    label: "SaaS · fintech · climate · platforms",
+    detail:
+      "Repeat patterns across vertical SaaS, regulated fintech, climate platforms, and marketplace businesses. Different surfaces, same eight pillars underneath.",
+  },
+  {
+    figure: "Day 1",
+    label: "AIOI runs on every engagement",
+    detail:
+      "Every Deepgrain or People X AI engagement opens with the AIOI diagnostic. It's the contract for what we're actually trying to move, and the baseline we measure against at the end.",
+  },
+];
+
 
 interface Props {
   /** Compact variant: tighter padding, no border container — for inline use. */
@@ -113,6 +156,39 @@ function BioBody() {
             <ArrowUpRight className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </a>
         </div>
+      </div>
+
+      {/* Trust proof — four headline figures with expandable details.
+          Sits between bio and CTA so credibility lands before the ask. */}
+      <div className="lg:col-span-12 mt-10 sm:mt-14 pt-8 sm:pt-10 border-t border-cream/10">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 mb-6">
+          The receipts
+        </p>
+        <Accordion type="single" collapsible className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-cream/10 border border-cream/10 rounded-lg overflow-hidden">
+            {TRUST_PROOFS.map((p, i) => (
+              <AccordionItem
+                key={i}
+                value={`proof-${i}`}
+                className="bg-walnut border-b-0 hover:bg-surface-1 transition-colors"
+              >
+                <AccordionTrigger className="px-5 sm:px-6 py-5 hover:no-underline group">
+                  <div className="flex flex-col items-start text-left gap-2 w-full">
+                    <span className="font-display text-3xl sm:text-4xl text-brass-bright leading-none tabular-nums tracking-tight">
+                      {p.figure}
+                    </span>
+                    <span className="font-ui text-[11px] uppercase tracking-[0.16em] text-cream/65 leading-snug">
+                      {p.label}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 sm:px-6 pb-5 text-sm text-cream/70 leading-relaxed">
+                  {p.detail}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </div>
+        </Accordion>
       </div>
 
       {/* Bio → CTA rail. Sits flush under the bio so the credibility frame
