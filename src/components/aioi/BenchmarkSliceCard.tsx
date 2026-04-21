@@ -9,6 +9,14 @@ import { useMemo } from "react";
 import { PILLAR_NAMES } from "@/lib/assessment";
 import { pillarsFromRow, type MatchedSlice } from "@/lib/benchmarks";
 import {
+  computeOverallGap,
+  computePillarDelta,
+  formatOverallGap,
+  formatPillarDelta,
+  formatScore,
+  formatTier,
+} from "@/lib/benchmark-slice-format";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
