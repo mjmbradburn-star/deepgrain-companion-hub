@@ -137,8 +137,8 @@ export function PillarBarChart({
                   <span
                     aria-label={`You: ${userTier.toFixed(1)}`}
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_2px_hsl(var(--walnut))]",
-                      "h-2.5 w-2.5 sm:h-3 sm:w-3",
+                      "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_1.5px_hsl(var(--walnut))] sm:shadow-[0_0_0_2px_hsl(var(--walnut))]",
+                      "h-2 w-2 sm:h-3 sm:w-3",
                     )}
                     style={{ left: `${userPct}%` }}
                   />
