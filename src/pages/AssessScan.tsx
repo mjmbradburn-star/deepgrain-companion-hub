@@ -371,10 +371,17 @@ export default function AssessScan() {
                 <div className="mt-8 flex items-center justify-center gap-4">
                   <Button
                     onClick={retry}
-                    disabled={submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine}
-                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
+                    disabled={
+                      submitting ||
+                      (submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine)
+                    }
+                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    {submitError?.kind === "offline" ? "Try again when online" : "Try again"}
+                    {submitting
+                      ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Retrying…</>
+                      : submitError?.kind === "offline"
+                      ? "Try again when online"
+                      : "Try again"}
                   </Button>
                   <button
                     onClick={() => { setSubmitError(null); }}
