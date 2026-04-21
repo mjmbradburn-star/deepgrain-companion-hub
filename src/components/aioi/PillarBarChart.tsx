@@ -19,6 +19,7 @@
 //   • Coloured gap segment between user mark and cohort tick — brass
 //     when ahead, clay when behind — so the gap reads at a glance.
 
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export type PillarChartVariant = "bar" | "lollipop";
