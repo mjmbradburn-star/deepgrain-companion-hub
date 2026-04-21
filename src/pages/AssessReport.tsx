@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PILLAR_NAMES } from "@/lib/assessment";
 import { fetchBestSlice, pillarsFromRow, type MatchedSlice } from "@/lib/benchmarks";
 import { BenchmarkSliceCard } from "@/components/aioi/BenchmarkSliceCard";
+import { DeepDiveUnlock } from "@/components/aioi/DeepDiveUnlock";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 
 // ─── Types coming back from the report row ────────────────────────────────
