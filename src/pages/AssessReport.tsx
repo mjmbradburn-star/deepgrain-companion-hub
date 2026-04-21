@@ -5,6 +5,8 @@ import {
   ArrowRight,
   Check,
   Copy,
+  Download,
+  FileText,
   Loader2,
   Lock,
   Mail,
@@ -12,6 +14,7 @@ import {
   Send,
   Share2,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
