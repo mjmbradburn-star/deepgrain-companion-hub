@@ -104,7 +104,7 @@ export default function AssessReport() {
         setError(rpcErr.message);
         return;
       }
-      const payload = rpcData as {
+      const payload = (rpcData as unknown) as {
         respondent: ReportData["respondent"] | null;
         report: ReportData["report"];
         response_count: number;
@@ -126,7 +126,7 @@ export default function AssessReport() {
 
       // Resolve the most specific benchmark slice for this respondent.
       const slice = await fetchBestSlice({
-        level: payload.respondent.level,
+        level: payload.respondent.level as "company" | "function" | "individual",
         function: payload.respondent.function ?? null,
         region: payload.respondent.region ?? null,
       });
