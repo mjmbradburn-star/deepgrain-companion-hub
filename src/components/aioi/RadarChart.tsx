@@ -32,8 +32,10 @@ export function RadarChart({
 }: RadarChartProps) {
   const cx = size / 2;
   const cy = size / 2;
-  // leave room for labels
-  const padding = showLabels ? 78 : 24;
+  // leave room for labels — labels render at 5.55 × radius then nudge ±6px,
+  // so the inner radius needs ~92px of padding to keep the "P{n}" caption
+  // and pillar name from clipping at any edge of the SVG bounding box.
+  const padding = showLabels ? 92 : 24;
   const radius = size / 2 - padding;
 
   // Convert (pillarIndex, tier) → (x, y) on the polar grid.
@@ -93,17 +95,25 @@ export function RadarChart({
         );
       })}
 
-      {/* Tier ring labels (1..5) on the 12-o'clock spoke */}
+      {/* Tier ring labels (T1, T3, T5).
+          Placed on a quiet diagonal spoke (between P8 at 315° and P1 at 0°/top)
+          so they never collide with the P1 "Strategy" label that sits at 12 o'clock.
+          Each label nudges outward slightly for visual breathing room. */}
       {[1, 3, 5].map((tier) => {
-        const [, y] = pointFor(1, tier);
+        // -45° from horizontal, in canvas coords that's upper-left of centre.
+        const a = -Math.PI / 2 - Math.PI / 4; // 315° equivalent
+        const r = (tier / RINGS) * radius;
+        const x = cx + r * Math.cos(a);
+        const y = cy + r * Math.sin(a);
         return (
           <text
             key={`ring-${tier}`}
-            x={cx + 6}
-            y={y + 3}
+            x={x - 4}
+            y={y - 4}
             fontSize={9}
             fontFamily="ui-monospace, monospace"
             letterSpacing={1.4}
+            textAnchor="end"
             fill="hsl(var(--cream) / 0.28)"
           >
             T{tier}

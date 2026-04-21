@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { RadarChart } from "@/components/aioi/RadarChart";
 import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
+import { loadScan } from "@/lib/quickscan";
 import type { Database } from "@/integrations/supabase/types";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
@@ -146,34 +147,88 @@ function rowMatches(
   return true;
 }
 
-function PillarSparkline({ value }: { value: number }) {
-  const w = 120;
-  const h = 28;
+/**
+ * Per-pillar comparison row used in the breakdown list.
+ *
+ * Replaces the old wavy sparkline (which read as decoration, not data) with
+ * a clean 0–5 scale bar:
+ *  - The cohort median is drawn as a solid brass bar from 0 to its value.
+ *  - If we know the visitor's own tier for this pillar, a vertical brass-bright
+ *    tick is overlaid at their position with a small "You" caption above it.
+ *  - Five faint tick marks (one per tier) anchor the eye to the scale.
+ */
+function PillarComparisonBar({
+  median,
+  user,
+}: {
+  median: number;
+  user?: number;
+}) {
   const max = 5;
-  const clamped = Math.max(0, Math.min(max, value));
-  const fillW = (clamped / max) * w;
-  const points: string[] = [];
-  const steps = 18;
-  for (let i = 0; i <= steps; i++) {
-    const x = (i / steps) * w;
-    const t = i / steps;
-    const wave = Math.sin(t * Math.PI * 2) * 2;
-    const baseline = h - 6 - (clamped / max) * (h - 12);
-    points.push(`${x.toFixed(1)},${(baseline + wave).toFixed(1)}`);
-  }
+  const clampedMedian = Math.max(0, Math.min(max, median));
+  const medianPct = (clampedMedian / max) * 100;
+  const userPct =
+    typeof user === "number"
+      ? (Math.max(0, Math.min(max, user)) / max) * 100
+      : null;
+  const delta = typeof user === "number" ? Math.round((user - median) * 10) / 10 : null;
+
   return (
-    <svg width={w} height={h} className="block" aria-hidden="true">
-      <line x1={0} y1={h - 4} x2={w} y2={h - 4} stroke="hsl(var(--cream) / 0.1)" strokeWidth={1} />
-      <line x1={0} y1={h - 4} x2={fillW} y2={h - 4} stroke="hsl(var(--brass) / 0.55)" strokeWidth={1} />
-      <polyline
-        points={points.join(" ")}
-        fill="none"
-        stroke="hsl(var(--brass-bright))"
-        strokeWidth={1.25}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div className="w-full max-w-[260px]">
+      <div className="relative h-2 w-full bg-cream/8 rounded-full overflow-visible">
+        {/* Cohort median fill */}
+        <span
+          className="absolute top-0 left-0 h-full bg-brass/55 rounded-full"
+          style={{ width: `${medianPct}%` }}
+          aria-hidden
+        />
+        {/* Tier ticks at 1..4 (0 and 5 are the bar edges) */}
+        {[1, 2, 3, 4].map((t) => (
+          <span
+            key={t}
+            className="absolute top-1/2 -translate-y-1/2 h-1 w-px bg-cream/20"
+            style={{ left: `${(t / max) * 100}%` }}
+            aria-hidden
+          />
+        ))}
+        {/* User marker — vertical tick + tiny caption */}
+        {userPct != null && (
+          <>
+            <span
+              className="absolute -top-1 -bottom-1 w-[2px] bg-brass-bright rounded-full"
+              style={{ left: `calc(${userPct}% - 1px)` }}
+              aria-hidden
+            />
+            <span
+              className="absolute -top-4 font-mono text-[8px] uppercase tracking-[0.18em] text-brass-bright whitespace-nowrap"
+              style={{
+                left: `${userPct}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              You
+            </span>
+          </>
+        )}
+      </div>
+      <div className="mt-1.5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
+        <span>0</span>
+        {delta != null && (
+          <span
+            className={
+              delta > 0
+                ? "text-brass-bright"
+                : delta < 0
+                ? "text-pillar-7"
+                : "text-cream/40"
+            }
+          >
+            You {delta > 0 ? "+" : ""}{delta.toFixed(1)} vs median
+          </span>
+        )}
+        <span>5</span>
+      </div>
+    </div>
   );
 }
 
@@ -307,6 +362,36 @@ export default function Benchmarks() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // If the visitor has completed a scan on this device, fetch their pillar
+  // tiers so we can overlay a "You" marker against the cohort medians in the
+  // pillar breakdown. Slug lives in localStorage; the public RPC keeps this
+  // anonymous-safe (no PII in the response).
+  const [userPillars, setUserPillars] = useState<Record<number, number> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const slug = loadScan().slug;
+    if (!slug) return;
+    (async () => {
+      const { data, error } = await supabase.rpc("get_report_by_slug", { _slug: slug });
+      if (cancelled || error || !data) return;
+      // RPC payload includes report.pillar_tiers (Record<string, { tier, ... }>).
+      const payload = data as unknown as {
+        report?: { pillar_tiers?: Record<string, { tier?: number } | number> } | null;
+      };
+      const raw = payload?.report?.pillar_tiers;
+      if (!raw || typeof raw !== "object") return;
+      const out: Record<number, number> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        const n = Number(k);
+        if (!Number.isFinite(n)) continue;
+        if (typeof v === "number") out[n] = v;
+        else if (v && typeof v === "object" && typeof v.tier === "number") out[n] = v.tier;
+      }
+      setUserPillars(Object.keys(out).length ? out : null);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const filtered = useMemo(
@@ -607,18 +692,27 @@ export default function Benchmarks() {
             <h2 className="font-display text-2xl sm:text-3xl tracking-tight">
               Pillar breakdown
             </h2>
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-              Median tier · 0–5
-            </span>
+            <div className="flex items-center gap-5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-3 rounded-full bg-brass/55" aria-hidden /> Median
+              </span>
+              {userPillars && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-[2px] rounded-full bg-brass-bright" aria-hidden /> You
+                </span>
+              )}
+              <span>Tier · 0–5</span>
+            </div>
           </div>
 
           <ol className="border-t border-cream/10">
             {PILLARS.map((p) => {
               const v = view?.pillars[p.id] ?? 0;
+              const yours = userPillars?.[p.id];
               return (
                 <li
                   key={p.id}
-                  className="grid grid-cols-12 gap-4 items-center py-5 border-b border-cream/10"
+                  className="grid grid-cols-12 gap-4 items-center py-6 border-b border-cream/10"
                 >
                   <span className="col-span-1 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
                     P{p.id}
@@ -628,7 +722,7 @@ export default function Benchmarks() {
                   </span>
                   <div className="col-span-4 sm:col-span-5 flex justify-start sm:justify-center">
                     {view ? (
-                      <PillarSparkline value={v} />
+                      <PillarComparisonBar median={v} user={yours} />
                     ) : (
                       <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.22em]">
                         no data
