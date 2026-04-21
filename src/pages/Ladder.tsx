@@ -126,7 +126,7 @@ export default function Ladder() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_hsl(var(--brass)/0.08),_transparent_60%)]" aria-hidden />
         <div className="container relative max-w-5xl">
           <p className="eyebrow mb-6">The Maturity Ladder</p>
-          <h1 className="font-display font-light text-[clamp(2.25rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[16ch] text-balance">
+          <h1 className="font-display font-light headline-xl text-cream max-w-[16ch] text-balance">
             Six rungs.<br />
             <span className="italic font-normal text-brass-bright">Climb the one in front of you.</span>
           </h1>
