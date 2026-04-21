@@ -111,8 +111,11 @@ export function PillarBarChart({
                   <span
                     aria-hidden
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full",
-                      ahead ? "bg-brass-bright/35" : "bg-pillar-7/45",
+                      "absolute top-1/2 -translate-y-1/2 rounded-full",
+                      variant === "lollipop" ? "h-[2px]" : "h-[3px]",
+                      ahead
+                        ? variant === "lollipop" ? "bg-brass-bright/70" : "bg-brass-bright/35"
+                        : variant === "lollipop" ? "bg-pillar-7/80" : "bg-pillar-7/45",
                     )}
                     style={{
                       left: `${Math.min(userPct, cohortPct)}%`,
