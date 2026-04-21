@@ -89,7 +89,7 @@ function BioBody() {
             src="/matt-bradburn.jpg"
             alt="Matt Bradburn, founder of Deepgrain and People X AI"
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover object-[center_30%]"
             onError={(e) => {
               // Hide broken image; initials fallback below shows through.
               (e.currentTarget as HTMLImageElement).style.display = "none";
