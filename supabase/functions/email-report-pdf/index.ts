@@ -1,12 +1,17 @@
 // email-report-pdf
 // ─────────────────────────────────────────────────────────────────────────
 // Generates a server-side PDF of the lite AIOI report for a given slug,
-// uploads it to the public `report-pdfs` bucket, and triggers a
-// transactional email with a download link.
+// uploads it to the private `report-pdfs` bucket, mints a short-lived
+// signed URL, and triggers a transactional email with the download link.
 //
-// No auth required — slug is the secret. Anyone who knows the slug
-// can request the PDF be sent to any email address (matches the existing
-// "share by URL" model on the report page).
+// AUTHENTICATED OWNER ONLY:
+//   1. Caller must present a valid Supabase JWT (verify_jwt enforced at the
+//      edge gateway + getClaims() check below).
+//   2. The slug must resolve to a respondent whose user_id matches the
+//      authenticated user.
+//   3. The recipient email must match the authenticated user's email,
+//      preventing the function from being abused to email PDFs to
+//      arbitrary third parties.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1'
@@ -49,7 +54,24 @@ Deno.serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    // ── 0. Require a Bearer token and verify it ──────────────────────────
+    const authHeader = req.headers.get('Authorization') ?? ''
+    if (!authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401)
+    }
+    const token = authHeader.slice('Bearer '.length).trim()
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token)
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return json({ error: 'Unauthorized' }, 401)
+    }
+    const userId = claimsData.claims.sub as string
+    const userEmail = (claimsData.claims.email as string | undefined)?.toLowerCase() ?? null
 
     const body = await req.json().catch(() => ({}))
     const slug = typeof body.slug === 'string' ? body.slug.trim() : ''
@@ -61,10 +83,31 @@ Deno.serve(async (req) => {
     if (!email || !EMAIL_RE.test(email) || email.length > 254) {
       return json({ error: 'Please enter a valid email address.' }, 400)
     }
+    // Recipient must be the authenticated user — this function is not a
+    // generic "email PDF to anyone" gateway.
+    if (!userEmail || email !== userEmail) {
+      return json({ error: 'Recipient must match your account email.' }, 403)
+    }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-    // 1. Fetch the report via the public RPC (no PII exposed).
+    // ── 1a. Verify the slug belongs to the authenticated user ────────────
+    const { data: ownerRow, error: ownerErr } = await admin
+      .from('respondents')
+      .select('id, user_id')
+      .eq('slug', slug)
+      .maybeSingle()
+    if (ownerErr) {
+      console.error('[email-report-pdf] respondent lookup failed', ownerErr)
+      return json({ error: 'Report not found' }, 404)
+    }
+    if (!ownerRow || ownerRow.user_id !== userId) {
+      // Same response whether the slug is unknown or owned by someone else,
+      // so we don't leak slug existence to other users.
+      return json({ error: 'Report not found' }, 404)
+    }
+
+    // 1b. Fetch the report payload (no PII exposed).
     const { data: rpcData, error: rpcErr } = await admin.rpc('get_report_by_slug', {
       _slug: slug,
     })
@@ -76,6 +119,7 @@ Deno.serve(async (req) => {
     if (!payload?.report) {
       return json({ error: 'Report is not ready yet' }, 409)
     }
+
 
     // 2. Build the PDF.
     const pdfBytes = await renderReportPdf(payload)
@@ -167,7 +211,7 @@ Deno.serve(async (req) => {
     return json({ ok: true, pdfUrl })
   } catch (err) {
     console.error('[email-report-pdf] error:', err)
-    return json({ error: err instanceof Error ? err.message : 'Unknown error' }, 500)
+    return json({ error: 'Internal server error' }, 500)
   }
 })
 

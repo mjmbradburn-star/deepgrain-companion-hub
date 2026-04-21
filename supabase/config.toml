@@ -17,5 +17,3 @@ project_id = "lschdkhtymifmxjcbtvb"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
-  [functions.email-report-pdf]
-    verify_jwt = false
