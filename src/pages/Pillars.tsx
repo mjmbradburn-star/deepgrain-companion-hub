@@ -273,19 +273,21 @@ export default function Pillars() {
 
       {/* ─── CTA ─────────────────────────────────────────────────── */}
       <section className="border-t border-cream/10">
-        <div className="container max-w-4xl py-16 sm:py-24 text-center">
-          <p className="eyebrow mb-5">Now, the diagnostic</p>
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight">
-            Eight questions.<br />
-            <span className="italic text-brass-bright">A score you can argue with.</span>
-          </h2>
-          <a
-            href="/assess"
-            className="mt-8 sm:mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
-          >
-            Begin assessment <ArrowRight className="h-4 w-4" />
-          </a>
-        </div>
+        <Reveal>
+          <div className="container max-w-4xl py-16 sm:py-24 text-center">
+            <p className="eyebrow mb-5">Now, the diagnostic</p>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight">
+              Eight questions.<br />
+              <span className="italic text-brass-bright">A score you can argue with.</span>
+            </h2>
+            <a
+              href="/assess"
+              className="mt-8 sm:mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors motion-tap"
+            >
+              Begin assessment <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        </Reveal>
       </section>
 
       <SiteFooter />
