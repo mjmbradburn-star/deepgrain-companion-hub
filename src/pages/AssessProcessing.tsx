@@ -89,6 +89,22 @@ export default function AssessProcessing() {
         try {
           const { slug } = await finaliseAssessment();
           if (cancelled) return;
+
+          // Fire-and-forget: generate the PDF server-side and email a link to it.
+          // Uses the email captured during qualifier (or the signed-in user's email).
+          const recipient =
+            draft.qualifier?.email ??
+            (await supabase.auth.getUser()).data.user?.email ??
+            null;
+          if (recipient) {
+            void supabase.functions
+              .invoke("email-report-pdf", { body: { slug, email: recipient } })
+              .catch((err) => {
+                // Non-blocking — user can still request the PDF from the report page.
+                console.warn("[email-report-pdf] auto-send failed", err);
+              });
+          }
+
           setPhase("done");
           // Brief settle before redirect so the build-log finishes.
           window.setTimeout(() => {
