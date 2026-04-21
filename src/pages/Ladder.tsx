@@ -147,11 +147,12 @@ export default function Ladder() {
         <div className="container max-w-6xl py-12 sm:py-20">
           <p className="eyebrow mb-6 sm:mb-8 text-cream/45">The cohort, distributed</p>
           <div className="space-y-2 sm:space-y-3">
-            {TIERS.map((t) => (
+            {TIERS.map((t, i) => (
               <a
                 key={t.tier}
                 href={`#${slug(t.tier)}`}
-                className="group grid grid-cols-12 items-center gap-x-3 gap-y-2 sm:gap-y-1 sm:gap-4 border-b border-cream/10 py-6 sm:py-7 hover:bg-surface-1/40 -mx-2 sm:-mx-4 px-2 sm:px-4 rounded-sm transition-colors"
+                style={{ ['--i' as string]: String(i) } as React.CSSProperties}
+                className="reveal motion-tap group grid grid-cols-12 items-center gap-x-3 gap-y-2 sm:gap-y-1 sm:gap-4 border-b border-cream/10 py-6 sm:py-7 hover:bg-surface-1/40 -mx-2 sm:-mx-4 px-2 sm:px-4 rounded-sm transition-colors"
               >
                 {/* Mobile: 2 rows. Desktop: single row 12-col grid. */}
                 <span className="col-span-2 sm:col-span-1 font-mono text-xs text-cream/35 tabular-nums">
@@ -207,12 +208,12 @@ export default function Ladder() {
       {/* ─── Tier deep-dives ─────────────────────────────────────── */}
       <section className="py-12 sm:py-20 lg:py-28">
         <div className="container max-w-6xl space-y-16 sm:space-y-24">
-          {TIERS.map((t) => (
-            <article
-              key={t.tier}
-              id={slug(t.tier)}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
-            >
+          {TIERS.map((t, i) => (
+            <Reveal key={t.tier} index={i % 3}>
+              <article
+                id={slug(t.tier)}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
+              >
               <aside className="lg:col-span-4">
                 <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6">
                   <div className="flex items-baseline gap-3 sm:gap-4">
