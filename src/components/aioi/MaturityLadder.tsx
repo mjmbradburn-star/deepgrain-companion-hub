@@ -12,15 +12,15 @@ const TIERS: { tier: Tier; tag: string; body: string }[] = [
 
 export function MaturityLadder() {
   return (
-    <section id="ladder" className="relative py-28 sm:py-36 border-t border-cream/10 bg-surface-0">
+    <section id="ladder" className="relative section-y border-t border-cream/10 bg-surface-0">
       <div className="container max-w-5xl">
-        <div className="mb-14">
+        <div className="mb-10 sm:mb-14">
           <p className="eyebrow mb-5">The Maturity Ladder</p>
-          <h2 className="font-display text-5xl sm:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
             Six rungs.<br />
             <span className="italic text-brass-bright">Climb the one in front of you.</span>
           </h2>
-          <p className="mt-6 font-display text-xl text-cream/65 max-w-2xl">
+          <p className="mt-6 font-display text-lg sm:text-xl text-cream/65 max-w-2xl">
             Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually the more interesting number.
           </p>
         </div>
@@ -28,16 +28,16 @@ export function MaturityLadder() {
         <Accordion type="single" collapsible className="border-t border-cream/10">
           {TIERS.map((t, i) => (
             <AccordionItem key={t.tier} value={t.tier} className="border-b border-cream/10">
-              <AccordionTrigger className="py-6 hover:no-underline group">
-                <div className="flex items-center gap-6 w-full">
-                  <span className="font-mono text-xs text-cream/30 w-6">0{i}</span>
-                  <span className="font-display text-3xl text-cream group-hover:text-brass-bright transition-colors">{t.tier}</span>
+              <AccordionTrigger className="py-5 sm:py-6 hover:no-underline group">
+                <div className="flex items-center gap-3 sm:gap-6 w-full">
+                  <span className="font-mono text-xs text-cream/30 w-6 shrink-0">0{i}</span>
+                  <span className="font-display text-2xl sm:text-3xl text-cream group-hover:text-brass-bright transition-colors">{t.tier}</span>
                   <span className="hidden md:inline font-display italic text-cream/50 ml-auto mr-6">{t.tag}</span>
                   <TierBadge tier={t.tier} showIndex={false} className="hidden lg:inline-flex" />
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-8 pl-12 pr-4">
-                <p className="font-display text-xl text-cream/75 max-w-2xl leading-snug">{t.body}</p>
+              <AccordionContent className="pb-6 sm:pb-8 pl-9 sm:pl-12 pr-2 sm:pr-4">
+                <p className="font-display text-lg sm:text-xl text-cream/75 max-w-2xl leading-snug">{t.body}</p>
               </AccordionContent>
             </AccordionItem>
           ))}
