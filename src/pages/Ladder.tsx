@@ -122,15 +122,15 @@ export default function Ladder() {
       <SiteNav />
 
       {/* ─── Hero ────────────────────────────────────────────────── */}
-      <section className="relative pt-40 pb-24 sm:pt-48 sm:pb-32 border-b border-cream/10 overflow-hidden">
+      <section className="relative pt-28 pb-16 sm:pt-40 sm:pb-24 lg:pt-48 lg:pb-32 border-b border-cream/10 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_hsl(var(--brass)/0.08),_transparent_60%)]" aria-hidden />
         <div className="container relative max-w-5xl">
           <p className="eyebrow mb-6">The Maturity Ladder</p>
-          <h1 className="font-display font-light text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[16ch] text-balance">
+          <h1 className="font-display font-light text-[clamp(2.25rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[16ch] text-balance">
             Six rungs.<br />
             <span className="italic font-normal text-brass-bright">Climb the one in front of you.</span>
           </h1>
-          <p className="mt-8 max-w-2xl font-display text-xl sm:text-2xl text-cream/70 leading-snug">
+          <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug">
             Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually the more interesting number than the average.
           </p>
         </div>

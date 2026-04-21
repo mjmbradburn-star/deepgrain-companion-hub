@@ -141,21 +141,21 @@ export default function Pillars() {
       <SiteNav />
 
       {/* ─── Hero ────────────────────────────────────────────────── */}
-      <section className="relative pt-40 pb-24 sm:pt-48 sm:pb-32 border-b border-cream/10 overflow-hidden">
+      <section className="relative pt-28 pb-16 sm:pt-40 sm:pb-24 lg:pt-48 lg:pb-32 border-b border-cream/10 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(var(--brass)/0.08),_transparent_60%)]" aria-hidden />
         <div className="container relative max-w-5xl">
           <p className="eyebrow mb-6">The Eight Pillars</p>
-          <h1 className="font-display font-light text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[14ch] text-balance">
+          <h1 className="font-display font-light text-[clamp(2.25rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[14ch] text-balance">
             Eight axes.<br />
             <span className="italic font-normal text-brass-bright">One operating picture.</span>
           </h1>
-          <p className="mt-8 max-w-2xl font-display text-xl sm:text-2xl text-cream/70 leading-snug">
+          <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug">
             The AIOI doesn't ask whether you "use AI". It asks eight questions about how you operate, across strategy, data, tooling, workflow, skills, governance, measurement and culture, and scores each one on the same six-tier ladder.
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
+          <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
             <a
               href="/assess"
-              className="inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
+              className="inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors w-full sm:w-auto justify-center"
             >
               Begin assessment <ArrowRight className="h-4 w-4" />
             </a>
@@ -189,22 +189,22 @@ export default function Pillars() {
       </section>
 
       {/* ─── Pillar entries ──────────────────────────────────────── */}
-      <section className="py-16 sm:py-24">
-        <div className="container max-w-6xl space-y-24 sm:space-y-32">
+      <section className="py-12 sm:py-20 lg:py-24">
+        <div className="container max-w-6xl space-y-16 sm:space-y-24">
           {PILLARS.map((p, i) => (
             <article
               key={p.index}
               id={`p${p.index}`}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-10 scroll-mt-24"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
             >
               {/* Left rail — pillar number, chip, weight */}
               <aside className="lg:col-span-4">
-                <div className="sticky top-24 space-y-6">
-                  <div className="flex items-baseline gap-4">
-                    <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
+                <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6">
+                  <div className="flex items-baseline gap-3 sm:gap-4">
+                    <span className="font-display text-5xl sm:text-7xl leading-none text-brass-bright/30 tabular-nums">
                       {String(p.index).padStart(2, "0")}
                     </span>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
                       Pillar {p.index} of 8
                     </span>
                   </div>
@@ -217,29 +217,29 @@ export default function Pillars() {
               </aside>
 
               {/* Right column — copy */}
-              <div className="lg:col-span-8 space-y-8">
-                <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
+              <div className="lg:col-span-8 space-y-6 sm:space-y-8">
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
                   {p.name}
                 </h2>
-                <p className="font-display italic text-2xl text-brass-bright/85 leading-snug">
+                <p className="font-display italic text-xl sm:text-2xl text-brass-bright/85 leading-snug">
                   {p.oneLiner}
                 </p>
-                <p className="font-display text-xl text-cream/75 leading-relaxed max-w-2xl">
+                <p className="font-display text-lg sm:text-xl text-cream/75 leading-relaxed max-w-2xl">
                   {p.body}
                 </p>
 
-                <div className="rounded-md border border-cream/10 bg-surface-1/50 p-6 max-w-2xl">
+                <div className="rounded-md border border-cream/10 bg-surface-1/50 p-5 sm:p-6 max-w-2xl">
                   <p className="eyebrow mb-2 text-cream/45">A peer might ask</p>
-                  <p className="font-display text-xl text-cream leading-snug">"{p.question}"</p>
+                  <p className="font-display text-lg sm:text-xl text-cream leading-snug">"{p.question}"</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-2xl">
                   <SignalCard kind="signal" body={p.signal} />
                   <SignalCard kind="obstacle" body={p.obstacle} />
                 </div>
 
                 {/* Bookends */}
-                <div className="pt-6">
+                <div className="pt-4 sm:pt-6">
                   <p className="eyebrow mb-4 text-cream/45">From / To</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
                     <Bookend tier="Dormant" line={p.bookends.dormant} />
@@ -254,9 +254,9 @@ export default function Pillars() {
 
       {/* ─── Weight composition footnote ─────────────────────────── */}
       <section className="border-t border-cream/10 bg-surface-0">
-        <div className="container max-w-4xl py-16">
+        <div className="container max-w-4xl py-12 sm:py-16">
           <p className="eyebrow mb-5 text-cream/45">A note on weighting</p>
-          <p className="font-display text-xl text-cream/75 leading-relaxed">
+          <p className="font-display text-lg sm:text-xl text-cream/75 leading-relaxed">
             The pillars aren't weighted equally. Strategy, Data and Workflow each carry {PILLARS[0].weight}%, because they sit upstream of nearly everything else.
             Tooling, Skills, Governance and Measurement carry {PILLARS[2].weight}%. Culture sits at {PILLARS[7].weight}%, small in the score, decisive in practice.
             The total is {totalWeight}%. The exact weights move with the version of the index.
@@ -266,15 +266,15 @@ export default function Pillars() {
 
       {/* ─── CTA ─────────────────────────────────────────────────── */}
       <section className="border-t border-cream/10">
-        <div className="container max-w-4xl py-24 text-center">
+        <div className="container max-w-4xl py-16 sm:py-24 text-center">
           <p className="eyebrow mb-5">Now, the diagnostic</p>
-          <h2 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight">
             Twelve questions.<br />
             <span className="italic text-brass-bright">A score you can argue with.</span>
           </h2>
           <a
             href="/assess"
-            className="mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
+            className="mt-8 sm:mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
           >
             Begin assessment <ArrowRight className="h-4 w-4" />
           </a>
