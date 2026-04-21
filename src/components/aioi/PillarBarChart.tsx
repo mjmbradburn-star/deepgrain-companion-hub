@@ -143,7 +143,8 @@ export function PillarBarChart({
                     data-direction={ahead ? "ahead" : "behind"}
                     className={cn(
                       "absolute top-1/2 -translate-y-1/2 rounded-full origin-center",
-                      variant === "lollipop" ? "h-[2px] animate-gap-draw motion-reduce:animate-none" : "h-[3px]",
+                      variant === "lollipop" ? "h-[2px]" : "h-[3px]",
+                      variant === "lollipop" && gen > 0 && "animate-gap-draw motion-reduce:animate-none",
                       ahead
                         ? variant === "lollipop" ? "bg-brass-bright/70" : "bg-brass-bright/35"
                         : variant === "lollipop" ? "bg-pillar-7/80" : "bg-pillar-7/45",
