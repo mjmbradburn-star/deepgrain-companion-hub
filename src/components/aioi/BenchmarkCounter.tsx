@@ -18,7 +18,7 @@ export function BenchmarkCounter() {
   }, []);
 
   return (
-    <section className="relative py-16 sm:py-24 border-t border-b border-cream/10 bg-green-deep/40">
+    <section className="relative section-y border-t border-b border-cream/10 bg-green-deep/40">
       <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-4">
         <div>
           <p className="eyebrow mb-3">Live benchmark</p>
