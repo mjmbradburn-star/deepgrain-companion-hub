@@ -164,7 +164,7 @@ async function handleWebhook(req: Request): Promise<Response> {
       secret: apiKey,
       parser: parseEmailWebhookPayload,
     })
-    payload = verified.payload
+    payload = verified.payload as unknown as AuthHookPayload
     run_id = payload.run_id
   } catch (error) {
     if (error instanceof WebhookError) {
