@@ -15,7 +15,13 @@ import { Button } from "@/components/ui/button";
  * pillar-level diagnoses, peer benchmarking precision.
  */
 
-const UNLOCKS = [
+interface Unlock {
+  title: string;
+  detail: string;
+  confidence?: { from: number; to: number };
+}
+
+const UNLOCKS: Unlock[] = [
   {
     title: "Sharper score",
     detail: "8 questions per pillar instead of 1. Confidence band tightens from ±9 to ±3.",
@@ -33,7 +39,7 @@ const UNLOCKS = [
     title: "Tighter benchmark match",
     detail: "Cohort delta refines down to your sector and size band, not just your level.",
   },
-] as const;
+];
 
 interface Props {
   slug: string;
