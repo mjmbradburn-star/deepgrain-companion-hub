@@ -159,6 +159,30 @@ export default function AuthCallback() {
     };
   }, [navigate, params]);
 
+  // Cooldown countdown for resend
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const handleResend = async () => {
+    if (!knownEmail || resending || cooldown > 0) return;
+    setResending(true);
+    try {
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      await sendMagicLink(knownEmail, redirectTo);
+      setResentTo(knownEmail);
+      setCooldown(30);
+      toast({ title: "Check your inbox", description: "We just sent a fresh sign-in link." });
+    } catch (err) {
+      const msg = err instanceof SyncError ? err.message : "Could not send link. Try again.";
+      toast({ title: msg, variant: "destructive" });
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (status === "error") {
     const copy = errorCopy(errorKind);
     const retryHref = `/signin?next=${encodeURIComponent(next)}`;
