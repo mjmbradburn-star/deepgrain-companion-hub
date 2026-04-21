@@ -38,17 +38,17 @@ export const SignupEmail = ({
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
-          !
+          .
         </Text>
         <Text style={text}>
-          Please confirm your email address (
+          Confirm your address (
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) by clicking the button below:
+          ) to activate your account:
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Verify Email
+          Confirm email
         </Button>
         <Text style={footer}>
           If you didn't create an account, you can safely ignore this email.
@@ -60,27 +60,38 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Helvetica, Arial, sans-serif" }
+const container = { padding: '32px 28px', maxWidth: '560px' }
 const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  fontFamily: "'Cormorant Garamond', 'Times New Roman', Georgia, serif",
+  fontSize: '32px',
+  fontWeight: 500 as const,
+  color: 'hsl(152, 60%, 9%)',
+  letterSpacing: '-0.01em',
+  margin: '0 0 24px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: 'hsl(152, 20%, 28%)',
+  lineHeight: '1.6',
+  margin: '0 0 20px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: 'hsl(32, 60%, 36%)', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  backgroundColor: 'hsl(152, 60%, 10%)',
+  color: '#F5EFE0',
+  fontSize: '13px',
+  fontWeight: 500 as const,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
+  borderRadius: '4px',
+  padding: '14px 28px',
   textDecoration: 'none',
+  display: 'inline-block',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = {
+  fontSize: '12px',
+  color: 'hsl(152, 20%, 40%)',
+  margin: '32px 0 0',
+  lineHeight: '1.5',
+}
