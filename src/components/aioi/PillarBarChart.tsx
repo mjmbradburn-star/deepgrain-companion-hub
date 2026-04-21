@@ -16,6 +16,8 @@
 
 import { cn } from "@/lib/utils";
 
+export type PillarChartVariant = "bar" | "lollipop";
+
 interface PillarBarChartProps {
   /** Pillar index (1..8) → tier 0..5 */
   values: Record<number, number>;
@@ -27,6 +29,10 @@ interface PillarBarChartProps {
   showLabels?: boolean;
   /** Whether to render the numeric tier on the right edge. */
   showValues?: boolean;
+  /** Visual style. "bar" = filled brass bar (default).
+   *  "lollipop" = faint track with a single brass dot at the user's tier;
+   *  cohort median still shown as a vertical tick. More editorial, less ink. */
+  variant?: PillarChartVariant;
   className?: string;
 }
 
@@ -39,6 +45,7 @@ export function PillarBarChart({
   labels,
   showLabels = true,
   showValues = true,
+  variant = "bar",
   className,
 }: PillarBarChartProps) {
   return (
