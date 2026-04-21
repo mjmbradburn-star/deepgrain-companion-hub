@@ -216,9 +216,19 @@ function PillarComparisonBar({
           </>
         )}
       </div>
-      <div className="mt-1.5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
-        <span>0</span>
-        {delta != null && (
+      <div className="mt-1.5 relative h-3 font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
+        {[0, 5].map((t) => (
+          <span
+            key={t}
+            className="absolute top-0 -translate-x-1/2 tabular-nums"
+            style={{ left: `${(t / max) * 100}%` }}
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+      {delta != null && (
+        <div className="mt-1 flex justify-end font-mono text-[9px] uppercase tracking-[0.2em]">
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
               <button
@@ -264,9 +274,8 @@ function PillarComparisonBar({
               </p>
             </TooltipContent>
           </Tooltip>
-        )}
-        <span>5</span>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -681,31 +690,31 @@ export default function Benchmarks() {
               return (
                 <li
                   key={p.id}
-                  className="grid grid-cols-12 gap-x-3 sm:gap-4 items-center py-5 sm:py-6 border-b border-cream/10"
+                  className="flex flex-col gap-y-2 sm:flex-row sm:items-center sm:gap-x-4 py-5 sm:py-6 border-b border-cream/10"
                 >
-                  {/* Mobile: pillar name (with inline P-prefix) + score share
-                      one row, full-width bar below. Desktop: 12-col grid with
-                      a dedicated P-index column. */}
-                  <span className="hidden sm:block sm:col-span-1 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-                    P{p.id}
-                  </span>
-                  <span className="col-span-9 sm:col-span-4 font-display text-base sm:text-lg text-cream/90 leading-tight">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 mr-2 sm:hidden">
+                  {/* Label column — same basis rhythm as PillarBarChart so columns line up. */}
+                  <div className="flex items-baseline gap-x-2 min-w-0 sm:basis-[max(140px,24%)] sm:shrink-0">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 tabular-nums shrink-0 w-[2.25rem]">
                       P{p.id}
                     </span>
-                    {p.name}
-                  </span>
-                  <span className="col-span-3 sm:col-span-2 sm:order-last text-right font-display text-lg sm:text-2xl tracking-tight text-brass-bright tabular-nums">
-                    {view ? v.toFixed(1) : "—"}
-                  </span>
-                  <div className="col-span-12 sm:col-span-5 flex justify-start sm:justify-center mt-2 sm:mt-0">
-                    {view ? (
-                      <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
-                    ) : (
-                      <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.2em] sm:tracking-[0.22em]">
-                        no data
-                      </span>
-                    )}
+                    <span className="font-display text-base sm:text-lg text-cream/90 leading-tight break-words">
+                      {p.name}
+                    </span>
+                  </div>
+                  {/* Bar + score share the remaining track, with score pinned right. */}
+                  <div className="flex items-center gap-x-3 sm:gap-x-4 flex-1 min-w-0">
+                    <div className="flex-1 min-w-0">
+                      {view ? (
+                        <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
+                      ) : (
+                        <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.2em] sm:tracking-[0.22em]">
+                          no data
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-right font-display text-lg sm:text-2xl tracking-tight text-brass-bright tabular-nums w-[2.5rem] sm:w-[3rem] shrink-0">
+                      {view ? v.toFixed(1) : "—"}
+                    </span>
                   </div>
                 </li>
               );
