@@ -263,9 +263,10 @@ export default function AssessScan() {
   );
 
   const retry = useCallback(() => {
+    if (submitting || inflight.current) return;
     if (lastAttempt) void submit(lastAttempt);
     else void submit(answers);
-  }, [lastAttempt, answers, submit]);
+  }, [lastAttempt, answers, submit, submitting]);
 
   const select = useCallback(
     (tier: number) => {
