@@ -12,7 +12,12 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut">
+    <section className="relative min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut hero-woodgrain">
+      {/* Wood-grain base layer — long horizontal fibres, deep walnut tone */}
+      <div aria-hidden="true" className="hero-woodgrain__wood" />
+      {/* Linen weave on top — subtle cross-hatch */}
+      <div aria-hidden="true" className="hero-woodgrain__linen" />
+
       {/* Soft tonal washes — give the cream page a gentle gravitational centre */}
       <div
         aria-hidden="true"
@@ -35,17 +40,17 @@ export function Hero() {
       </div>
 
       {/* Headline block */}
-      <div className="container relative z-10 pt-10 sm:pt-16">
-        <p className="eyebrow mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
-        <h1 className="font-display font-light headline-xl text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up">
+      <div className="container relative z-10 pt-8 sm:pt-16">
+        <p className="eyebrow mb-4 sm:mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
+        <h1 className="font-display font-light hero-headline text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up">
           Measure your<br />
           <span className="italic font-normal text-brass">AI debt.</span>
         </h1>
-        <div className="mt-6 h-px w-24 bg-brass/70 animate-fade-in [animation-delay:160ms]" />
+        <div className="mt-5 sm:mt-6 h-px w-24 bg-brass/70 animate-fade-in [animation-delay:160ms]" />
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container relative z-10 mt-auto pb-16 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-end">
+      <div className="container relative z-10 mt-10 sm:mt-auto pb-10 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-end">
         <p className="md:col-span-6 md:col-start-7 font-display text-lg sm:text-2xl text-cream/80 leading-[1.4] sm:leading-[1.35] text-pretty animate-fade-up [animation-delay:200ms]">
           For companies, functions and individuals.
           Three minutes. Eight pillars, one question each,
