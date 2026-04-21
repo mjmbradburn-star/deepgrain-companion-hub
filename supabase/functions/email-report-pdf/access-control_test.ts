@@ -23,7 +23,6 @@ import {
   assertEquals,
   assertNotEquals,
 } from 'https://deno.land/std@0.224.0/assert/mod.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const SUPABASE_URL = Deno.env.get('VITE_SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('VITE_SUPABASE_PUBLISHABLE_KEY')!
@@ -40,22 +39,33 @@ const BUCKET = 'report-pdfs'
 const PROBE_OBJECT = 'rls-probe-slug/aioi-report.pdf'
 
 // ── 1. Anon createSignedUrl must be denied ──────────────────────────────
+//
+// We hit the Storage REST endpoint directly (instead of the supabase-js
+// SDK) so the test does not leak the SDK's internal session-refresh
+// timer, which Deno's leak detector treats as a failure.
 Deno.test(
-  'report-pdfs: anonymous createSignedUrl is denied by RLS',
+  'report-pdfs: anonymous createSignedUrl is denied (private bucket / RLS)',
   async () => {
-    const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    const { data, error } = await anon.storage
-      .from(BUCKET)
-      .createSignedUrl(PROBE_OBJECT, 60)
+    const url = `${SUPABASE_URL}/storage/v1/object/sign/${BUCKET}/${PROBE_OBJECT}`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ expiresIn: 60 }),
+    })
+    const bodyText = await res.text()
 
-    assertEquals(
-      data?.signedUrl ?? null,
-      null,
-      'Anonymous callers must NOT receive a signed URL.',
+    assertNotEquals(
+      res.status,
+      200,
+      `Anonymous createSignedUrl must NOT succeed; got 200 with body ${bodyText}.`,
     )
     assert(
-      error,
-      'Anonymous createSignedUrl must surface an error (RLS deny / not found).',
+      res.status >= 400 && res.status < 500,
+      `Anonymous createSignedUrl must be rejected with a 4xx; got ${res.status}.`,
     )
   },
 )
