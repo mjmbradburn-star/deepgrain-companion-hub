@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
     return json({ ok: true, pdfUrl })
   } catch (err) {
     console.error('[email-report-pdf] error:', err)
-    return json({ error: err instanceof Error ? err.message : 'Unknown error' }, 500)
+    return json({ error: 'Internal server error' }, 500)
   }
 })
 
