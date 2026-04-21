@@ -19,6 +19,7 @@
 //   • Coloured gap segment between user mark and cohort tick — brass
 //     when ahead, clay when behind — so the gap reads at a glance.
 
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export type PillarChartVariant = "bar" | "lollipop";
@@ -56,6 +57,26 @@ export function PillarBarChart({
   const trackValueGrid = showValues
     ? "grid grid-cols-[1fr_2.25rem] items-center gap-x-3"
     : "grid grid-cols-[1fr] items-center";
+
+  // Bump a generation counter whenever the underlying tier values change,
+  // but skip the very first render so the animation does not play on mount.
+  // The counter is appended to the gap-segment key, forcing a remount —
+  // and therefore a fresh `animate-gap-draw` play — only on real updates.
+  const valuesSig = JSON.stringify({ v: values, c: cohort ?? null });
+  const [gen, setGen] = useState(0);
+  const mountedRef = useRef(false);
+  const lastSigRef = useRef(valuesSig);
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      lastSigRef.current = valuesSig;
+      return;
+    }
+    if (lastSigRef.current !== valuesSig) {
+      lastSigRef.current = valuesSig;
+      setGen((g) => g + 1);
+    }
+  }, [valuesSig]);
 
   return (
     <div className={cn("pillar-bar-chart w-full", className)} role="img" aria-label="AIOI pillar comparison">
@@ -107,15 +128,23 @@ export function PillarBarChart({
                   />
                 ))}
 
-                {/* Gap segment between user mark and cohort tick */}
+                {/* Gap segment between user mark and cohort tick.
+                    In lollipop mode we replay a center-out draw whenever the
+                    underlying values change, so a filter switch makes the
+                    delta visually obvious. The `key` forces a remount only
+                    when user/cohort tiers actually change (not on every
+                    render), and the animation is skipped on first mount via
+                    a per-row mount flag below. */}
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
+                    key={variant === "lollipop" && gen > 0 ? `${gen}-${userTier}-${cohortTier}` : undefined}
                     aria-hidden
                     data-gap-segment
                     data-direction={ahead ? "ahead" : "behind"}
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 rounded-full",
+                      "absolute top-1/2 -translate-y-1/2 rounded-full origin-center",
                       variant === "lollipop" ? "h-[2px]" : "h-[3px]",
+                      variant === "lollipop" && gen > 0 && "animate-gap-draw motion-reduce:animate-none",
                       ahead
                         ? variant === "lollipop" ? "bg-brass-bright/70" : "bg-brass-bright/35"
                         : variant === "lollipop" ? "bg-pillar-7/80" : "bg-pillar-7/45",
