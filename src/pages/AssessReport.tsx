@@ -6,9 +6,11 @@ import {
   Check,
   Copy,
   Loader2,
+  Lock,
   Mail,
   Printer,
   Send,
+  Share2,
 } from "lucide-react";
 
 import { SiteNav } from "@/components/aioi/SiteNav";
@@ -59,12 +61,10 @@ interface ReportData {
     id: string;
     slug: string;
     level: string;
-    role: string | null;
-    org_size: string | null;
-    pain: string | null;
     function: string | null;
     region: string | null;
     submitted_at: string | null;
+    is_anonymous: boolean;
   };
   report: {
     aioi_score: number;
@@ -78,9 +78,10 @@ interface ReportData {
   outcomes: OutcomeRow[];
   cohort: Record<number, number> | null;
   slice: MatchedSlice | null;
+  hasDeepdive: boolean;
 }
 
-type LoadState = "loading" | "ready" | "missing" | "forbidden" | "no-report" | "error";
+type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
 export default function AssessReport() {
   const { slug } = useParams<{ slug: string }>();
@@ -93,80 +94,58 @@ export default function AssessReport() {
     let cancelled = false;
     async function load() {
       if (!slug) return;
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        navigate(`/auth/callback?next=${encodeURIComponent(`/assess/r/${slug}`)}`, { replace: true });
-        return;
-      }
 
-      const { data: respondent, error: rErr } = await supabase
-        .from("respondents")
-        .select("id, slug, level, role, org_size, pain, function, region, submitted_at, user_id")
-        .eq("slug", slug)
-        .maybeSingle();
+      // Public RPC — no auth required. Slug is the secret.
+      const { data: rpcData, error: rpcErr } = await supabase
+        .rpc("get_report_by_slug", { _slug: slug });
       if (cancelled) return;
-      if (rErr) {
+      if (rpcErr) {
         setState("error");
-        setError(rErr.message);
+        setError(rpcErr.message);
         return;
       }
-      if (!respondent) {
+      const payload = (rpcData as unknown) as {
+        respondent: ReportData["respondent"] | null;
+        report: ReportData["report"];
+        response_count: number;
+        has_deepdive: boolean;
+      } | null;
+      if (!payload?.respondent) {
         setState("missing");
         return;
       }
-      if (respondent.user_id !== session.session.user.id) {
-        setState("forbidden");
-        return;
-      }
-
-      const { data: report } = await supabase
-        .from("reports")
-        .select("aioi_score, overall_tier, pillar_tiers, hotspots, diagnosis, plan, generated_at")
-        .eq("respondent_id", respondent.id)
-        .maybeSingle();
-      if (cancelled) return;
-      if (!report) {
+      if (!payload.report) {
         setState("no-report");
         return;
       }
 
-      // Fetch outcomes referenced in the plan
-      const planRaw = (report.plan as unknown as PlanMonth[] | null) ?? [];
-      const outcomeIds = planRaw.flatMap((m) => m.outcome_ids ?? []);
-      let outcomes: OutcomeRow[] = [];
-      if (outcomeIds.length > 0) {
-        const { data: outs } = await supabase
-          .from("outcomes_library")
-          .select("id, pillar, applies_to_tier, title, body, effort, impact, time_to_value")
-          .in("id", outcomeIds);
-        outcomes = (outs ?? []) as OutcomeRow[];
-      }
+      // Outcomes referenced by the plan (public RPC)
+      const { data: outs } = await supabase
+        .rpc("get_outcomes_for_report", { _slug: slug });
+      const outcomes = ((outs ?? []) as unknown as OutcomeRow[]);
 
       // Resolve the most specific benchmark slice for this respondent.
       const slice = await fetchBestSlice({
-        level: respondent.level,
-        function: respondent.function ?? null,
-        region: respondent.region ?? null,
+        level: payload.respondent.level as "company" | "function" | "individual",
+        function: payload.respondent.function ?? null,
+        region: payload.respondent.region ?? null,
       });
-      // The radar overlay uses whichever slice we matched (so deltas and the
-      // radar always tell the same story).
       const cohort = slice ? pillarsFromRow(slice.row) : null;
       if (cancelled) return;
 
+      // Telemetry — fire-and-forget
+      void supabase.from("events").insert({
+        name: "report_viewed",
+        payload: { slug, has_deepdive: payload.has_deepdive },
+      });
+
       setData({
-        respondent: { ...respondent, user_id: undefined as never } as ReportData["respondent"],
-        report: {
-          aioi_score: report.aioi_score ?? 0,
-          overall_tier: (report.overall_tier as Tier) ?? "Dormant",
-          pillar_tiers: (report.pillar_tiers as unknown as Record<string, PillarTierEntry>) ?? {},
-          hotspots: (report.hotspots as unknown as Hotspot[]) ?? [],
-          diagnosis: report.diagnosis,
-          plan: planRaw,
-          generated_at: report.generated_at,
-        },
+        respondent: payload.respondent,
+        report: payload.report,
         outcomes,
         cohort,
         slice,
+        hasDeepdive: payload.has_deepdive,
       });
       setState("ready");
     }
@@ -176,7 +155,6 @@ export default function AssessReport() {
 
   if (state === "loading") return <FullPageMessage eyebrow="Loading" line1="Pulling your report…" />;
   if (state === "missing") return <FullPageMessage eyebrow="Not found" line1="No report at this address." cta="/assess" />;
-  if (state === "forbidden") return <FullPageMessage eyebrow="Private" line1="This report belongs to someone else." cta="/" />;
   if (state === "no-report") return <FullPageMessage eyebrow="Almost there" line1="Your answers landed, the report is still building." line2="Refresh in a few seconds." />;
   if (state === "error") return <FullPageMessage eyebrow="Error" line1={error ?? "Something went wrong."} cta="/" />;
   if (!data?.report) return null;
@@ -221,7 +199,30 @@ function ReportView({ data }: { data: ReportData }) {
                   </span>
                 )}
               </div>
-              <ResendReportLink slug={respondent.slug} />
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(window.location.href);
+                  }}
+                  className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+                >
+                  <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
+                </Button>
+                {!data.hasDeepdive && (
+                  <Button
+                    size="sm"
+                    asChild
+                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+                  >
+                    <Link to={`/assess/deep/${respondent.slug}`}>
+                      Go deeper <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Link>
+                  </Button>
+                )}
+                <ResendReportLink slug={respondent.slug} />
+              </div>
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">

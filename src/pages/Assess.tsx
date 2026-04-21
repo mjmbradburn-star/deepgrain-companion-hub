@@ -2,29 +2,36 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { LEVELS, type Level, loadDraft, saveDraft } from "@/lib/assessment";
+import { loadScan, saveScan } from "@/lib/quickscan";
 
 const ORDER: Level[] = ["company", "function", "individual"];
+
+// Updated time copy — the default flow is now the 3-minute scan.
+const SCAN_TIME = "~3 min";
 
 export default function Assess() {
   const navigate = useNavigate();
 
   const choose = (level: Level) => {
+    // Keep both stores in sync so legacy resume + new scan work side-by-side.
     const draft = loadDraft();
     saveDraft({ ...draft, level, startedAt: draft.startedAt ?? new Date().toISOString() });
-    navigate("/assess/start");
+    const scan = loadScan();
+    saveScan({ ...scan, level, startedAt: scan.startedAt ?? new Date().toISOString() });
+    navigate("/assess/scan");
   };
 
   return (
     <AssessChrome back={{ to: "/", label: "Home" }} ariaLabel="Choose assessment level">
       <main className="container py-16 sm:py-24 w-full">
         <div className="max-w-3xl mb-14 animate-fade-up">
-          <p className="eyebrow mb-5">Step 01 — Choose your level</p>
+          <p className="eyebrow mb-5">Step 01 — Choose your level · 3-minute scan</p>
           <h1 className="font-display text-5xl sm:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
             What are we<br />
             <span className="italic text-brass-bright">measuring?</span>
           </h1>
           <p className="mt-6 font-display text-xl text-cream/65 max-w-xl">
-            Pick the lens that maps to what you actually own. You can run another later.
+            Pick the lens. Eight questions, one per pillar — score on screen in three minutes. The deeper write-up unlocks after.
           </p>
         </div>
 
@@ -42,7 +49,7 @@ export default function Assess() {
                   <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
                     Level 0{i + 1}
                   </span>
-                  <span className="font-mono text-xs text-cream/40">{l.time}</span>
+                  <span className="font-mono text-xs text-cream/40">{SCAN_TIME}</span>
                 </div>
                 <h2 className="font-display text-3xl text-cream leading-tight mb-2">{l.title}</h2>
                 <p className="font-display italic text-xl text-cream/60 mb-6">{l.tagline}</p>
