@@ -25,8 +25,16 @@ export default function SignIn() {
   const [params] = useSearchParams();
   const { toast } = useToast();
   const next = params.get("next") || "/reports";
+  const emailFromUrl = params.get("email") || "";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (emailFromUrl) return emailFromUrl;
+    try {
+      return loadDraft().qualifier?.email ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [submitting, setSubmitting] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
