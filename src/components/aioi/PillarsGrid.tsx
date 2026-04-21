@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { PillarChip, type PillarIndex } from "./PillarChip";
 
 const PILLARS: { i: PillarIndex; name: string; blurb: string }[] = [
@@ -27,13 +28,17 @@ export function PillarsGrid() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-cream/10 border border-cream/10 rounded-lg overflow-hidden">
-          {PILLARS.map((p) => (
-            <article key={p.i} className="bg-walnut p-5 sm:p-7 hover:bg-surface-1 transition-colors group">
+          {PILLARS.map((p, i) => (
+            <article
+              key={p.i}
+              className="reveal motion-tap bg-walnut p-5 sm:p-7 hover:bg-surface-1 transition-colors group"
+              style={{ ['--i' as string]: String(i) } as CSSProperties}
+            >
               <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <PillarChip index={p.i} label="" number />
                 <span className="font-mono text-xs text-cream/30">0{p.i}</span>
               </div>
-              <h3 className="font-display text-xl sm:text-2xl text-cream leading-snug mb-3">{p.name}</h3>
+              <h3 className="font-display text-xl sm:text-2xl text-cream leading-snug mb-3 transition-colors group-hover:text-brass-bright">{p.name}</h3>
               <p className="text-sm text-cream/75 leading-relaxed">{p.blurb}</p>
             </article>
           ))}

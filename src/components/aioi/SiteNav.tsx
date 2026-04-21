@@ -53,7 +53,7 @@ export function SiteNav() {
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6 font-ui text-sm">
           {links.map((l) => (
-            <a key={l.href} href={l.href} className="text-cream/70 hover:text-cream transition-colors">
+            <a key={l.href} href={l.href} className="story-link text-cream/70 hover:text-cream transition-colors">
               {l.label}
             </a>
           ))}
@@ -61,7 +61,7 @@ export function SiteNav() {
             href="https://deepgrain.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-cream/60 hover:text-brass-bright transition-colors"
+            className="story-link inline-flex items-center gap-1 text-cream/60 hover:text-brass-bright transition-colors"
           >
             deepgrain.ai
             <ArrowUpRight className="h-3.5 w-3.5" />

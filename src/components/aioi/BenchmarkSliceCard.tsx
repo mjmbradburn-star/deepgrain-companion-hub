@@ -118,7 +118,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
 
   return (
     <TooltipProvider delayDuration={150}>
-    <section className="border border-cream/10 rounded-md bg-surface-1/40 overflow-hidden">
+    <section className="border border-cream/10 rounded-md bg-surface-1/40 overflow-hidden motion-lift">
       <header className="px-6 sm:px-8 pt-6 pb-5 border-b border-cream/10 flex items-baseline justify-between flex-wrap gap-4">
         <div>
           <p className="eyebrow text-cream/45 mb-2">Your score vs this slice</p>
