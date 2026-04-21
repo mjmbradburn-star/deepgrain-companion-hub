@@ -1,12 +1,17 @@
 // email-report-pdf
 // ─────────────────────────────────────────────────────────────────────────
 // Generates a server-side PDF of the lite AIOI report for a given slug,
-// uploads it to the public `report-pdfs` bucket, and triggers a
-// transactional email with a download link.
+// uploads it to the private `report-pdfs` bucket, mints a short-lived
+// signed URL, and triggers a transactional email with the download link.
 //
-// No auth required — slug is the secret. Anyone who knows the slug
-// can request the PDF be sent to any email address (matches the existing
-// "share by URL" model on the report page).
+// AUTHENTICATED OWNER ONLY:
+//   1. Caller must present a valid Supabase JWT (verify_jwt enforced at the
+//      edge gateway + getClaims() check below).
+//   2. The slug must resolve to a respondent whose user_id matches the
+//      authenticated user.
+//   3. The recipient email must match the authenticated user's email,
+//      preventing the function from being abused to email PDFs to
+//      arbitrary third parties.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1'
