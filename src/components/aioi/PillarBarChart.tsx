@@ -111,6 +111,8 @@ export function PillarBarChart({
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
                     aria-hidden
+                    data-gap-segment
+                    data-direction={ahead ? "ahead" : "behind"}
                     className={cn(
                       "absolute top-1/2 -translate-y-1/2 rounded-full",
                       variant === "lollipop" ? "h-[2px]" : "h-[3px]",
