@@ -127,6 +127,16 @@ export function PillarBarChart({
                     style={{ left: `${(t / MAX_TIER) * 100}%` }}
                   />
                 ))}
+                {/* Start marker — tick dot at tier 0 */}
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-cream/45"
+                />
+                {/* End marker — thicker end cap at tier 5 */}
+                <span
+                  aria-hidden
+                  className="absolute right-0 top-[-2px] bottom-[-2px] w-[2px] rounded-sm bg-cream/55"
+                />
 
                 {/* Gap segment between user mark and cohort tick.
                     In lollipop mode we replay a center-out draw whenever the
