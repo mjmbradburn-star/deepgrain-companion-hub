@@ -400,6 +400,11 @@ function PlanTab({
     );
   }
 
+  // When the user hasn't done the deep dive, only the first month is shown
+  // in the clear; months 2-3 sit behind a blur with an unlock overlay.
+  const visiblePlan = hasDeepdive ? plan : plan.slice(0, 1);
+  const lockedPlan = hasDeepdive ? [] : plan.slice(1);
+
   return (
     <section className="container max-w-6xl py-16 sm:py-20">
       <div className="max-w-3xl mb-12">
@@ -409,42 +414,63 @@ function PlanTab({
           <span className="italic text-brass-bright">next ninety days.</span>
         </h2>
         <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl">
-          Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship — sequenced so the foundations land first.
+          {hasDeepdive
+            ? "Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship — sequenced so the foundations land first."
+            : "Month 1 is unlocked from your scan. Months 2 and 3 need the deep dive — eight more questions tighten the plan enough to commit to a sequence."}
         </p>
       </div>
 
       <div className="space-y-12">
-        {plan.map((month) => (
-          <article key={month.month} className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-t border-cream/10 pt-10">
-            <aside className="lg:col-span-3">
-              <div className="flex items-baseline gap-4">
-                <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
-                  M{month.month}
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                  Month {month.month}
-                </span>
-              </div>
-            </aside>
-            <div className="lg:col-span-9 space-y-6">
-              <h3 className="font-display text-3xl sm:text-4xl text-cream leading-tight tracking-tight">
-                {month.title}
-              </h3>
-              <p className="font-display text-lg text-cream/75 leading-relaxed max-w-2xl">
-                {month.rationale}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-                {month.outcome_ids.map((id) => {
-                  const o = outcomeMap.get(id);
-                  if (!o) return null;
-                  return <OutcomeCard key={id} outcome={o} />;
-                })}
-              </div>
-            </div>
-          </article>
+        {visiblePlan.map((month) => (
+          <PlanMonthArticle key={month.month} month={month} outcomeMap={outcomeMap} />
         ))}
       </div>
+
+      {lockedPlan.length > 0 && (
+        <div className="relative mt-12">
+          <div className="space-y-12 select-none pointer-events-none blur-sm opacity-60" aria-hidden>
+            {lockedPlan.map((month) => (
+              <PlanMonthArticle key={month.month} month={month} outcomeMap={outcomeMap} />
+            ))}
+          </div>
+          <DeepDiveUnlock slug={slug} variant="overlay" />
+        </div>
+      )}
     </section>
+  );
+}
+
+function PlanMonthArticle({
+  month, outcomeMap,
+}: { month: PlanMonth; outcomeMap: Map<string, OutcomeRow> }) {
+  return (
+    <article className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-t border-cream/10 pt-10">
+      <aside className="lg:col-span-3">
+        <div className="flex items-baseline gap-4">
+          <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
+            M{month.month}
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+            Month {month.month}
+          </span>
+        </div>
+      </aside>
+      <div className="lg:col-span-9 space-y-6">
+        <h3 className="font-display text-3xl sm:text-4xl text-cream leading-tight tracking-tight">
+          {month.title}
+        </h3>
+        <p className="font-display text-lg text-cream/75 leading-relaxed max-w-2xl">
+          {month.rationale}
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+          {month.outcome_ids.map((id) => {
+            const o = outcomeMap.get(id);
+            if (!o) return null;
+            return <OutcomeCard key={id} outcome={o} />;
+          })}
+        </div>
+      </div>
+    </article>
   );
 }
 
