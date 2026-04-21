@@ -1,18 +1,23 @@
 // Horizontal bar chart for the 8 AIOI pillars.
 //
 // Replaces the radar chart in both the assessment report and benchmarks
-// page. Reasoning: a radar's polygon shape carries no analytic meaning at
-// the sizes we render on mobile, and the rotated rim labels never had
-// enough room to breathe. A horizontal bar list gives every pillar a full
-// row, full-size labels, and an obvious "you vs cohort" comparison.
+// page. A horizontal bar list gives every pillar a full row, full-size
+// labels, and an obvious "you vs cohort" comparison.
+//
+// Layout strategy:
+//   • <sm (very narrow phones): pillar name on its own line, then a
+//     full-width [track | value] sub-grid below it. Names never truncate;
+//     the value column stays the same width across all 8 rows.
+//   • ≥sm: pillar name floats to the left of the same [track | value]
+//     sub-grid via flex. The sub-grid is the SAME node in both layouts,
+//     so the right-hand value column is pixel-aligned with the axis.
 //
 // Visual grammar:
-//   • Each pillar is a row with the name on the left.
-//   • A faint 0–5 track sits behind the bar.
-//   • The user's tier renders as a brass-filled bar.
-//   • The cohort median (if present) is a single vertical tick — the gap
-//     between the bar end and the tick is the deficit/lead at a glance.
-//   • Tier value (e.g. "3.4") is printed at the right edge of the row.
+//   • Faint 0–5 track behind every bar.
+//   • User tier renders as a brass bar OR brass dot (lollipop variant).
+//   • Cohort median = vertical tick (bar) or outline dot (lollipop).
+//   • Coloured gap segment between user mark and cohort tick — brass
+//     when ahead, clay when behind — so the gap reads at a glance.
 
 import { cn } from "@/lib/utils";
 
@@ -29,9 +34,7 @@ interface PillarBarChartProps {
   showLabels?: boolean;
   /** Whether to render the numeric tier on the right edge. */
   showValues?: boolean;
-  /** Visual style. "bar" = filled brass bar (default).
-   *  "lollipop" = faint track with a single brass dot at the user's tier;
-   *  cohort median still shown as a vertical tick. More editorial, less ink. */
+  /** "bar" (default) or "lollipop" — see file header. */
   variant?: PillarChartVariant;
   className?: string;
 }
@@ -48,29 +51,39 @@ export function PillarBarChart({
   variant = "bar",
   className,
 }: PillarBarChartProps) {
+  // The [track | value] sub-grid template is identical in both the axis
+  // header and every row, so the numeric column always lines up.
+  const trackValueGrid = showValues
+    ? "grid grid-cols-[1fr_2.25rem] items-center gap-x-3"
+    : "grid grid-cols-[1fr] items-center";
+
   return (
     <div className={cn("w-full", className)} role="img" aria-label="AIOI pillar comparison">
-      {/* Top axis ticks — quiet 0..5 scale shared by every row */}
+      {/* Top axis ticks — full width on <sm, indented to match labels on ≥sm. */}
       <div className={cn(
-        "mb-3 grid items-end font-mono text-[9px] uppercase tracking-[0.18em] text-cream/35",
-        showLabels ? "grid-cols-[minmax(80px,28%)_1fr_minmax(28px,auto)] sm:grid-cols-[minmax(110px,22%)_1fr_minmax(32px,auto)]" : "grid-cols-[1fr_minmax(28px,auto)]",
+        "mb-3 flex items-end gap-x-3",
+        // ≥sm: reserve a label-column-width gutter on the left so the
+        // axis ticks align horizontally with the rows' tracks.
+        showLabels && "sm:[&>.axis-spacer]:basis-[max(110px,22%)] sm:[&>.axis-spacer]:shrink-0",
       )}>
-        {showLabels && <div />}
-        <div className="relative h-3">
-          {[0, 1, 2, 3, 4, 5].map((t) => (
-            <span
-              key={t}
-              className="absolute top-0 -translate-x-1/2 tabular-nums"
-              style={{ left: `${(t / MAX_TIER) * 100}%` }}
-            >
-              {t}
-            </span>
-          ))}
+        {showLabels && <div className="axis-spacer hidden sm:block" aria-hidden />}
+        <div className={cn("flex-1 font-mono text-[9px] uppercase tracking-[0.18em] text-cream/35", trackValueGrid)}>
+          <div className="relative h-3">
+            {[0, 1, 2, 3, 4, 5].map((t) => (
+              <span
+                key={t}
+                className="absolute top-0 -translate-x-1/2 tabular-nums"
+                style={{ left: `${(t / MAX_TIER) * 100}%` }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+          {showValues && <div />}
         </div>
-        {showValues && <div />}
       </div>
 
-      <ul className="space-y-2.5">
+      <ul className="space-y-3 sm:space-y-2.5">
         {PILLAR_INDICES.map((i) => {
           const userTier = clamp(values[i] ?? 0);
           const cohortTier = cohort && cohort[i] != null ? clamp(cohort[i]) : null;
@@ -78,25 +91,8 @@ export function PillarBarChart({
           const cohortPct = cohortTier != null ? (cohortTier / MAX_TIER) * 100 : null;
           const ahead = cohortTier != null && userTier >= cohortTier;
 
-          return (
-            <li
-              key={i}
-              className={cn(
-                "grid items-center gap-x-3",
-                showLabels
-                  ? "grid-cols-[minmax(80px,28%)_1fr_minmax(28px,auto)] sm:grid-cols-[minmax(110px,22%)_1fr_minmax(32px,auto)]"
-                  : "grid-cols-[1fr_minmax(28px,auto)]",
-              )}
-            >
-              {showLabels && (
-                <div className="min-w-0">
-                  <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-cream/75 truncate">
-                    {labels[i] ?? `Pillar ${i}`}
-                  </p>
-                </div>
-              )}
-
-              {/* Track + bar + cohort tick */}
+          const trackAndValue = (
+            <div className={cn("flex-1 min-w-0", trackValueGrid)}>
               <div className="relative h-3 sm:h-3.5">
                 {/* Track */}
                 <div className="absolute inset-0 rounded-sm bg-cream/[0.06]" />
@@ -110,9 +106,7 @@ export function PillarBarChart({
                   />
                 ))}
 
-                {/* Gap segment — coloured strip between cohort tick and the
-                    user mark, so the deficit/lead is legible at a glance.
-                    Brass when ahead, clay when behind. */}
+                {/* Gap segment between user mark and cohort tick */}
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
                     aria-hidden
@@ -127,7 +121,7 @@ export function PillarBarChart({
                   />
                 )}
 
-                {/* User mark — bar fill OR lollipop dot */}
+                {/* User mark */}
                 {variant === "bar" ? (
                   <div
                     className={cn(
@@ -147,9 +141,7 @@ export function PillarBarChart({
                   />
                 )}
 
-                {/* Cohort median — taller vertical tick (bar variant) or
-                    outline dot (lollipop variant). Same data, glyph picked
-                    to rhyme with the user mark in each style. */}
+                {/* Cohort median */}
                 {cohortPct != null && (
                   variant === "bar" ? (
                     <span
@@ -178,6 +170,26 @@ export function PillarBarChart({
                   {userTier.toFixed(1)}
                 </p>
               )}
+            </div>
+          );
+
+          if (!showLabels) {
+            return <li key={i} className="flex items-center">{trackAndValue}</li>;
+          }
+
+          return (
+            <li
+              key={i}
+              // <sm: stack (block flex-col). ≥sm: row (flex). The label
+              // gets a fixed basis on ≥sm so columns line up across rows.
+              className="flex flex-col gap-y-1 sm:flex-row sm:items-center sm:gap-x-3 sm:gap-y-0"
+            >
+              <div className="min-w-0 sm:basis-[max(110px,22%)] sm:shrink-0">
+                <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-cream/75 break-words">
+                  {labels[i] ?? `Pillar ${i}`}
+                </p>
+              </div>
+              {trackAndValue}
             </li>
           );
         })}
