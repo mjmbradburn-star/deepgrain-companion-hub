@@ -5,6 +5,7 @@ import { MaturityLadder } from "@/components/aioi/MaturityLadder";
 import { ThreeLevels } from "@/components/aioi/ThreeLevels";
 import { BenchmarkCounter } from "@/components/aioi/BenchmarkCounter";
 import { StudioSection } from "@/components/aioi/StudioSection";
+import { FounderBio } from "@/components/aioi/FounderBio";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { Reveal } from "@/components/aioi/Reveal";
 
@@ -18,6 +19,7 @@ const Index = () => {
       <Reveal index={0}><ThreeLevels /></Reveal>
       <Reveal index={1}><BenchmarkCounter /></Reveal>
       <Reveal index={0}><StudioSection /></Reveal>
+      <Reveal index={1}><FounderBio /></Reveal>
       <SiteFooter />
     </main>
   );
