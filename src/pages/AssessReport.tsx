@@ -379,6 +379,8 @@ function OverviewTab({
         />
       </div>
     </section>
+    {!hasDeepdive && <DeepDiveUnlock slug={slug} variant="card" />}
+    </>
   );
 }
 
