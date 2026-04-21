@@ -16,6 +16,8 @@
 
 import { cn } from "@/lib/utils";
 
+export type PillarChartVariant = "bar" | "lollipop";
+
 interface PillarBarChartProps {
   /** Pillar index (1..8) → tier 0..5 */
   values: Record<number, number>;
@@ -27,6 +29,10 @@ interface PillarBarChartProps {
   showLabels?: boolean;
   /** Whether to render the numeric tier on the right edge. */
   showValues?: boolean;
+  /** Visual style. "bar" = filled brass bar (default).
+   *  "lollipop" = faint track with a single brass dot at the user's tier;
+   *  cohort median still shown as a vertical tick. More editorial, less ink. */
+  variant?: PillarChartVariant;
   className?: string;
 }
 
@@ -39,6 +45,7 @@ export function PillarBarChart({
   labels,
   showLabels = true,
   showValues = true,
+  variant = "bar",
   className,
 }: PillarBarChartProps) {
   return (
@@ -102,14 +109,34 @@ export function PillarBarChart({
                     style={{ left: `${(t / MAX_TIER) * 100}%` }}
                   />
                 ))}
-                {/* User bar */}
-                <div
-                  className={cn(
-                    "absolute inset-y-0 left-0 rounded-sm",
-                    ahead ? "bg-brass-bright" : "bg-brass-bright/85",
-                  )}
-                  style={{ width: `${Math.max(userPct, 1.5)}%` }}
-                />
+                {/* User mark — bar fill OR lollipop dot */}
+                {variant === "bar" ? (
+                  <div
+                    className={cn(
+                      "absolute inset-y-0 left-0 rounded-sm",
+                      ahead ? "bg-brass-bright" : "bg-brass-bright/85",
+                    )}
+                    style={{ width: `${Math.max(userPct, 1.5)}%` }}
+                  />
+                ) : (
+                  <>
+                    {/* Faint connector from origin to the user's tier */}
+                    <span
+                      aria-hidden
+                      className="absolute top-1/2 left-0 h-px -translate-y-1/2 bg-brass-bright/35"
+                      style={{ width: `${userPct}%` }}
+                    />
+                    {/* User dot */}
+                    <span
+                      aria-label={`You: ${userTier.toFixed(1)}`}
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_2px_hsl(var(--walnut))]",
+                        "h-2.5 w-2.5 sm:h-3 sm:w-3",
+                      )}
+                      style={{ left: `${userPct}%` }}
+                    />
+                  </>
+                )}
                 {/* Cohort median tick */}
                 {cohortPct != null && (
                   <span

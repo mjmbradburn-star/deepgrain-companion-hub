@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { PillarBarChart } from "@/components/aioi/PillarBarChart";
+import { PillarChartVariantToggle, usePillarChartVariant } from "@/components/aioi/PillarChartVariantToggle";
 import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { loadScan } from "@/lib/quickscan";
@@ -315,6 +316,7 @@ function RadarTile({
 export default function Benchmarks() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartVariant, setChartVariant] = usePillarChartVariant();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -655,12 +657,18 @@ export default function Benchmarks() {
           </div>
 
           <div className="lg:col-span-7 w-full">
+            {view && (
+              <div className="mb-3 flex justify-end">
+                <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
+              </div>
+            )}
             {view ? (
               <div className="w-full max-w-[640px] mx-auto">
                 <PillarBarChart
                   values={view.pillars}
                   cohort={cohort?.pillars}
                   labels={PILLAR_LABELS}
+                  variant={chartVariant}
                 />
               </div>
             ) : (
