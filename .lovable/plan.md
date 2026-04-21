@@ -1,34 +1,32 @@
 
 
-## Verify and fix bottom spacing around "See the eight pillars" prompt
+## Tighten standfirst animation spacing on mobile
 
-### Where this lives
+### Problem
 
-The "See the eight pillars" prompt sits at the bottom of the `BenchmarkCounter` section on the home page (`src/components/aioi/BenchmarkCounter.tsx`), which is rendered between `ThreeLevels` and `WhyDeepgrain` on `src/pages/Index.tsx`.
+On mobile, the Hero standfirst paragraph and CTA cluster (which contains the "See the eight pillars" link) both use `animate-fade-up` with staggered delays (200ms, 320ms). The keyframe starts at `translateY(12px)` and the cluster also has `gap-6` plus `mt-8` and `pb-6` on the parent. During the staggered entrance the elements visibly drop into place from below, which on a short mobile viewport reads as extra empty space sitting above the "See the eight pillars" prompt before the layout settles. Combined with the parent's `mt-8` push-down, the bottom of the hero feels loose on phones.
 
-### What to check
+### Fix
 
-1. Read `BenchmarkCounter.tsx` and confirm the bottom padding/margin currently applied to the section and to the inner prompt link.
-2. Read the parent `Index.tsx` to see if any wrapping container adds extra `py-*` / `space-y-*` that compounds with the section's own bottom padding.
-3. Compare against the standard `section-y` utility used elsewhere (Hero, PillarsGrid, ThreeLevels, WhyDeepgrain) so the rhythm matches the rest of the page.
-4. Verify at 375px, 768px, and 1280px in the preview that the gap below the prompt before the next section feels identical to the gap above it (symmetric breathing room) and matches the gap between other adjacent sections.
+Single file: `src/components/aioi/Hero.tsx`, the standfirst + CTA block (lines 47–72).
 
-### Likely fix
+1. **Reduce mobile vertical padding/gaps** on the standfirst container so the CTA cluster (and the "See the eight pillars" link inside it) sits tighter against the headline on small screens, matching the snug rhythm desktop already gets via `mt-auto`:
+   - `mt-8 sm:mt-auto` → `mt-6 sm:mt-auto`
+   - `pb-6 sm:pb-28` → `pb-8 sm:pb-28` (gives the link a touch more breathing room from the viewport edge but pulls the block up overall)
+   - `gap-6 sm:gap-8` → `gap-4 sm:gap-8` (mobile only — desktop unchanged)
+   - Inner CTA cluster `gap-4 sm:gap-6` → `gap-3 sm:gap-6`
 
-Most often this kind of asymmetry comes from one of three things, and the fix is whichever applies:
+2. **Stop the fade-up translate from reading as "extra height"** on mobile by:
+   - Replacing `animate-fade-up` on the standfirst `<p>` (line 49) and CTA cluster `<div>` (line 55) with `animate-fade-in` on mobile, keeping `animate-fade-up` from `sm:` upward. Use responsive variants: `animate-fade-in sm:animate-fade-up`. Result: on phones the elements simply fade in place with no vertical drop, removing the transient gap; desktop keeps the editorial fade-up motion.
+   - Keep the staggered `[animation-delay:200ms]` / `[animation-delay:320ms]` — they work for both keyframes.
 
-- **Prompt link has its own `mt-*` plus the section already uses `section-y`** → remove the redundant top margin or normalise to the standard rhythm.
-- **Section uses `pb-*` smaller than its `pt-*`** → switch to `section-y` (or matching `pt`/`pb`) so top and bottom are equal.
-- **Parent in `Index.tsx` adds `space-y-*` on top of per-section padding** → drop the parent gap and rely on each section's own padding.
-
-I'll pick the minimum change that gives a consistent gap on mobile and desktop without disturbing the surrounding sections.
+3. **No changes to** the headline animation, the hairline rule, the masthead, or the desktop layout.
 
 ### Verification
 
-Screenshot `/` at 375 / 768 / 1280, eyeball the gap above and below the prompt, and confirm it matches the gap between `ThreeLevels` → `BenchmarkCounter` and `BenchmarkCounter` → `WhyDeepgrain`.
+Load `/` at 375px and 390px, watch the Hero settle — the "See the eight pillars" link should appear in its final position immediately, with no perceptible upward drift, and the gap below the CTA cluster should feel tighter than the current build. Re-check at 768px and 1280px to confirm desktop is visually unchanged.
 
-### Files likely touched
+### Files touched
 
-- `src/components/aioi/BenchmarkCounter.tsx` (most likely, one or two class changes)
-- `src/pages/Index.tsx` (only if a parent wrapper is the culprit)
+- `src/components/aioi/Hero.tsx` (lines 47–72 only)
 
