@@ -189,7 +189,7 @@ export default function AssessStart() {
           <Step
             key="region"
             heading={<>Where in the world are you <span className="italic text-brass-bright">based?</span></>}
-            sub="So we can place you on the regional benchmark — adoption looks very different across geographies."
+            sub="So we can place you on the regional benchmark. Adoption looks very different across geographies."
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {REGIONS.map((opt, i) => (
@@ -329,7 +329,7 @@ function EmailScreen({
   return (
     <Step
       heading={<>Where should the <span className="italic text-brass-bright">report land?</span></>}
-      sub="One email. We'll send a magic link right now so you can sign in while you answer — your results page is waiting on the other side."
+      sub="One email. We'll send a magic link right now so you can sign in while you answer. Your results page is waiting on the other side."
     >
       <form onSubmit={handle} className="space-y-6 max-w-lg">
         <div>
@@ -360,7 +360,7 @@ function EmailScreen({
             id="consent-marketing"
             checked={consentMarketing}
             onChange={setMkt}
-            label="Send me Deepgrain's occasional notes — no more than once a fortnight."
+            label="Send me Deepgrain's occasional notes. No more than once a fortnight."
           />
         </div>
 

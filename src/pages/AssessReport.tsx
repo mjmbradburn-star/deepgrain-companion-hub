@@ -406,7 +406,7 @@ function PlanTab({
     return (
       <section className="container max-w-3xl py-20">
         <p className="font-display text-xl text-cream/70">
-          No plan generated yet. Try refreshing — the engine may still be drafting it.
+          No plan generated yet. Try refreshing. The engine may still be drafting it.
         </p>
       </section>
     );
@@ -427,8 +427,8 @@ function PlanTab({
         </h2>
         <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl">
           {hasDeepdive
-            ? "Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship — sequenced so the foundations land first."
-            : "Month 1 is unlocked from your scan. Months 2 and 3 need the deep dive — eight more questions tighten the plan enough to commit to a sequence."}
+            ? "Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship, sequenced so the foundations land first."
+            : "Month 1 is unlocked from your scan. Months 2 and 3 need the deep dive. Eight more questions tighten the plan enough to commit to a sequence."}
         </p>
       </div>
 
@@ -798,7 +798,7 @@ function InviteTab({ respondentId, slug }: { respondentId: string; slug: string 
       });
       toast({
         title: `Invites recorded for ${list.length} ${list.length === 1 ? "person" : "people"}`,
-        description: "Outbound delivery via Lovable Emails arrives in the next phase — for now your colleagues should hit the link directly.",
+        description: "Outbound delivery via Lovable Emails arrives in the next phase. For now your colleagues should hit the link directly.",
       });
       setEmails("");
       setNote("");
@@ -998,7 +998,7 @@ function EmailPdfButton({ slug }: { slug: string }) {
       if (recoverablePdfUrl) {
         setPdfUrl(recoverablePdfUrl);
         toast({
-          title: "PDF ready — direct link below",
+          title: "PDF ready · direct link below",
           description:
             data?.error ??
             "We generated the PDF but couldn't queue the email. Use the download link in the popover.",

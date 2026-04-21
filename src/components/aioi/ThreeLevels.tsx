@@ -4,14 +4,14 @@ const LEVELS = [
   {
     tag: "Company",
     title: "The whole organisation.",
-    body: "For founders, COOs and chief-of-staff. A board-ready read on AI debt across every function — and where to spend the next quarter.",
+    body: "For founders, COOs and chief-of-staff. A board-ready read on AI debt across every function, and where to spend the next quarter.",
     time: "~22 min",
     audience: "Exec / Board",
   },
   {
     tag: "Function",
     title: "One team, deeply.",
-    body: "For function leads — product, marketing, ops, finance, legal. Diagnoses the workflow you actually run, with interventions sized for your headcount.",
+    body: "For function leads: product, marketing, ops, finance, legal. Diagnoses the workflow you actually run, with interventions sized for your headcount.",
     time: "~18 min",
     audience: "Function lead",
   },

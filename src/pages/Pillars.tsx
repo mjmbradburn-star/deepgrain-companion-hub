@@ -269,7 +269,7 @@ export default function Pillars() {
         <div className="container max-w-4xl py-16 sm:py-24 text-center">
           <p className="eyebrow mb-5">Now, the diagnostic</p>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight">
-            Twelve questions.<br />
+            Eight questions.<br />
             <span className="italic text-brass-bright">A score you can argue with.</span>
           </h2>
           <a

@@ -13,7 +13,7 @@ export function WhyDeepgrain() {
         </div>
         <div className="lg:col-span-6 lg:col-start-7 space-y-5 sm:space-y-6 font-display text-lg sm:text-xl text-cream/75 leading-snug">
           <p>
-            Deepgrain is a small studio for companies that have decided AI is not a feature. We work with founders and exec teams to redesign how the work actually gets done — function by function, workflow by workflow.
+            Deepgrain is a small studio for companies that have decided AI is not a feature. We work with founders and exec teams to redesign how the work actually gets done. Function by function, workflow by workflow.
           </p>
           <p className="text-cream/60">
             AIOI is the front door. Score yourself, see where you sit against everyone else, and know exactly which two pillars to fix next quarter.

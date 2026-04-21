@@ -33,7 +33,7 @@ const UNLOCKS: Unlock[] = [
   },
   {
     title: "Per-pillar diagnoses",
-    detail: "A written read on each of the eight pillars — not just the top three hotspots.",
+    detail: "A written read on each of the eight pillars, not just the top three hotspots.",
   },
   {
     title: "Tighter benchmark match",
@@ -88,7 +88,7 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
       </h2>
 
       <p className={`mt-5 font-display text-cream/65 max-w-2xl ${compact ? "text-base" : "text-lg"}`}>
-        You answered one question per pillar. Eight more — one per pillar — sharpens the score, opens the
+        You answered one question per pillar. Eight more, one per pillar, sharpens the score, opens the
         full 90-day plan, and writes a diagnosis for each pillar instead of just the three hotspots.
       </p>
 

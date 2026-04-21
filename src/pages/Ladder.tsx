@@ -131,7 +131,7 @@ export default function Ladder() {
             <span className="italic font-normal text-brass-bright">Climb the one in front of you.</span>
           </h1>
           <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug">
-            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually the more interesting number than the average.
+            Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually a more interesting number than the average.
           </p>
         </div>
       </section>
@@ -198,7 +198,7 @@ export default function Ladder() {
                       {String(t.index).padStart(2, "0")}
                     </span>
                     <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
-                      Tier {t.index} of 5
+                      Rung {t.index + 1} of 6
                     </span>
                   </div>
                   <TierBadge tier={t.tier} showIndex={false} />
