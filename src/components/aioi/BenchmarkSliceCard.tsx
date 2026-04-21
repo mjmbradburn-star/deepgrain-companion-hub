@@ -246,11 +246,13 @@ function Stat({
   value,
   accent,
   tone = "neutral",
+  hint,
 }: {
   label: string;
   value: number | string;
   accent?: boolean;
   tone?: "neutral" | "ahead" | "behind";
+  hint?: string;
 }) {
   const colour =
     tone === "ahead"
@@ -260,11 +262,29 @@ function Stat({
       : accent
       ? "text-brass-bright"
       : "text-cream";
+  const labelEl = hint ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-2 inline-flex items-center gap-1 hover:text-cream/70 focus:text-cream/70 focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/60 rounded cursor-help"
+        >
+          <span>{label}</span>
+          <span aria-hidden className="text-cream/30">(?)</span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top" align="start" className="max-w-xs text-xs leading-snug">
+        {hint}
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-2">
+      {label}
+    </p>
+  );
   return (
     <div>
-      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40 mb-2">
-        {label}
-      </p>
+      {labelEl}
       <p className={`font-display font-light text-4xl sm:text-5xl tracking-tight tabular-nums ${colour}`}>
         {value}
       </p>
