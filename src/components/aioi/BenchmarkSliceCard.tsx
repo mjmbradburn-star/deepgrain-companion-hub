@@ -91,7 +91,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         name: PILLAR_NAMES[p as 1|2|3|4|5|6|7|8],
         user,
         cohort,
-        delta: Math.round((user - cohort) * 10) / 10,
+        delta: computePillarDelta(user, cohort),
       };
     }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
     // cohortPillars is derived from `slice` — the slice ref is the real dep.
