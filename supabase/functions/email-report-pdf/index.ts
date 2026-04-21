@@ -10,6 +10,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1'
+import { sendTransactionalEmailViaFetch } from './email-handoff.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -111,28 +112,25 @@ Deno.serve(async (req) => {
     const idempotencyKey = `report-pdf-${slug}-${email}`
     let sendErr: { message: string; status?: number; body?: string } | null = null
     try {
-      const sendRes = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
+      const sendRes = await sendTransactionalEmailViaFetch({
+        supabaseUrl: SUPABASE_URL,
+        serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
+        templateName: 'report-pdf-ready',
+        recipientEmail: email,
+        idempotencyKey,
+        templateData: {
+          score: payload.report.aioi_score,
+          tier: payload.report.overall_tier,
+          pdfUrl,
+          reportUrl,
         },
-        body: JSON.stringify({
-          templateName: 'report-pdf-ready',
-          recipientEmail: email,
-          idempotencyKey,
-          templateData: {
-            score: payload.report.aioi_score,
-            tier: payload.report.overall_tier,
-            pdfUrl,
-            reportUrl,
-          },
-        }),
       })
       if (!sendRes.ok) {
-        const text = await sendRes.text().catch(() => '')
-        sendErr = { message: `send-transactional-email ${sendRes.status}`, status: sendRes.status, body: text }
+        sendErr = {
+          message: `send-transactional-email ${sendRes.status}`,
+          status: sendRes.status,
+          body: sendRes.errorBody,
+        }
       }
     } catch (e) {
       sendErr = { message: e instanceof Error ? e.message : 'fetch failed' }
