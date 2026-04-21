@@ -19,6 +19,7 @@ import Benchmarks from "./pages/Benchmarks.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import MyReports from "./pages/MyReports.tsx";
+import DevHeroCta from "./pages/DevHeroCta.tsx";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/reports" element={<MyReports />} />
+          {import.meta.env.DEV && <Route path="/dev/hero-cta" element={<DevHeroCta />} />}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
