@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Loader2, Mail, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { loadDraft, getQuestions } from "@/lib/assessment";
-import { ensureRespondent, flushAnswers } from "@/lib/sync";
+import { ensureRespondent, flushAnswers, sendMagicLink, SyncError } from "@/lib/sync";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
