@@ -145,7 +145,7 @@ export default function Pillars() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(var(--brass)/0.08),_transparent_60%)]" aria-hidden />
         <div className="container relative max-w-5xl">
           <p className="eyebrow mb-6">The Eight Pillars</p>
-          <h1 className="font-display font-light text-[clamp(2.25rem,8vw,6.5rem)] leading-[0.92] tracking-[-0.03em] text-cream max-w-[14ch] text-balance">
+          <h1 className="font-display font-light headline-xl text-cream max-w-[14ch] text-balance">
             Eight axes.<br />
             <span className="italic font-normal text-brass-bright">One operating picture.</span>
           </h1>

@@ -488,7 +488,7 @@ export default function Benchmarks() {
       <section className="pt-24 sm:pt-32 pb-10 sm:pb-12 border-b border-cream/10">
         <div className="container">
           <p className="eyebrow text-cream/55 mb-4 sm:mb-5">Volume I — Benchmarks</p>
-          <h1 className="font-display font-light text-[clamp(2.25rem,7vw,5rem)] leading-[0.95] tracking-[-0.025em] text-balance max-w-[18ch]">
+          <h1 className="font-display font-light headline-lg text-balance max-w-[18ch]">
             Where the field <span className="italic text-brass-bright">actually stands.</span>
           </h1>
           <p className="mt-5 sm:mt-6 max-w-2xl font-display text-base sm:text-lg text-cream/70 leading-[1.5] text-pretty">

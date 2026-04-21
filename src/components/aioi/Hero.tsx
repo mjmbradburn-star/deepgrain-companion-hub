@@ -37,7 +37,7 @@ export function Hero() {
       {/* Headline block */}
       <div className="container relative z-10 pt-10 sm:pt-16">
         <p className="eyebrow mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
-        <h1 className="font-display font-light text-[clamp(2.5rem,11vw,9rem)] leading-[0.88] tracking-[-0.035em] text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up">
+        <h1 className="font-display font-light headline-xl text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up">
           Measure your<br />
           <span className="italic font-normal text-brass">AI debt.</span>
         </h1>
