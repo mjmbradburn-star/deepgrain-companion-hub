@@ -37,7 +37,20 @@ export default function AssessScan() {
   const [fn, setFn] = useState<BusinessFunction | undefined>(initialScan.function);
   const [region, setRegion] = useState<Region | undefined>(initialScan.region as Region | undefined);
   const [answers, setAnswers] = useState<Record<string, number>>(initialScan.answers ?? {});
-  const [step, setStep] = useState(1);
+  // Resume at the first unanswered question if a draft exists. We compute the
+  // initial step against the question list for the level + function we just
+  // restored, so a refresh mid-scan drops the user back exactly where they left.
+  const [step, setStep] = useState(() => {
+    const initialQs = getQuickscanQuestions(
+      level,
+      level === "function" ? initialScan.function : undefined,
+    );
+    const restored = initialScan.answers ?? {};
+    const firstUnanswered = initialQs.findIndex((q) => restored[q.id] === undefined);
+    if (firstUnanswered === -1) return Math.max(1, initialQs.length);
+    return firstUnanswered + 1;
+  });
+  const [resumed] = useState(() => Object.keys(initialScan.answers ?? {}).length > 0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -285,6 +298,32 @@ export default function AssessScan() {
                   ))}
                 </select>
               </label>
+            </div>
+          )}
+
+          {/* Resume banner — shown above the question whenever there's a
+              restored draft, on every step until the user starts over or
+              completes the scan. */}
+          {resumed && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-brass/30 bg-brass/5 px-4 py-2.5">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright/85">
+                Picked up where you left off · {Object.keys(answers).length} of {questions.length} answered
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined" && !window.confirm("Clear your saved answers and start the scan over?")) return;
+                  clearScan();
+                  setAnswers({});
+                  setFn(undefined);
+                  setRegion(undefined);
+                  setStep(1);
+                  setDirection("forward");
+                }}
+                className="font-ui text-[11px] uppercase tracking-[0.16em] text-cream/55 hover:text-cream"
+              >
+                Start over
+              </button>
             </div>
           )}
 
