@@ -6,9 +6,11 @@
 //
 // Layout strategy:
 //   • <sm (very narrow phones): pillar name on its own line, then a
-//     full-width track row with a fixed value column. Names never
-//     truncate; tier values line up in a perfect right-hand column.
-//   • ≥sm: side-by-side grid (label · track · value).
+//     full-width [track | value] sub-grid below it. Names never truncate;
+//     the value column stays the same width across all 8 rows.
+//   • ≥sm: pillar name floats to the left of the same [track | value]
+//     sub-grid via flex. The sub-grid is the SAME node in both layouts,
+//     so the right-hand value column is pixel-aligned with the axis.
 //
 // Visual grammar:
 //   • Faint 0–5 track behind every bar.
@@ -40,11 +42,6 @@ interface PillarBarChartProps {
 const PILLAR_INDICES = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 const MAX_TIER = 5;
 
-// Single source of truth for the value column width — used by axis ticks
-// and by every row, in both the stacked (<sm) and side-by-side (≥sm)
-// layouts. Change here = change everywhere; numbers stay aligned.
-const VALUE_COL = "2.25rem";
-
 export function PillarBarChart({
   values,
   cohort,
@@ -54,40 +51,36 @@ export function PillarBarChart({
   variant = "bar",
   className,
 }: PillarBarChartProps) {
-  // Grid templates. Building them once keeps the markup readable.
-  const trackRowGrid = showValues
-    ? `grid-cols-[1fr_${VALUE_COL}] gap-x-3 items-center`
-    : "grid-cols-[1fr] items-center";
-  const sideBySideGrid = showLabels
-    ? showValues
-      ? `sm:grid-cols-[minmax(110px,22%)_1fr_${VALUE_COL}] sm:gap-x-3 sm:items-center`
-      : "sm:grid-cols-[minmax(110px,22%)_1fr] sm:gap-x-3 sm:items-center"
-    : "";
+  // The [track | value] sub-grid template is identical in both the axis
+  // header and every row, so the numeric column always lines up.
+  const trackValueGrid = showValues
+    ? "grid grid-cols-[1fr_2.25rem] items-center gap-x-3"
+    : "grid grid-cols-[1fr] items-center";
 
   return (
     <div className={cn("w-full", className)} role="img" aria-label="AIOI pillar comparison">
-      {/* Top axis ticks — share the row grid so 0..5 marks line up with bars. */}
-      <div
-        className={cn(
-          "mb-3 grid items-end font-mono text-[9px] uppercase tracking-[0.18em] text-cream/35",
-          trackRowGrid,
-          showLabels && showValues && `sm:grid-cols-[minmax(110px,22%)_1fr_${VALUE_COL}]`,
-          showLabels && !showValues && "sm:grid-cols-[minmax(110px,22%)_1fr]",
-        )}
-      >
-        {showLabels && <div className="hidden sm:block" />}
-        <div className="relative h-3">
-          {[0, 1, 2, 3, 4, 5].map((t) => (
-            <span
-              key={t}
-              className="absolute top-0 -translate-x-1/2 tabular-nums"
-              style={{ left: `${(t / MAX_TIER) * 100}%` }}
-            >
-              {t}
-            </span>
-          ))}
+      {/* Top axis ticks — full width on <sm, indented to match labels on ≥sm. */}
+      <div className={cn(
+        "mb-3 flex items-end gap-x-3",
+        // ≥sm: reserve a label-column-width gutter on the left so the
+        // axis ticks align horizontally with the rows' tracks.
+        showLabels && "sm:[&>.axis-spacer]:basis-[max(110px,22%)] sm:[&>.axis-spacer]:shrink-0",
+      )}>
+        {showLabels && <div className="axis-spacer hidden sm:block" aria-hidden />}
+        <div className={cn("flex-1 font-mono text-[9px] uppercase tracking-[0.18em] text-cream/35", trackValueGrid)}>
+          <div className="relative h-3">
+            {[0, 1, 2, 3, 4, 5].map((t) => (
+              <span
+                key={t}
+                className="absolute top-0 -translate-x-1/2 tabular-nums"
+                style={{ left: `${(t / MAX_TIER) * 100}%` }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+          {showValues && <div />}
         </div>
-        {showValues && <div />}
       </div>
 
       <ul className="space-y-3 sm:space-y-2.5">
@@ -98,10 +91,8 @@ export function PillarBarChart({
           const cohortPct = cohortTier != null ? (cohortTier / MAX_TIER) * 100 : null;
           const ahead = cohortTier != null && userTier >= cohortTier;
 
-          // Track + value sub-grid — same widths as the axis above so the
-          // tier numbers form a clean right-hand column at every breakpoint.
           const trackAndValue = (
-            <div className={cn("grid", trackRowGrid)}>
+            <div className={cn("flex-1 min-w-0", trackValueGrid)}>
               <div className="relative h-3 sm:h-3.5">
                 {/* Track */}
                 <div className="absolute inset-0 rounded-sm bg-cream/[0.06]" />
@@ -115,7 +106,7 @@ export function PillarBarChart({
                   />
                 ))}
 
-                {/* Gap segment between user mark and cohort tick. */}
+                {/* Gap segment between user mark and cohort tick */}
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
                     aria-hidden
@@ -182,27 +173,23 @@ export function PillarBarChart({
             </div>
           );
 
-          // <sm: pillar name stacks above the track row.
-          // ≥sm: name, track, value live in a single 3-column grid.
-          // We swap layouts via Tailwind's display utilities; the
-          // trackAndValue sub-grid is preserved on mobile and unwrapped
-          // (display:contents) on ≥sm so the columns line up with the label.
           if (!showLabels) {
-            return <li key={i}>{trackAndValue}</li>;
+            return <li key={i} className="flex items-center">{trackAndValue}</li>;
           }
 
           return (
-            <li key={i} className={cn("block sm:grid", sideBySideGrid)}>
-              <div className="min-w-0 mb-1 sm:mb-0">
+            <li
+              key={i}
+              // <sm: stack (block flex-col). ≥sm: row (flex). The label
+              // gets a fixed basis on ≥sm so columns line up across rows.
+              className="flex flex-col gap-y-1 sm:flex-row sm:items-center sm:gap-x-3 sm:gap-y-0"
+            >
+              <div className="min-w-0 sm:basis-[max(110px,22%)] sm:shrink-0">
                 <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-cream/75 break-words">
                   {labels[i] ?? `Pillar ${i}`}
                 </p>
               </div>
-              {/* On ≥sm, dissolve the inner sub-grid so its two children
-                  (track + value) become direct children of the outer
-                  3-column grid, keeping the numeric column aligned with
-                  the axis ticks above. */}
-              <div className="contents sm:contents">{trackAndValue}</div>
+              {trackAndValue}
             </li>
           );
         })}
