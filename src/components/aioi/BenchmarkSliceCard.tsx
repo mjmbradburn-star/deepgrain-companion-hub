@@ -212,13 +212,12 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
                       : "text-cream/45"
                   }`}
                 >
-                  {d.delta > 0 ? "+" : ""}
-                  {d.delta.toFixed(1)}
+                  {formatPillarDelta(d.delta)}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="left" align="center" className="max-w-xs text-xs leading-snug">
-                You vs cohort median for {d.name}, in tier points (0–5 scale, rounded to 1 decimal).
-                You: {d.user.toFixed(1)} · Cohort: {d.cohort.toFixed(1)}.
+                You vs cohort median for {d.name}: {formatPillarDelta(d.delta)} tier points
+                (0–5 scale, rounded to 1 decimal). You: {formatTier(d.user)} · Cohort: {formatTier(d.cohort)}.
               </TooltipContent>
             </Tooltip>
           </li>
