@@ -18,22 +18,22 @@ export function BenchmarkCounter() {
   }, []);
 
   return (
-    <section className="relative section-y border-t border-b border-cream/10 bg-green-deep/40">
+    <section className="relative section-y border-t border-b border-brass/20" style={{ backgroundColor: 'hsl(150 55% 8%)' }}>
       <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-4">
         <div>
-          <p className="eyebrow mb-3">Live benchmark</p>
-          <p className="font-display text-5xl sm:text-6xl text-cream tabular-nums">{count.toLocaleString()}</p>
-          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">assessments completed</p>
+          <p className="font-ui uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[11px] sm:text-xs text-brass-bright mb-3">Live benchmark</p>
+          <p className="font-display text-5xl sm:text-6xl text-brass-bright tabular-nums">{count.toLocaleString()}</p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-brass/80">assessments completed</p>
         </div>
         <div>
-          <p className="eyebrow mb-3">Median AIOI</p>
-          <p className="font-display text-5xl sm:text-6xl text-brass-bright tabular-nums">{score}<span className="text-cream/30 text-2xl sm:text-3xl ml-1">/100</span></p>
-          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">Most companies are <span className="text-cream/80">Reactive</span>.</p>
+          <p className="font-ui uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[11px] sm:text-xs text-brass-bright mb-3">Median AIOI</p>
+          <p className="font-display text-5xl sm:text-6xl text-brass-bright tabular-nums">{score}<span className="text-brass/50 text-2xl sm:text-3xl ml-1">/100</span></p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-brass/80">Most companies are <span className="text-brass-bright">Reactive</span>.</p>
         </div>
         <div>
-          <p className="eyebrow mb-3">Most painful pillar</p>
-          <p className="font-display text-5xl sm:text-6xl text-cream">P2</p>
-          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">Data Foundations. By a long way.</p>
+          <p className="font-ui uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[11px] sm:text-xs text-brass-bright mb-3">Most painful pillar</p>
+          <p className="font-display text-5xl sm:text-6xl text-brass-bright">P2</p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-brass/80">Data Foundations. By a long way.</p>
         </div>
       </div>
     </section>
