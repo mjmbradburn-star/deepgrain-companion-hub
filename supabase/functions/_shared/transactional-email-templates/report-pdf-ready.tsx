@@ -20,9 +20,9 @@ interface ReportPdfReadyProps {
   score?: number
   /** Tier label, e.g. "Operational" */
   tier?: string
-  /** Public URL to the hosted PDF */
+  /** Short-lived signed URL to the PDF in the private report-pdfs bucket. */
   pdfUrl?: string
-  /** Public URL back to the live report */
+  /** Canonical app URL back to the live report (no secrets). */
   reportUrl?: string
 }
 
