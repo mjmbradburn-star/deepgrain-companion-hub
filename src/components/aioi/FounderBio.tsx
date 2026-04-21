@@ -207,11 +207,11 @@ function BioBody() {
               <span className="text-brass-bright">.</span>
             </p>
           </div>
-          <div className="lg:col-span-4 lg:justify-self-end">
+          <div className="lg:col-span-4 lg:justify-self-end w-full lg:w-auto">
             <Button
               asChild
               size="lg"
-              className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7 w-full sm:w-auto"
+              className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7 w-full lg:w-auto"
             >
               <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
                 <Calendar className="h-4 w-4 mr-1" />
@@ -219,7 +219,7 @@ function BioBody() {
                 <ArrowRight className="h-4 w-4 ml-1" />
               </a>
             </Button>
-            <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.22em] text-cream/40 text-right">
+            <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.22em] text-cream/40 text-center lg:text-right">
               Google Calendar · responds within 24h
             </p>
           </div>
