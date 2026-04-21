@@ -178,7 +178,7 @@ function PillarComparisonBar({
   const delta = typeof user === "number" ? Math.round((user - median) * 10) / 10 : null;
 
   return (
-    <div className="w-full max-w-[260px]">
+    <div className="w-full max-w-full sm:max-w-[260px]">
       <div className="relative h-2 w-full bg-cream/8 rounded-full overflow-visible">
         {/* Cohort median fill */}
         <span
@@ -672,13 +672,16 @@ export default function Benchmarks() {
               </div>
             )}
             {cohort && view && (
-              <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
-                <span className="inline-block h-px w-4 bg-brass-bright align-middle mr-1.5" />
-                Selected slice
-                <span className="mx-3 text-cream/20">·</span>
-                <span className="inline-block h-px w-4 border-t border-dashed border-cream/45 align-middle mr-1.5" />
-                Level cohort
-              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-px w-4 bg-brass-bright align-middle" />
+                  Selected slice
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-px w-4 border-t border-dashed border-cream/45 align-middle" />
+                  Level cohort
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -826,18 +829,18 @@ export default function Benchmarks() {
               return (
                 <li
                   key={p.id}
-                  className="grid grid-cols-12 gap-x-3 gap-y-2 sm:gap-4 items-center py-5 sm:py-6 border-b border-cream/10"
+                  className="grid grid-cols-12 gap-x-3 gap-y-3 sm:gap-4 items-center py-6 sm:py-6 border-b border-cream/10"
                 >
                   <span className="col-span-2 sm:col-span-1 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
                     P{p.id}
                   </span>
-                  <span className="col-span-7 sm:col-span-4 font-display text-base sm:text-lg text-cream/90">
+                  <span className="col-span-7 sm:col-span-4 font-display text-base sm:text-lg text-cream/90 leading-tight">
                     {p.name}
                   </span>
-                  <span className="col-span-3 sm:col-span-2 sm:order-last text-right font-display text-xl sm:text-2xl tracking-tight text-brass-bright tabular-nums">
+                  <span className="col-span-3 sm:col-span-2 sm:order-last text-right font-display text-lg sm:text-2xl tracking-tight text-brass-bright tabular-nums">
                     {view ? v.toFixed(1) : "—"}
                   </span>
-                  <div className="col-span-12 sm:col-span-5 flex justify-start sm:justify-center">
+                  <div className="col-span-12 sm:col-span-5 flex justify-start sm:justify-center pt-3 sm:pt-0">
                     {view ? (
                       <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
                     ) : (
