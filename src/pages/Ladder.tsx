@@ -140,12 +140,12 @@ export default function Ladder() {
       <section className="border-b border-cream/10 bg-surface-0">
         <div className="container max-w-6xl py-12 sm:py-20">
           <p className="eyebrow mb-6 sm:mb-8 text-cream/45">The cohort, distributed</p>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {TIERS.map((t) => (
               <a
                 key={t.tier}
                 href={`#${slug(t.tier)}`}
-                className="group grid grid-cols-12 items-center gap-x-3 gap-y-1 sm:gap-4 border-b border-cream/10 py-4 hover:bg-surface-1/40 -mx-2 sm:-mx-4 px-2 sm:px-4 rounded-sm transition-colors"
+                className="group grid grid-cols-12 items-center gap-x-3 gap-y-2 sm:gap-y-1 sm:gap-4 border-b border-cream/10 py-6 sm:py-7 hover:bg-surface-1/40 -mx-2 sm:-mx-4 px-2 sm:px-4 rounded-sm transition-colors"
               >
                 {/* Mobile: 2 rows. Desktop: single row 12-col grid. */}
                 <span className="col-span-2 sm:col-span-1 font-mono text-xs text-cream/35 tabular-nums">
@@ -158,10 +158,26 @@ export default function Ladder() {
                   {t.tag}
                 </span>
                 {/* Bar — full row width on mobile (after the label row), 5 cols on desktop */}
-                <div className="col-span-9 col-start-3 sm:col-start-auto sm:col-span-5 order-last sm:order-none">
-                  <div className="relative h-2 rounded-full bg-cream/8 overflow-hidden">
+                <div className="col-span-9 col-start-3 sm:col-start-auto sm:col-span-5 order-last sm:order-none mt-1 sm:mt-0">
+                  <div
+                    className="relative h-3 rounded-full bg-cream/[0.07] ring-1 ring-inset ring-cream/15 overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={t.populationPct}
+                    aria-valuemin={0}
+                    aria-valuemax={33}
+                    aria-label={`${t.tier}: ${t.populationPct}% of cohort`}
+                  >
+                    {/* Faint quartile gridlines for scale reference */}
+                    {[25, 50, 75].map((g) => (
+                      <span
+                        key={g}
+                        aria-hidden
+                        className="absolute top-0 bottom-0 w-px bg-cream/10"
+                        style={{ left: `${g}%` }}
+                      />
+                    ))}
                     <div
-                      className="absolute inset-y-0 left-0 bg-brass/70 group-hover:bg-brass-bright transition-colors"
+                      className="absolute inset-y-0 left-0 bg-brass-bright/90 group-hover:bg-brass-bright shadow-[0_0_0_1px_hsl(var(--brass-bright)/0.35)] transition-colors"
                       style={{ width: `${t.populationPct * 3}%` }}
                     />
                   </div>
@@ -170,7 +186,7 @@ export default function Ladder() {
                   {t.populationPct}%
                 </span>
                 {/* Tag line on a second row for mobile */}
-                <span className="col-span-12 sm:hidden font-display italic text-sm text-cream/50 -mt-1">
+                <span className="col-span-12 sm:hidden font-display italic text-sm text-cream/50">
                   {t.tag}
                 </span>
               </a>
