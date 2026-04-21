@@ -58,7 +58,8 @@ export function PillarBarChart({
     : "grid grid-cols-[1fr] items-center";
 
   return (
-    <div className={cn("w-full", className)} role="img" aria-label="AIOI pillar comparison">
+    <div className={cn("pillar-bar-chart w-full", className)} role="img" aria-label="AIOI pillar comparison">
+      <PrintStyles />
       {/* Top axis ticks — full width on <sm, indented to match labels on ≥sm. */}
       <div className={cn(
         "mb-3 flex items-end gap-x-3",
@@ -110,6 +111,8 @@ export function PillarBarChart({
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
                     aria-hidden
+                    data-gap-segment
+                    data-direction={ahead ? "ahead" : "behind"}
                     className={cn(
                       "absolute top-1/2 -translate-y-1/2 rounded-full",
                       variant === "lollipop" ? "h-[2px]" : "h-[3px]",
@@ -148,6 +151,7 @@ export function PillarBarChart({
                 {cohortPct != null && (
                   variant === "bar" ? (
                     <span
+                      data-cohort-tick
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className="absolute -top-0.5 -bottom-0.5 w-px bg-cream/60"
                       style={{ left: `${cohortPct}%`, transform: "translateX(-0.5px)" }}
@@ -157,6 +161,7 @@ export function PillarBarChart({
                     </span>
                   ) : (
                     <span
+                      data-cohort-tick
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className={cn(
                         "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border border-cream/75 sm:border-2 bg-walnut",
@@ -204,4 +209,64 @@ export function PillarBarChart({
 function clamp(v: number) {
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(MAX_TIER, v));
+}
+
+// Print-optimized overrides. Triggered automatically by @media print.
+//
+// Goals for paper:
+//   • Thicker, high-contrast cohort ticks that survive monochrome printing.
+//   • Gap segments use a stripe pattern (not just colour) so direction
+//     reads even on B&W printers.
+//   • Force background graphics to print (browsers strip them by default).
+function PrintStyles() {
+  return (
+    <style>{`
+      @media print {
+        .pillar-bar-chart,
+        .pillar-bar-chart * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .pillar-bar-chart ul { gap: 0.65rem; }
+        .pillar-bar-chart [data-cohort-tick] {
+          background: #000 !important;
+          width: 2px !important;
+          top: -3px !important;
+          bottom: -3px !important;
+        }
+        .pillar-bar-chart [data-cohort-tick] > span {
+          background: #000 !important;
+          width: 6px !important;
+          height: 6px !important;
+        }
+        /* Lollipop cohort tick is the dot itself (no children). */
+        .pillar-bar-chart [data-cohort-tick]:not(:has(> span)) {
+          width: 12px !important;
+          height: 12px !important;
+          background: #fff !important;
+          border: 2px solid #000 !important;
+          top: 50% !important;
+          bottom: auto !important;
+        }
+        /* Pattern-based gap indicator: diagonal stripes for "ahead",
+           anti-diagonal for "behind". No colour required. */
+        .pillar-bar-chart [data-gap-segment] {
+          height: 6px !important;
+          background: transparent !important;
+          border: 1px solid #000 !important;
+          border-radius: 0 !important;
+        }
+        .pillar-bar-chart [data-gap-segment][data-direction="ahead"] {
+          background-image: repeating-linear-gradient(
+            45deg, #000 0 1.5px, transparent 1.5px 4px
+          ) !important;
+        }
+        .pillar-bar-chart [data-gap-segment][data-direction="behind"] {
+          background-image: repeating-linear-gradient(
+            -45deg, #000 0 1.5px, transparent 1.5px 4px
+          ) !important;
+        }
+      }
+    `}</style>
+  );
 }
