@@ -26,6 +26,93 @@ import { supabase } from "@/integrations/supabase/client";
 
 const VALID_LEVELS: Level[] = ["company", "function", "individual"];
 
+type ErrorKind = "timeout" | "offline" | "network" | "server" | "validation" | "unknown";
+interface SubmitError {
+  kind: ErrorKind;
+  title: string;
+  detail: string;
+  hint: string;
+}
+
+const SUBMIT_TIMEOUT_MS = 25_000;
+
+/**
+ * Classify a submit failure into something we can speak about plainly.
+ *
+ * The supabase-js `functions.invoke` call surfaces three meaningfully
+ * different shapes: a `FunctionsHttpError` for non-2xx responses (the
+ * function ran but returned an error), a `FunctionsRelayError` when the
+ * gateway can't reach the function, and a `FunctionsFetchError` when the
+ * fetch itself fails. We also handle our own `AbortError` (timeout) and
+ * the browser's `navigator.onLine` flag for offline detection.
+ */
+function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: string }): SubmitError {
+  // 1. Server returned a structured error from the function body
+  if (ctx.payloadError) {
+    return {
+      kind: "validation",
+      title: "We couldn't accept those answers",
+      detail: ctx.payloadError,
+      hint: "Review your answers below — one of them may be incomplete. If it looks right, try again.",
+    };
+  }
+
+  // 2. Browser is offline
+  if (ctx.offline || (typeof navigator !== "undefined" && !navigator.onLine)) {
+    return {
+      kind: "offline",
+      title: "You're offline",
+      detail: "Your device isn't connected to the internet right now.",
+      hint: "Check your connection — your answers are safe on this device, hit Try again once you're back online.",
+    };
+  }
+
+  const name = err instanceof Error ? err.name : "";
+  const message = err instanceof Error ? err.message : String(err ?? "");
+
+  // 3. Our own timeout (AbortController) — the request didn't come back in time
+  if (name === "AbortError" || /timeout|timed out|aborted/i.test(message)) {
+    return {
+      kind: "timeout",
+      title: "That took too long",
+      detail: "The scoring service didn't respond within 25 seconds.",
+      hint: "Usually a one-off — wait a few seconds and hit Try again. If it keeps timing out, refresh the page.",
+    };
+  }
+
+  // 4. Server-side error (function ran, returned non-2xx) — supabase wraps as FunctionsHttpError
+  if (name === "FunctionsHttpError" || /\b5\d\d\b/.test(message) || /server/i.test(message)) {
+    return {
+      kind: "server",
+      title: "Our scoring service hiccupped",
+      detail: message || "The function ran but returned an error.",
+      hint: "We've logged it. Try again in a moment — your answers are saved.",
+    };
+  }
+
+  // 5. Network / relay failure — couldn't reach the function at all
+  if (
+    name === "FunctionsRelayError" ||
+    name === "FunctionsFetchError" ||
+    name === "TypeError" ||
+    /failed to fetch|network|relay|load failed/i.test(message)
+  ) {
+    return {
+      kind: "network",
+      title: "Couldn't reach the scoring service",
+      detail: "We couldn't make it to the server — could be your connection or ours.",
+      hint: "Check your connection and try again. If it persists, refresh and we'll resume from your last answer.",
+    };
+  }
+
+  return {
+    kind: "unknown",
+    title: "Something snagged",
+    detail: message || "An unexpected error occurred.",
+    hint: "Try again — your answers are safe on this device.",
+  };
+}
+
 export default function AssessScan() {
   const navigate = useNavigate();
 
@@ -53,7 +140,7 @@ export default function AssessScan() {
   const [resumed] = useState(() => Object.keys(initialScan.answers ?? {}).length > 0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<SubmitError | null>(null);
   const [lastAttempt, setLastAttempt] = useState<Record<string, number> | null>(null);
 
   // Persist + recompute prompts whenever function changes (level-=function only).
@@ -92,6 +179,25 @@ export default function AssessScan() {
       setSubmitting(true);
       setSubmitError(null);
       setLastAttempt(finalAnswers);
+
+      // Snapshot the connectivity state before kicking off the call so the
+      // classifier can describe the right failure even if the browser comes
+      // back online during the timeout window.
+      const wasOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+      // Race the invoke against a timeout so a hung request surfaces as an
+      // explicit `timeout` error instead of spinning forever. supabase-js
+      // doesn't expose an AbortSignal pass-through, so Promise.race is the
+      // cleanest way to bound this.
+      let timeout: number | undefined;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeout = window.setTimeout(() => {
+          const err = new Error("Request timed out");
+          err.name = "AbortError";
+          reject(err);
+        }, SUBMIT_TIMEOUT_MS);
+      });
+
       try {
         const payload = {
           level,
@@ -102,16 +208,34 @@ export default function AssessScan() {
             tier: finalAnswers[q.id],
           })).filter((a) => typeof a.tier === "number"),
         };
-        const { data, error } = await supabase.functions.invoke("submit-quickscan", {
-          body: payload,
-        });
-        if (error || !data?.slug) {
+        const { data, error } = await Promise.race([
+          supabase.functions.invoke("submit-quickscan", { body: payload }),
+          timeoutPromise,
+        ]);
+        if (error) {
           console.error("[scan] submit failed", error, data);
           setSubmitting(false);
           setSubmitError(
-            error?.message ||
-              data?.error ||
-              "We couldn't generate your report. Please try again.",
+            classifyError(error, {
+              offline: wasOffline,
+              payloadError: typeof data === "object" && data && "error" in data
+                ? String((data as { error?: unknown }).error ?? "")
+                : undefined,
+            }),
+          );
+          return;
+        }
+        if (!data?.slug) {
+          console.error("[scan] submit returned no slug", data);
+          setSubmitting(false);
+          setSubmitError(
+            classifyError(new Error("Missing slug in response"), {
+              offline: wasOffline,
+              payloadError:
+                typeof data === "object" && data && "error" in data
+                  ? String((data as { error?: unknown }).error ?? "")
+                  : undefined,
+            }),
           );
           return;
         }
@@ -121,9 +245,9 @@ export default function AssessScan() {
       } catch (err) {
         console.error("[scan] submit threw", err);
         setSubmitting(false);
-        setSubmitError(
-          err instanceof Error ? err.message : "Network error. Please try again.",
-        );
+        setSubmitError(classifyError(err, { offline: wasOffline }));
+      } finally {
+        window.clearTimeout(timeout);
       }
     },
     [level, fn, region, questions, navigate],
@@ -203,23 +327,40 @@ export default function AssessScan() {
             ) : (
               <>
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
-                  Something snagged
+                  {submitError?.kind === "offline"
+                    ? "No connection"
+                    : submitError?.kind === "timeout"
+                    ? "Request timed out"
+                    : submitError?.kind === "server"
+                    ? "Server error"
+                    : submitError?.kind === "validation"
+                    ? "Couldn't accept answers"
+                    : submitError?.kind === "network"
+                    ? "Network error"
+                    : "Something snagged"}
                 </p>
                 <p className="mt-4 font-display text-2xl text-cream/90">
-                  We couldn't build your report.
+                  {submitError?.title ?? "We couldn't build your report."}
                 </p>
-                <p className="mt-3 font-display text-sm text-cream/60 leading-relaxed">
-                  {submitError}
+                <p className="mt-3 font-display text-sm text-cream/65 leading-relaxed">
+                  {submitError?.detail}
                 </p>
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                <div className="mt-5 mx-auto max-w-sm rounded-sm border border-brass/25 bg-brass/5 px-4 py-2.5">
+                  <p className="font-ui text-xs text-cream/75 leading-relaxed">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright/85 mr-1.5">Tip ·</span>
+                    {submitError?.hint}
+                  </p>
+                </div>
+                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
                   Your answers are safe on this device.
                 </p>
                 <div className="mt-8 flex items-center justify-center gap-4">
                   <Button
                     onClick={retry}
+                    disabled={submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine}
                     className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                   >
-                    Try again
+                    {submitError?.kind === "offline" ? "Try again when online" : "Try again"}
                   </Button>
                   <button
                     onClick={() => { setSubmitError(null); }}
