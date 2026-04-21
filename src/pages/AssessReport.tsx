@@ -367,6 +367,9 @@ function OverviewTab({
           <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-4 sm:p-6 lg:p-8">
             <RadarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} />
           </div>
+          <p className="mt-3 text-center font-mono text-[10px] normal-case tracking-[0.12em] text-cream/35">
+            Ring values map to the 0–5 maturity scale (Dormant → AI-Native).
+          </p>
         </div>
       </div>
 
