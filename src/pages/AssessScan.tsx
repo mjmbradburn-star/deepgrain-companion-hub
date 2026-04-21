@@ -256,6 +256,7 @@ export default function AssessScan() {
         setSubmitError(classifyError(err, { offline: wasOffline }));
       } finally {
         window.clearTimeout(timeout);
+        inflight.current = false;
       }
     },
     [level, fn, region, questions, navigate],
