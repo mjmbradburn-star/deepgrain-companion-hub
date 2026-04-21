@@ -58,6 +58,26 @@ export function PillarBarChart({
     ? "grid grid-cols-[1fr_2.25rem] items-center gap-x-3"
     : "grid grid-cols-[1fr] items-center";
 
+  // Bump a generation counter whenever the underlying tier values change,
+  // but skip the very first render so the animation does not play on mount.
+  // The counter is appended to the gap-segment key, forcing a remount —
+  // and therefore a fresh `animate-gap-draw` play — only on real updates.
+  const valuesSig = JSON.stringify({ v: values, c: cohort ?? null });
+  const [gen, setGen] = useState(0);
+  const mountedRef = useRef(false);
+  const lastSigRef = useRef(valuesSig);
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      lastSigRef.current = valuesSig;
+      return;
+    }
+    if (lastSigRef.current !== valuesSig) {
+      lastSigRef.current = valuesSig;
+      setGen((g) => g + 1);
+    }
+  }, [valuesSig]);
+
   return (
     <div className={cn("pillar-bar-chart w-full", className)} role="img" aria-label="AIOI pillar comparison">
       <PrintStyles />
