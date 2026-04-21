@@ -135,11 +135,27 @@
     @apply py-16 sm:py-24 lg:py-32;
   }
 
-  /* Standard giant headline clamp used across hero sections. */
+  /* ── Clamped headline scale ──────────────────────────────────────
+     Three sizes that all scale fluidly with viewport width and never
+     overflow on phones. Use these in place of bespoke font-size:
+     [clamp(...)] declarations across hero / section heads. */
   .headline-xl {
     font-size: clamp(2.25rem, 9vw, 6.5rem);
     line-height: 0.92;
     letter-spacing: -0.03em;
+  }
+  .headline-lg {
+    font-size: clamp(1.875rem, 7vw, 4.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+  }
+  .headline-md {
+    font-size: clamp(1.5rem, 5.5vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .label-mono {
+    @apply font-mono uppercase text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.22em];
   }
 
   .hairline {
