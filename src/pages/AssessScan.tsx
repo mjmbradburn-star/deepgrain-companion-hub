@@ -297,6 +297,10 @@ export default function AssessScan() {
   // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // While the loading or retry UI is up, swallow all shortcuts so a
+      // stray Enter/digit can't trigger a duplicate submit or change the
+      // answer underneath the spinner.
+      if (submitting || submitError || inflight.current) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (!question) return;
@@ -319,7 +323,7 @@ export default function AssessScan() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [question, selected, step, questions.length, select, goBack, submit, answers]);
+  }, [question, selected, step, questions.length, select, goBack, submit, answers, submitting, submitError]);
 
   if (submitting || submitError) {
     return (
