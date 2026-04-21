@@ -902,6 +902,131 @@ function ResendReportLink({ slug }: { slug: string }) {
   );
 }
 
+// ─── Email-me-the-PDF popover ─────────────────────────────────────────────
+// Anyone with the slug can request the lite report PDF be emailed to any
+// address. The edge function generates the PDF, hosts it in storage, and
+// triggers the transactional `report-pdf-ready` email.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function EmailPdfButton({ slug }: { slug: string }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(trimmed)) {
+      toast({
+        title: "Check the address",
+        description: "That doesn't look like a valid email.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("email-report-pdf", {
+        body: { slug, email: trimmed },
+      });
+      if (error) throw error;
+      if (data?.ok) {
+        setPdfUrl(data.pdfUrl ?? null);
+        toast({
+          title: "On its way",
+          description: `We've emailed the PDF to ${trimmed}. Check your inbox.`,
+        });
+      } else if (data?.pdfUrl) {
+        // Email failed but the PDF was generated — offer direct download.
+        setPdfUrl(data.pdfUrl);
+        toast({
+          title: "PDF generated",
+          description: data.error ?? "Email couldn't be sent — use the download link instead.",
+          variant: "destructive",
+        });
+      } else {
+        throw new Error(data?.error ?? "Could not send the PDF.");
+      }
+    } catch (err) {
+      console.error("[email-pdf] failed", err);
+      toast({
+        title: "Send failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setPdfUrl(null); } }}>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+        >
+          <FileText className="h-3.5 w-3.5 mr-2" /> Email me the PDF
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-80 bg-surface-1 border-cream/15 text-cream"
+      >
+        <form onSubmit={submit} className="space-y-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+              Email me the PDF
+            </p>
+            <p className="mt-1.5 font-display text-sm text-cream/75 leading-snug">
+              We'll generate a one-page PDF and send a download link.
+            </p>
+          </div>
+          <Input
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={sending}
+            className="bg-surface-0 border-cream/15 text-cream placeholder:text-cream/30"
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={sending}
+              className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-wider flex-1"
+            >
+              {sending ? (
+                <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> Sending…</>
+              ) : (
+                <><Mail className="h-3.5 w-3.5 mr-2" /> Send link</>
+              )}
+            </Button>
+          </div>
+          {pdfUrl && (
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright hover:text-cream"
+            >
+              <Download className="h-3 w-3" /> Or download directly
+            </a>
+          )}
+          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
+            By submitting, you agree to receive one transactional email at this address.
+          </p>
+        </form>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────
 function FullPageMessage({ eyebrow, line1, line2, cta }: { eyebrow: string; line1: string; line2?: string; cta?: string }) {
   return (
