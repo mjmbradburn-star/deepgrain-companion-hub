@@ -58,7 +58,8 @@ export function PillarBarChart({
     : "grid grid-cols-[1fr] items-center";
 
   return (
-    <div className={cn("w-full", className)} role="img" aria-label="AIOI pillar comparison">
+    <div className={cn("pillar-bar-chart w-full", className)} role="img" aria-label="AIOI pillar comparison">
+      <PrintStyles />
       {/* Top axis ticks — full width on <sm, indented to match labels on ≥sm. */}
       <div className={cn(
         "mb-3 flex items-end gap-x-3",
