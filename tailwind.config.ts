@@ -158,6 +158,10 @@ export default {
           "0%": { opacity: "0", filter: "blur(8px)" },
           "100%": { opacity: "1", filter: "blur(0)" },
         },
+        "page-enter": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -175,6 +179,7 @@ export default {
         float: "float 4s ease-in-out infinite",
         "pulse-ring": "pulse-ring 1800ms cubic-bezier(0.22, 1, 0.36, 1) infinite",
         "blur-in": "blur-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "page-enter": "page-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },
