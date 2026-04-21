@@ -353,21 +353,12 @@ function OverviewTab({
 
         {/* Right — radar */}
         <div className="lg:col-span-7">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <p className="eyebrow text-cream/45">Eight pillars</p>
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-brass-bright" /> You
-              </span>
-              {cohort && (
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-cream/40" /> Cohort
-                </span>
-              )}
-            </div>
+            <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
           </div>
           <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-4 sm:p-6 lg:p-8">
-            <PillarBarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} />
+            <PillarBarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} variant={chartVariant} />
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cream/45">
               <span className="inline-flex items-center gap-1.5">
                 <span aria-hidden className="inline-block h-2 w-3 rounded-sm bg-brass-bright" />
