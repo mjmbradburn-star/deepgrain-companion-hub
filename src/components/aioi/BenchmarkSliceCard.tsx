@@ -158,13 +158,21 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         <Stat
           label="Cohort median"
           value={cohortScore ?? "—"}
-          hint="Median weighted AIOI score for this cohort (0–100 score points, rounded to the nearest whole point)."
+          hint={
+            cohortScore == null
+              ? "Cohort median is unavailable: this slice does not yet publish a median score (the underlying benchmark row has no median_score, usually because the cohort is still below the minimum sample threshold)."
+              : "Median weighted AIOI score for this cohort (0–100 score points, rounded to the nearest whole point)."
+          }
         />
         <Stat
           label="Gap"
           value={overallDelta == null ? "—" : `${overallDelta > 0 ? "+" : ""}${overallDelta}`}
           tone={overallDelta == null ? "neutral" : overallDelta >= 0 ? "ahead" : "behind"}
-          hint="You vs cohort median, in AIOI score points (0–100 scale). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5)."
+          hint={
+            overallDelta == null
+              ? "Gap can't be calculated: it needs both your score and a cohort median, and the cohort median for this slice is unavailable. Once the slice publishes a median, the gap will appear here."
+              : "You vs cohort median, in AIOI score points (0–100 scale). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5)."
+          }
         />
       </div>
 
