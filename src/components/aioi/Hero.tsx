@@ -12,12 +12,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut hero-woodgrain">
-      {/* Wood-grain base layer — long horizontal fibres, deep walnut tone */}
-      <div aria-hidden="true" className="hero-woodgrain__wood" />
-      {/* Linen weave on top — subtle cross-hatch */}
-      <div aria-hidden="true" className="hero-woodgrain__linen" />
-
+    <section className="relative min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut">
       {/* Soft tonal washes — give the cream page a gentle gravitational centre */}
       <div
         aria-hidden="true"
@@ -40,7 +35,7 @@ export function Hero() {
       </div>
 
       {/* Headline block */}
-      <div className="container relative z-10 pt-8 sm:pt-16">
+      <div className="container relative z-10 pt-10 sm:pt-16">
         <p className="eyebrow mb-4 sm:mb-5 animate-fade-in">Issue 01 · A diagnostic</p>
         <h1 className="font-display font-light hero-headline text-cream max-w-[10ch] sm:max-w-[12ch] text-balance animate-fade-up">
           Measure your<br />
@@ -50,33 +45,36 @@ export function Hero() {
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container relative z-10 mt-10 sm:mt-auto pb-10 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-end">
+      <div className="container relative z-10 mt-8 sm:mt-auto pb-12 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-end">
         <p className="md:col-span-6 md:col-start-7 font-display text-lg sm:text-2xl text-cream/80 leading-[1.4] sm:leading-[1.35] text-pretty animate-fade-up [animation-delay:200ms]">
           For companies, functions and individuals.
           Three minutes. Eight pillars, one question each,
           from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
         </p>
 
-        <div className="md:col-span-12 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4 sm:gap-5 animate-fade-up [animation-delay:320ms]">
+        <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 animate-fade-up [animation-delay:320ms]">
           <Button asChild size="lg" className="h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto">
             <a href="/assess">
               3-minute AI maturity scan
               <ArrowRight className="ml-1 h-4 w-4" />
             </a>
           </Button>
-          <a href="/pillars" className="font-ui text-sm text-cream/65 hover:text-cream underline-offset-4 hover:underline transition-colors text-center sm:text-left">
+          <a
+            href="/pillars"
+            className="font-ui text-sm text-cream/65 hover:text-cream underline-offset-4 hover:underline transition-colors text-center sm:text-left"
+          >
             See the eight pillars
           </a>
-          <span className="ml-auto hidden sm:inline font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+          <span className="sm:ml-auto font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 text-center sm:text-right">
             ~3 min · 8 questions · no email
           </span>
         </div>
       </div>
 
-      {/* Scroll cue */}
+      {/* Scroll cue — desktop only; mobile already shows everything in-flow */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-x-0 bottom-5 z-10 flex flex-col items-center gap-2 transition-opacity duration-500 ${
+        className={`pointer-events-none absolute inset-x-0 bottom-5 z-10 hidden sm:flex flex-col items-center gap-2 transition-opacity duration-500 ${
           scrolled ? "opacity-0" : "opacity-100"
         }`}
       >
