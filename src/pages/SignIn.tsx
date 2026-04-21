@@ -130,6 +130,20 @@ export default function SignIn() {
           We'll email you a one-time link. No passwords, no accounts to manage.
         </p>
 
+        {linkError && (
+          <div
+            role="alert"
+            className="mt-8 rounded-sm border border-destructive/40 bg-destructive/10 p-5"
+          >
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-destructive mb-2">
+              {linkError.title}
+            </p>
+            <p className="font-display text-base text-cream/85">
+              {linkError.body}
+            </p>
+          </div>
+        )}
+
         <form onSubmit={onSubmit} className="mt-10 space-y-4">
           <label className="block">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/50">
