@@ -159,8 +159,8 @@ export function PillarBarChart({
                     <span
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className={cn(
-                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-cream/75 bg-walnut",
-                        "h-2.5 w-2.5 sm:h-3 sm:w-3",
+                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border border-cream/75 sm:border-2 bg-walnut",
+                        "h-2 w-2 sm:h-3 sm:w-3",
                       )}
                       style={{ left: `${cohortPct}%` }}
                     />
