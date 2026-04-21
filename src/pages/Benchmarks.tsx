@@ -316,6 +316,7 @@ function RadarTile({
 export default function Benchmarks() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartVariant, setChartVariant] = usePillarChartVariant();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -656,12 +657,18 @@ export default function Benchmarks() {
           </div>
 
           <div className="lg:col-span-7 w-full">
+            {view && (
+              <div className="mb-3 flex justify-end">
+                <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
+              </div>
+            )}
             {view ? (
               <div className="w-full max-w-[640px] mx-auto">
                 <PillarBarChart
                   values={view.pillars}
                   cohort={cohort?.pillars}
                   labels={PILLAR_LABELS}
+                  variant={chartVariant}
                 />
               </div>
             ) : (
