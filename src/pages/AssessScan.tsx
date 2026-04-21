@@ -319,23 +319,40 @@ export default function AssessScan() {
             ) : (
               <>
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
-                  Something snagged
+                  {submitError?.kind === "offline"
+                    ? "No connection"
+                    : submitError?.kind === "timeout"
+                    ? "Request timed out"
+                    : submitError?.kind === "server"
+                    ? "Server error"
+                    : submitError?.kind === "validation"
+                    ? "Couldn't accept answers"
+                    : submitError?.kind === "network"
+                    ? "Network error"
+                    : "Something snagged"}
                 </p>
                 <p className="mt-4 font-display text-2xl text-cream/90">
-                  We couldn't build your report.
+                  {submitError?.title ?? "We couldn't build your report."}
                 </p>
-                <p className="mt-3 font-display text-sm text-cream/60 leading-relaxed">
-                  {submitError}
+                <p className="mt-3 font-display text-sm text-cream/65 leading-relaxed">
+                  {submitError?.detail}
                 </p>
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                <div className="mt-5 mx-auto max-w-sm rounded-sm border border-brass/25 bg-brass/5 px-4 py-2.5">
+                  <p className="font-ui text-xs text-cream/75 leading-relaxed">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright/85 mr-1.5">Tip ·</span>
+                    {submitError?.hint}
+                  </p>
+                </div>
+                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
                   Your answers are safe on this device.
                 </p>
                 <div className="mt-8 flex items-center justify-center gap-4">
                   <Button
                     onClick={retry}
+                    disabled={submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine}
                     className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                   >
-                    Try again
+                    {submitError?.kind === "offline" ? "Try again when online" : "Try again"}
                   </Button>
                   <button
                     onClick={() => { setSubmitError(null); }}
