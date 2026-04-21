@@ -66,8 +66,19 @@ Deno.serve(async (req) => {
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     })
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token)
-    if (claimsErr || !claimsData?.claims?.sub) {
+    // getClaims throws on malformed JWTs; treat any failure as 401 so we
+    // never leak a stack trace via the outer 500 handler.
+    let claimsData: Awaited<ReturnType<typeof userClient.auth.getClaims>>['data'] = null
+    try {
+      const result = await userClient.auth.getClaims(token)
+      if (result.error) {
+        return json({ error: 'Unauthorized' }, 401)
+      }
+      claimsData = result.data
+    } catch (_err) {
+      return json({ error: 'Unauthorized' }, 401)
+    }
+    if (!claimsData?.claims?.sub) {
       return json({ error: 'Unauthorized' }, 401)
     }
     const userId = claimsData.claims.sub as string
