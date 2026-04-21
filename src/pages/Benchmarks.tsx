@@ -7,6 +7,8 @@ import { RadarChart } from "@/components/aioi/RadarChart";
 import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { loadScan } from "@/lib/quickscan";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
@@ -160,9 +162,11 @@ function rowMatches(
 function PillarComparisonBar({
   median,
   user,
+  pillarName,
 }: {
   median: number;
   user?: number;
+  pillarName?: string;
 }) {
   const max = 5;
   const clampedMedian = Math.max(0, Math.min(max, median));
@@ -214,17 +218,51 @@ function PillarComparisonBar({
       <div className="mt-1.5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-cream/35">
         <span>0</span>
         {delta != null && (
-          <span
-            className={
-              delta > 0
-                ? "text-brass-bright"
-                : delta < 0
-                ? "text-pillar-7"
-                : "text-cream/40"
-            }
-          >
-            You {delta > 0 ? "+" : ""}{delta.toFixed(1)} vs median
-          </span>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className={
+                  "inline-flex items-center gap-1 cursor-help focus:outline-none focus-visible:ring-1 focus-visible:ring-brass rounded-sm " +
+                  (delta > 0
+                    ? "text-brass-bright"
+                    : delta < 0
+                    ? "text-pillar-7"
+                    : "text-cream/40")
+                }
+                aria-label={`Your tier versus the cohort median${pillarName ? ` for ${pillarName}` : ""}`}
+              >
+                You {delta > 0 ? "+" : ""}{delta.toFixed(1)} vs median
+                <Info className="h-2.5 w-2.5 opacity-70" aria-hidden />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[280px] text-left">
+              <p className="font-ui text-xs leading-relaxed normal-case tracking-normal">
+                Your tier on{" "}
+                <span className="text-brass-bright">
+                  {pillarName ?? "this pillar"}
+                </span>{" "}
+                is <span className="tabular-nums">{user?.toFixed(1)}</span> on the
+                0–5 maturity scale. The cohort median is{" "}
+                <span className="tabular-nums">{median.toFixed(1)}</span>, so you sit{" "}
+                <span
+                  className={
+                    delta > 0
+                      ? "text-brass-bright"
+                      : delta < 0
+                      ? "text-pillar-7"
+                      : "text-cream/70"
+                  }
+                >
+                  {delta === 0
+                    ? "exactly at"
+                    : `${Math.abs(delta).toFixed(1)} ${delta > 0 ? "above" : "below"}`}
+                </span>{" "}
+                {delta === 0 ? "the median" : "the median"} for the slice you've selected.
+                One tier ≈ a full step on the maturity ladder (Dormant → AI-Native).
+              </p>
+            </TooltipContent>
+          </Tooltip>
         )}
         <span>5</span>
       </div>
@@ -722,7 +760,7 @@ export default function Benchmarks() {
                   </span>
                   <div className="col-span-4 sm:col-span-5 flex justify-start sm:justify-center">
                     {view ? (
-                      <PillarComparisonBar median={v} user={yours} />
+                      <PillarComparisonBar median={v} user={yours} pillarName={p.name} />
                     ) : (
                       <span className="font-mono text-[10px] text-cream/30 uppercase tracking-[0.22em]">
                         no data
