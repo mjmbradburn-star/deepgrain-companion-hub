@@ -152,7 +152,7 @@ function BioBody() {
             href="https://deepgrain.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 font-ui text-xs uppercase tracking-[0.18em] text-cream/45 hover:text-cream transition-colors group ml-auto"
+            className="inline-flex items-center gap-2 font-ui text-xs uppercase tracking-[0.18em] text-cream/45 hover:text-cream transition-colors group w-full sm:w-auto sm:ml-auto"
           >
             deepgrain.ai
             <ArrowUpRight className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -176,7 +176,7 @@ function BioBody() {
               >
                 <AccordionTrigger className="px-5 sm:px-6 py-5 hover:no-underline group">
                   <div className="flex flex-col items-start text-left gap-2 w-full">
-                    <span className="font-display text-3xl sm:text-4xl text-brass-bright leading-none tabular-nums tracking-tight">
+                    <span className="font-display text-[2rem] sm:text-4xl text-brass-bright leading-none tabular-nums tracking-tight">
                       {p.figure}
                     </span>
                     <span className="font-ui text-[11px] uppercase tracking-[0.16em] text-cream/65 leading-snug">
