@@ -107,15 +107,22 @@ export function PillarBarChart({
                   />
                 ))}
 
-                {/* Gap segment between user mark and cohort tick */}
+                {/* Gap segment between user mark and cohort tick.
+                    In lollipop mode we replay a center-out draw whenever the
+                    underlying values change, so a filter switch makes the
+                    delta visually obvious. The `key` forces a remount only
+                    when user/cohort tiers actually change (not on every
+                    render), and the animation is skipped on first mount via
+                    a per-row mount flag below. */}
                 {cohortPct != null && Math.abs(userPct - cohortPct) > 0.5 && (
                   <span
+                    key={variant === "lollipop" ? `${userTier}-${cohortTier}` : undefined}
                     aria-hidden
                     data-gap-segment
                     data-direction={ahead ? "ahead" : "behind"}
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 rounded-full",
-                      variant === "lollipop" ? "h-[2px]" : "h-[3px]",
+                      "absolute top-1/2 -translate-y-1/2 rounded-full origin-center",
+                      variant === "lollipop" ? "h-[2px] animate-gap-draw motion-reduce:animate-none" : "h-[3px]",
                       ahead
                         ? variant === "lollipop" ? "bg-brass-bright/70" : "bg-brass-bright/35"
                         : variant === "lollipop" ? "bg-pillar-7/80" : "bg-pillar-7/45",
