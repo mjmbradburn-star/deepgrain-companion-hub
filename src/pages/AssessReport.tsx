@@ -187,30 +187,30 @@ function ReportView({ data }: { data: ReportData }) {
 
       <TabsPrimitive.Root defaultValue="overview" className="w-full">
         {/* ─── Masthead ─── */}
-        <header className="border-b border-cream/10 pt-32 sm:pt-36 pb-8">
+        <header className="border-b border-cream/10 pt-24 sm:pt-36 pb-6 sm:pb-8">
           <div className="container max-w-6xl">
-            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-6">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/80">
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-5 sm:mb-6">
+              <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-brass-bright/80">
                   AIOI Report · {capitalise(respondent.level)} level
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
                   Slug · {respondent.slug}
                 </span>
                 {report.generated_at && (
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
                     Generated · {formatDate(report.generated_at)}
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => {
                     void navigator.clipboard.writeText(window.location.href);
                   }}
-                  className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+                  className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] h-9"
                 >
                   <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
                 </Button>
@@ -219,7 +219,7 @@ function ReportView({ data }: { data: ReportData }) {
                   <Button
                     size="sm"
                     asChild
-                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.18em] h-9"
+                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] h-9"
                   >
                     <Link to={`/assess/deep/${respondent.slug}`}>
                       Go deeper <ArrowRight className="h-3.5 w-3.5 ml-1" />
@@ -230,7 +230,7 @@ function ReportView({ data }: { data: ReportData }) {
               </div>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
               Your operating shape, in one picture.
             </h1>
 
@@ -303,16 +303,16 @@ function OverviewTab({
 }) {
   return (
     <>
-    <section className="container max-w-6xl py-16 sm:py-20">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+    <section className="container max-w-6xl py-10 sm:py-20">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         {/* Left — score + diagnosis */}
         <div className="lg:col-span-5">
-          <p className="eyebrow mb-5 text-cream/45">AIOI Score</p>
+          <p className="eyebrow mb-4 sm:mb-5 text-cream/45">AIOI Score</p>
           <div className="flex items-baseline gap-4">
-            <span className="font-display font-light text-[96px] leading-none text-brass-bright tabular-nums tracking-[-0.02em]">
+            <span className="font-display font-light text-[72px] sm:text-[96px] leading-none text-brass-bright tabular-nums tracking-[-0.02em]">
               {report.aioi_score}
             </span>
-            <span className="font-mono text-xs text-cream/40 uppercase tracking-[0.22em] mb-2">
+            <span className="font-mono text-xs text-cream/40 uppercase tracking-[0.2em] sm:tracking-[0.22em] mb-2">
               / 100
             </span>
           </div>
@@ -364,7 +364,7 @@ function OverviewTab({
               )}
             </div>
           </div>
-          <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-6 sm:p-8">
+          <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-4 sm:p-6 lg:p-8">
             <RadarChart values={pillarValues} cohort={cohort} labels={PILLAR_NAMES} />
           </div>
         </div>
@@ -406,7 +406,7 @@ function PlanTab({
   const lockedPlan = hasDeepdive ? [] : plan.slice(1);
 
   return (
-    <section className="container max-w-6xl py-16 sm:py-20">
+    <section className="container max-w-6xl py-10 sm:py-20">
       <div className="max-w-3xl mb-12">
         <p className="eyebrow mb-5">Three months</p>
         <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
@@ -444,13 +444,13 @@ function PlanMonthArticle({
   month, outcomeMap,
 }: { month: PlanMonth; outcomeMap: Map<string, OutcomeRow> }) {
   return (
-    <article className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-t border-cream/10 pt-10">
+    <article className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 border-t border-cream/10 pt-8 sm:pt-10">
       <aside className="lg:col-span-3">
         <div className="flex items-baseline gap-4">
-          <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
+          <span className="font-display text-5xl sm:text-7xl leading-none text-brass-bright/30 tabular-nums">
             M{month.month}
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
             Month {month.month}
           </span>
         </div>

@@ -425,7 +425,7 @@ export default function AssessScan() {
 
         <div
           key={question.id}
-          className={`container max-w-3xl flex-1 py-10 sm:py-14 ${
+          className={`container max-w-3xl flex-1 py-8 sm:py-14 ${
             direction === "forward"
               ? "animate-[fade-up_320ms_cubic-bezier(0.22,1,0.36,1)_both]"
               : "animate-fade-in"

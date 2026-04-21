@@ -171,14 +171,14 @@ export default function AssessDeep() {
             currentPillarLabel={PILLAR_NAMES[question.pillar]}
           />
         </div>
-        <div className="container max-w-3xl flex-1 py-10 sm:py-14 animate-[fade-up_320ms_cubic-bezier(0.22,1,0.36,1)_both]">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-7">
+        <div className="container max-w-3xl flex-1 py-8 sm:py-14 animate-[fade-up_320ms_cubic-bezier(0.22,1,0.36,1)_both]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-6 sm:mb-7">
             <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
+            <span className="font-mono text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-cream/40">
               Deep dive · {step} of {remaining.length}
             </span>
           </div>
-          <h1 className="font-display text-[clamp(2rem,4.5vw,3rem)] leading-[1.08] text-cream tracking-tight text-balance">
+          <h1 className="font-display text-[clamp(1.5rem,4.5vw,3rem)] leading-[1.12] sm:leading-[1.08] text-cream tracking-tight text-balance">
             {question.prompt}
           </h1>
           <div className="mt-9 space-y-3">
