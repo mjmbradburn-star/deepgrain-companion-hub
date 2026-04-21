@@ -45,7 +45,7 @@ export function Hero() {
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container relative z-10 mt-8 sm:mt-auto pb-12 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-end">
+      <div className="container relative z-10 mt-8 sm:mt-auto pb-6 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-end">
         <p className="md:col-span-6 md:col-start-7 font-display text-lg sm:text-2xl text-cream/80 leading-[1.4] sm:leading-[1.35] text-pretty animate-fade-up [animation-delay:200ms]">
           For companies, functions and individuals.
           Three minutes. Eight pillars, one question each,
