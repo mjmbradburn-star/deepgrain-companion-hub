@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { PillarBarChart } from "@/components/aioi/PillarBarChart";
+import { PillarChartVariantToggle, usePillarChartVariant } from "@/components/aioi/PillarChartVariantToggle";
 import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { loadScan } from "@/lib/quickscan";

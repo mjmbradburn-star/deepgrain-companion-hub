@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { PillarBarChart } from "@/components/aioi/PillarBarChart";
+import { PillarChartVariantToggle, usePillarChartVariant } from "@/components/aioi/PillarChartVariantToggle";
 import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
 import { PillarChip } from "@/components/aioi/PillarChip";
 import { Button } from "@/components/ui/button";
