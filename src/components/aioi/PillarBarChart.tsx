@@ -151,6 +151,7 @@ export function PillarBarChart({
                 {cohortPct != null && (
                   variant === "bar" ? (
                     <span
+                      data-cohort-tick
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className="absolute -top-0.5 -bottom-0.5 w-px bg-cream/60"
                       style={{ left: `${cohortPct}%`, transform: "translateX(-0.5px)" }}
@@ -160,6 +161,7 @@ export function PillarBarChart({
                     </span>
                   ) : (
                     <span
+                      data-cohort-tick
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className={cn(
                         "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border border-cream/75 sm:border-2 bg-walnut",
