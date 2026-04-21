@@ -53,7 +53,7 @@ export const PILLAR_NAMES: Record<PillarIndex, string> = {
   8: "Culture & Adoption",
 };
 
-export const TIER_BY_INDEX: Tier[] = ["Dormant", "Reactive", "Exploratory", "Operational", "Integrated", "AI-Native"];
+export const TIER_BY_INDEX: Tier[] = ["Dormant", "Exploring", "Deployed", "Integrated", "Leveraged", "AI-Native"];
 
 export interface QuestionOption {
   /** 0..5 maps to Tier index */
