@@ -139,15 +139,17 @@ Deno.serve(async (req) => {
     }
     if (sendErr) {
       console.error('[email-report-pdf] send-transactional-email failed', sendErr)
-      // Even if the email send fails, the PDF has been generated. Return the
-      // URL so the UI can offer a direct download as a fallback.
+      // Even if the email send fails, the PDF has been generated. Return a
+      // SUCCESSFUL HTTP response so the client receives the fallback URL
+      // instead of supabase.functions.invoke throwing on a 5xx. The body
+      // signals the recoverable failure with ok:false.
       return json(
         {
           ok: false,
           pdfUrl,
-          error: 'Could not queue the email. You can still download the PDF directly.',
+          error: 'We generated your PDF but could not queue the email. Use the download link below.',
         },
-        502,
+        200,
       )
     }
 
