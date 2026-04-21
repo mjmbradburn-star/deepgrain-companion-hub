@@ -114,7 +114,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
     : null;
   const sample = slice.row.sample_size;
 
-  const overallDelta = cohortScore != null ? userScore - cohortScore : null;
+  const overallDelta = computeOverallGap(userScore, cohortScore);
 
   return (
     <TooltipProvider delayDuration={150}>
