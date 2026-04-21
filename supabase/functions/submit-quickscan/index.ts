@@ -15,7 +15,7 @@ import {
   topHotspots,
   fallbackDiagnosis,
   fallbackPlan,
-} from "../score-responses/scoring.ts";
+} from "./scoring.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
