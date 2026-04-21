@@ -301,6 +301,32 @@ export default function AssessScan() {
             </div>
           )}
 
+          {/* Resume banner — shown above the question whenever there's a
+              restored draft, on every step until the user starts over or
+              completes the scan. */}
+          {resumed && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-brass/30 bg-brass/5 px-4 py-2.5">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright/85">
+                Picked up where you left off · {Object.keys(answers).length} of {questions.length} answered
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined" && !window.confirm("Clear your saved answers and start the scan over?")) return;
+                  clearScan();
+                  setAnswers({});
+                  setFn(undefined);
+                  setRegion(undefined);
+                  setStep(1);
+                  setDirection("forward");
+                }}
+                className="font-ui text-[11px] uppercase tracking-[0.16em] text-cream/55 hover:text-cream"
+              >
+                Start over
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-7">
             <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
