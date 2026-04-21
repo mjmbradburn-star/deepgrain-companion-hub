@@ -1,4 +1,6 @@
-import { ArrowUpRight, Linkedin, Mail } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Calendar, Linkedin, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BOOKING_URL } from "@/lib/booking";
 
 interface Props {
   /** Compact variant: tighter padding, no border container — for inline use. */
@@ -110,6 +112,39 @@ function BioBody() {
             deepgrain.ai
             <ArrowUpRight className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </a>
+        </div>
+      </div>
+
+      {/* Bio → CTA rail. Sits flush under the bio so the credibility frame
+          flows directly into the ask. One eyebrow, one line, one button. */}
+      <div className="lg:col-span-12 mt-10 sm:mt-14 pt-8 sm:pt-10 border-t border-cream/10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+          <div className="lg:col-span-8">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85 mb-3">
+              Talk to Matt directly
+            </p>
+            <p className="font-display text-xl sm:text-2xl text-cream/90 leading-snug text-balance">
+              Thirty minutes, no pitch deck. Bring your AIOI score and we'll
+              walk through the two pillars worth fixing first
+              <span className="text-brass-bright">.</span>
+            </p>
+          </div>
+          <div className="lg:col-span-4 lg:justify-self-end">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7 w-full sm:w-auto"
+            >
+              <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
+                <Calendar className="h-4 w-4 mr-1" />
+                Book a 30-min teardown
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </a>
+            </Button>
+            <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.22em] text-cream/40 text-right">
+              Google Calendar · responds within 24h
+            </p>
+          </div>
         </div>
       </div>
     </div>
