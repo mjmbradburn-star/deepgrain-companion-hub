@@ -503,7 +503,7 @@ export default function Benchmarks() {
       {/* Four filter rows */}
       <section className="py-6">
         <div className="container">
-          <div className="flex justify-start sm:justify-end gap-2 mb-4">
+          <div className="flex flex-wrap justify-start sm:justify-end gap-2 mb-5 sm:mb-4">
             {/* Reset = clear every query param so all filters return to defaults
                 (level=function, all secondaries=All, compare collapsed). */}
             <button
@@ -524,13 +524,15 @@ export default function Benchmarks() {
                   });
                 }
               }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm font-ui text-xs tracking-wide transition-colors border bg-transparent text-cream/65 border-cream/15 hover:border-cream/45 hover:text-cream"
+              className="inline-flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-sm font-ui text-xs tracking-wide transition-colors border bg-transparent text-cream/70 border-cream/20 hover:border-cream/50 hover:text-cream"
               aria-label="Reset all filters to defaults"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M3 12a9 9 0 1 0 3-6.7" />
-                <polyline points="3 4 3 10 9 10" />
-              </svg>
+              <span className="flex items-center justify-center w-3 h-3 shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 3-6.7" />
+                  <polyline points="3 4 3 10 9 10" />
+                </svg>
+              </span>
               Reset filters
             </button>
             <button
@@ -547,178 +549,16 @@ export default function Benchmarks() {
                   });
                 }
               }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm font-ui text-xs tracking-wide transition-colors border bg-transparent text-cream/75 border-cream/25 hover:border-cream/55 hover:text-cream"
+              className="inline-flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-sm font-ui text-xs tracking-wide transition-colors border bg-transparent text-cream/70 border-cream/20 hover:border-cream/50 hover:text-cream"
               aria-label="Copy share link with current filters"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
+              <span className="flex items-center justify-center w-3 h-3 shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </span>
               Copy share link
-            </button>
-          </div>
-          <FilterRow<Level>
-            label="Level"
-            helper="Whose maturity are you measuring?"
-            options={LEVELS}
-            value={level}
-            onChange={setLevel}
-          />
-          <FilterRow<FunctionSlice>
-            label="Function"
-            helper="Sales runs hotter than Legal. Always has."
-            options={FUNCTIONS}
-            value={fn}
-            onChange={setFn}
-          />
-          <FilterRow<SizeBand>
-            label="Org size"
-            helper="Headcount band of the organisation."
-            options={SIZES}
-            value={size}
-            onChange={setSize}
-          />
-          <FilterRow<Sector>
-            label="Sector"
-            options={SECTORS}
-            value={sector}
-            onChange={setSector}
-          />
-          <FilterRow<Region>
-            label="Region"
-            helper="Where the respondent's organisation is based."
-            options={REGIONS}
-            value={region}
-            onChange={setRegion}
-          />
-        </div>
-      </section>
-
-      {/* Big number + radar */}
-      <section className="py-10 sm:py-16 border-t border-cream/10">
-        <div className="container grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          <div className="lg:col-span-5">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
-              Median AIOI score
-            </span>
-            <div className="mt-3 flex items-baseline gap-3">
-              <span className="font-display font-light text-[clamp(3rem,16vw,8rem)] leading-none tracking-[-0.04em] text-brass-bright tabular-nums">
-                {loading ? "—" : empty ? "—" : view!.median}
-              </span>
-              <span className="font-mono text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-cream/40">
-                / 100
-              </span>
-            </div>
-            <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
-              Scale · 0 Dormant → 100 AI-Native
-            </div>
-
-            <div className="mt-6 sm:mt-8 space-y-3 font-display text-cream/75 text-pretty">
-              {loading && <p className="text-cream/50">Loading aggregates…</p>}
-              {empty && (
-                <p className="text-base sm:text-lg leading-[1.5]">
-                  No benchmark data yet for this slice.{" "}
-                  <span className="italic text-cream/55">
-                    Aggregates publish once enough respondents in this cohort opt in.
-                  </span>
-                </p>
-              )}
-              {view && (
-                <>
-                  <p className="text-base sm:text-lg leading-[1.5]">
-                    Drawn from{" "}
-                    <span className="text-cream font-normal">
-                      {view.sample.toLocaleString()}
-                    </span>{" "}
-                    respondents at the{" "}
-                    <span className="italic">
-                      {LEVELS.find((l) => l.value === level)?.label.toLowerCase()}
-                    </span>{" "}
-                    level
-                    {fn !== "All" && <> · {fn}</>}
-                    {size !== "All" && <> · {size}</>}
-                    {sector !== "All" && <> · {sector}</>}
-                    {region !== "All" && <> · {region}</>}.
-                  </p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35 flex items-center gap-2 flex-wrap">
-                    <span>Refreshed {new Date(view.refreshedAt).toLocaleDateString()}</span>
-                    <span className="text-cream/20">·</span>
-                    <span
-                      title="Seeded synthetic medians shown until live respondents accumulate."
-                      className="inline-flex items-center gap-1.5 rounded-sm border border-brass/30 bg-brass/10 px-1.5 py-0.5 text-brass-bright"
-                    >
-                      <span className="h-1 w-1 rounded-full bg-brass-bright" />
-                      Synthetic data
-                    </span>
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-7 w-full">
-            {view && (
-              <div className="mb-3 flex justify-end">
-                <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
-              </div>
-            )}
-            {view ? (
-              <div className="w-full max-w-[640px] mx-auto">
-                <PillarBarChart
-                  values={view.pillars}
-                  cohort={cohort?.pillars}
-                  labels={PILLAR_LABELS}
-                  variant={chartVariant}
-                />
-              </div>
-            ) : (
-              <div className="aspect-[4/3] border border-dashed border-cream/15 flex items-center justify-center">
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/30">
-                  no data for current slice
-                </p>
-              </div>
-            )}
-            {cohort && view && (
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/40">
-                <span className="inline-flex items-center gap-1.5">
-                  <span aria-hidden className="inline-block h-2 w-3 rounded-sm bg-brass-bright" />
-                  Selected slice
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span aria-hidden className="inline-block h-3 w-px bg-cream/70" />
-                  Level cohort
-                </span>
-              </div>
-            )}
-            {view && (
-              <p className="mt-2 text-center font-mono text-[10px] normal-case tracking-[0.12em] text-cream/35">
-                Bars show the 0–5 maturity scale (Dormant → AI-Native).
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Compare functions strip */}
-      <section className="py-16 border-t border-cream/10">
-        <div className="container">
-          <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
-            <div>
-              <p className="eyebrow text-cream/55 mb-2">Compare functions</p>
-              <h2 className="font-display font-light text-3xl sm:text-4xl tracking-tight">
-                Set them next to each other.
-              </h2>
-            </div>
-            <button
-              onClick={() => setCompareOpen((v) => !v)}
-              className={`px-4 py-2 rounded-sm font-ui text-xs tracking-wide transition-colors border ${
-                compareOpen
-                  ? "bg-brass text-walnut border-brass"
-                  : "bg-transparent text-cream/75 border-cream/25 hover:border-cream/55 hover:text-cream"
-              }`}
-              aria-expanded={compareOpen}
-            >
-              {compareOpen ? "Hide comparison" : "Compare functions"}
             </button>
           </div>
 
