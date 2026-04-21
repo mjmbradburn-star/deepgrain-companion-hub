@@ -198,14 +198,11 @@ export default function Pillars() {
       <section className="py-12 sm:py-20 lg:py-24">
         <div className="container max-w-6xl space-y-16 sm:space-y-24">
           {PILLARS.map((p, i) => (
-            <Reveal
-              as="article"
-              key={p.index}
-              index={i % 3}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
-            >
-              {/* article id is set via the wrapper id below — Reveal forwards props through Tag */}
-              <span id={`p${p.index}`} aria-hidden className="absolute" />
+            <Reveal key={p.index} index={i % 3}>
+              <article
+                id={`p${p.index}`}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
+              >
               {/* Left rail — pillar number, chip, weight */}
               <aside className="lg:col-span-4">
                 <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6">
@@ -256,7 +253,8 @@ export default function Pillars() {
                   </div>
                 </div>
               </div>
-            </article>
+              </article>
+            </Reveal>
           ))}
         </div>
       </section>
