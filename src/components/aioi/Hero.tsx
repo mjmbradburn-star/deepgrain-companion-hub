@@ -101,21 +101,11 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="relative overflow-hidden h-14 sm:h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto inline-flex items-center justify-center gap-2 leading-none shrink-0 motion-tap"
+            className="h-14 sm:h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto inline-flex items-center justify-center gap-2 leading-none shrink-0 motion-tap"
           >
             <a href="/assess">
-              {/* One-shot brass shimmer on first paint */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 -inset-x-1 motion-safe:animate-shimmer"
-                style={{
-                  background:
-                    "linear-gradient(90deg, transparent 0%, hsl(var(--brass) / 0.35) 50%, transparent 100%)",
-                  width: "40%",
-                }}
-              />
-              <span className="relative">3-minute AI maturity scan</span>
-              <ArrowRight className="relative h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>3-minute AI maturity scan</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </a>
           </Button>
           <a
