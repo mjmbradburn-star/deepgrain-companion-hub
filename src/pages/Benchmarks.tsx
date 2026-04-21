@@ -571,6 +571,57 @@ export default function Benchmarks() {
             </button>
           </div>
 
+          {/* Filter rows — slice the cohort by level / function / size / sector / region. */}
+          <div className="border-t border-cream/10">
+            <FilterRow
+              label="Level"
+              options={LEVELS}
+              value={level}
+              onChange={setLevel}
+              helper="Whose perspective the score reflects."
+            />
+            <FilterRow
+              label="Function"
+              options={FUNCTIONS}
+              value={fn}
+              onChange={setFn}
+              helper="Filter to a single function or compare the whole field."
+            />
+            <FilterRow
+              label="Org size"
+              options={SIZES}
+              value={size}
+              onChange={setSize}
+              helper="Headcount band of the responding organisation."
+            />
+            <FilterRow
+              label="Sector"
+              options={SECTORS}
+              value={sector}
+              onChange={setSector}
+            />
+            <FilterRow
+              label="Region"
+              options={REGIONS}
+              value={region}
+              onChange={setRegion}
+            />
+          </div>
+
+          {/* Compare-functions toggle */}
+          <div className="mt-6 mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="font-display italic text-cream/55 text-sm sm:text-base">
+              Want to see functions side by side?
+            </p>
+            <button
+              onClick={() => setCompareOpen((v) => !v)}
+              className="inline-flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-sm font-ui text-xs tracking-wide transition-colors border bg-transparent text-cream border-cream/30 hover:border-cream/60"
+              aria-expanded={compareOpen}
+            >
+              {compareOpen ? "Hide comparison" : "Compare functions"}
+            </button>
+          </div>
+
           {compareOpen && (
             <>
               <div className="mb-6 flex flex-wrap gap-1.5">
