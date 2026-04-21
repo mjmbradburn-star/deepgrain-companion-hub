@@ -146,11 +146,11 @@ export function PillarBarChart({
                   variant === "bar" ? (
                     <span
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
-                      className="absolute -top-1.5 -bottom-1.5 w-[2px] bg-cream/80"
-                      style={{ left: `${cohortPct}%`, transform: "translateX(-1px)" }}
+                      className="absolute -top-0.5 -bottom-0.5 w-px bg-cream/60"
+                      style={{ left: `${cohortPct}%`, transform: "translateX(-0.5px)" }}
                     >
-                      <span className="absolute -top-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cream/85" />
-                      <span className="absolute -bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cream/85" />
+                      <span className="absolute -top-[3px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-cream/70" />
+                      <span className="absolute -bottom-[3px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-cream/70" />
                     </span>
                   ) : (
                     <span
