@@ -28,11 +28,10 @@ export function PillarsGrid() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-cream/10 border border-cream/10 rounded-lg overflow-hidden">
-          {PILLARS.map((p, i) => (
+          {PILLARS.map((p) => (
             <article
               key={p.i}
-              className="reveal motion-tap bg-walnut p-5 sm:p-7 hover:bg-surface-1 transition-colors group"
-              style={{ ['--i' as string]: String(i) } as CSSProperties}
+              className="motion-tap bg-walnut p-5 sm:p-7 hover:bg-surface-1 transition-colors group"
             >
               <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <PillarChip index={p.i} label="" number />
