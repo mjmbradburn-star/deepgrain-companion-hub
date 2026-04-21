@@ -78,7 +78,7 @@ Deno.test('email-handoff: hits the correct send-transactional-email URL with POS
     templateName: 'report-pdf-ready',
     recipientEmail: 'user@example.com',
     idempotencyKey: 'report-pdf-abc-user@example.com',
-    templateData: { score: 42, tier: 'Reactive', pdfUrl: 'https://x/y.pdf', reportUrl: 'https://x/r/abc' },
+    templateData: { score: 42, tier: 'Exploring', pdfUrl: 'https://x/y.pdf', reportUrl: 'https://x/r/abc' },
     fetchImpl: mockFetch,
   })
 
@@ -124,7 +124,7 @@ Deno.test('email-handoff: serialises template payload as JSON body', async () =>
     templateName: 'report-pdf-ready',
     recipientEmail: 'user@example.com',
     idempotencyKey: 'report-pdf-slug-user@example.com',
-    templateData: { score: 73, tier: 'Operational', pdfUrl: 'https://cdn/x.pdf', reportUrl: 'https://app/r/slug' },
+    templateData: { score: 73, tier: 'Deployed', pdfUrl: 'https://cdn/x.pdf', reportUrl: 'https://app/r/slug' },
     fetchImpl: mockFetch,
   })
 
@@ -132,7 +132,7 @@ Deno.test('email-handoff: serialises template payload as JSON body', async () =>
     templateName: 'report-pdf-ready',
     recipientEmail: 'user@example.com',
     idempotencyKey: 'report-pdf-slug-user@example.com',
-    templateData: { score: 73, tier: 'Operational', pdfUrl: 'https://cdn/x.pdf', reportUrl: 'https://app/r/slug' },
+    templateData: { score: 73, tier: 'Deployed', pdfUrl: 'https://cdn/x.pdf', reportUrl: 'https://app/r/slug' },
   })
 })
 

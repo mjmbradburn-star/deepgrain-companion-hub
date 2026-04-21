@@ -29,22 +29,22 @@ function mapOf(rec: Record<string, number>): Map<string, number> {
 Deno.test("tierForScore — band boundaries map to the correct label", () => {
   assertEquals(tierForScore(0), "Dormant");
   assertEquals(tierForScore(14), "Dormant");
-  assertEquals(tierForScore(15), "Reactive");
-  assertEquals(tierForScore(29), "Reactive");
-  assertEquals(tierForScore(30), "Exploratory");
-  assertEquals(tierForScore(49), "Exploratory");
-  assertEquals(tierForScore(50), "Operational");
-  assertEquals(tierForScore(69), "Operational");
-  assertEquals(tierForScore(70), "Integrated");
-  assertEquals(tierForScore(87), "Integrated");
-  assertEquals(tierForScore(88), "AI-Native");
+  assertEquals(tierForScore(15), "Exploring");
+  assertEquals(tierForScore(32), "Exploring");
+  assertEquals(tierForScore(33), "Deployed");
+  assertEquals(tierForScore(54), "Deployed");
+  assertEquals(tierForScore(55), "Integrated");
+  assertEquals(tierForScore(74), "Integrated");
+  assertEquals(tierForScore(75), "Leveraged");
+  assertEquals(tierForScore(89), "Leveraged");
+  assertEquals(tierForScore(90), "AI-Native");
   assertEquals(tierForScore(100), "AI-Native");
 });
 
 Deno.test("tierLabel — clamps out-of-range tier indices", () => {
   assertEquals(tierLabel(-3), "Dormant");
   assertEquals(tierLabel(0), "Dormant");
-  assertEquals(tierLabel(3), "Operational");
+  assertEquals(tierLabel(2), "Deployed");
   assertEquals(tierLabel(5), "AI-Native");
   assertEquals(tierLabel(99), "AI-Native");
 });
@@ -158,7 +158,7 @@ Deno.test("topHotspots — returns the 3 weakest pillars in ascending order", ()
   assertEquals(hs.map((h) => h.pillar), [4, 2, 6]); // tiers 0, 1, 2
   assertEquals(hs[0].name, PILLAR_NAMES[4]);
   assertEquals(hs[0].tierLabel, "Dormant");
-  assertEquals(hs[1].tierLabel, "Reactive");
+  assertEquals(hs[1].tierLabel, "Exploring");
 });
 
 Deno.test("topHotspots — ties at the cutoff are trimmed to max", () => {
@@ -177,8 +177,8 @@ Deno.test("topHotspots — empty tiers map returns empty array", () => {
 
 // ─── fallback copy ──────────────────────────────────────────────────────────
 Deno.test("fallbackDiagnosis — names tier and weakest pillar", () => {
-  const txt = fallbackDiagnosis("Exploratory", [{ name: "Data Foundations" }]);
-  assertStringIncludes(txt, "Exploratory");
+  const txt = fallbackDiagnosis("Exploring", [{ name: "Data Foundations" }]);
+  assertStringIncludes(txt, "Exploring");
   assertStringIncludes(txt, "Data Foundations");
 });
 

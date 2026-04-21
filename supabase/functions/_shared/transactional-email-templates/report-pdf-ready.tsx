@@ -18,7 +18,7 @@ const SITE_NAME = 'Deepgrain · AIOI'
 interface ReportPdfReadyProps {
   /** Numeric AIOI score 0–100 */
   score?: number
-  /** Tier label, e.g. "Operational" */
+  /** Tier label, e.g. "Deployed" */
   tier?: string
   /** Short-lived signed URL to the PDF in the private report-pdfs bucket. */
   pdfUrl?: string
@@ -94,7 +94,7 @@ export const template = {
   displayName: 'AIOI report PDF delivery',
   previewData: {
     score: 62,
-    tier: 'Operational',
+    tier: 'Deployed',
     pdfUrl: 'https://example.com/report.pdf',
     reportUrl: 'https://example.com/assess/r/abc123',
   },
