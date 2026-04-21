@@ -210,6 +210,7 @@ function ReportView({ data }: { data: ReportData }) {
                 >
                   <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
                 </Button>
+                <EmailPdfButton slug={respondent.slug} />
                 {!data.hasDeepdive && (
                   <Button
                     size="sm"
