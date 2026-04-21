@@ -25,13 +25,13 @@ export default function Assess() {
     <AssessChrome back={{ to: "/", label: "Home" }} ariaLabel="Choose assessment level">
       <main className="container py-16 sm:py-24 w-full">
         <div className="max-w-3xl mb-14 animate-fade-up">
-          <p className="eyebrow mb-5">Step 01 — Choose your level · 3-minute scan</p>
+          <p className="eyebrow mb-5">Step 01 · Choose your level · 3-minute scan</p>
           <h1 className="font-display text-5xl sm:text-6xl text-cream leading-[1.05] tracking-tight text-balance">
             What are we<br />
             <span className="italic text-brass-bright">measuring?</span>
           </h1>
           <p className="mt-6 font-display text-xl text-cream/65 max-w-xl">
-            Pick the lens. Eight questions, one per pillar — score on screen in three minutes. The deeper write-up unlocks after.
+            Pick the lens. Eight questions, one per pillar. Score on screen in three minutes. The deeper write-up unlocks after.
           </p>
         </div>
 

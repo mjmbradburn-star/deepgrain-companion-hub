@@ -28,7 +28,7 @@ export function BenchmarkCounter() {
         <div>
           <p className="eyebrow mb-3">Median AIOI</p>
           <p className="font-display text-5xl sm:text-6xl text-brass-bright tabular-nums">{score}<span className="text-cream/30 text-2xl sm:text-3xl ml-1">/100</span></p>
-          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">— most companies are <span className="text-cream/80">Reactive</span>.</p>
+          <p className="mt-2 font-display italic text-base sm:text-lg text-cream/55">Most companies are <span className="text-cream/80">Reactive</span>.</p>
         </div>
         <div>
           <p className="eyebrow mb-3">Most painful pillar</p>

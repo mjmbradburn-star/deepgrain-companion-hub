@@ -60,7 +60,7 @@ function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: str
       kind: "validation",
       title: "We couldn't accept those answers",
       detail: ctx.payloadError,
-      hint: "Review your answers below — one of them may be incomplete. If it looks right, try again.",
+      hint: "Review your answers below. One of them may be incomplete. If it looks right, try again.",
     };
   }
 
@@ -70,7 +70,7 @@ function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: str
       kind: "offline",
       title: "You're offline",
       detail: "Your device isn't connected to the internet right now.",
-      hint: "Check your connection — your answers are safe on this device, hit Try again once you're back online.",
+      hint: "Check your connection. Your answers are safe on this device. Hit Try again once you're back online.",
     };
   }
 
@@ -83,7 +83,7 @@ function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: str
       kind: "timeout",
       title: "That took too long",
       detail: "The scoring service didn't respond within 25 seconds.",
-      hint: "Usually a one-off — wait a few seconds and hit Try again. If it keeps timing out, refresh the page.",
+      hint: "Usually a one-off. Wait a few seconds and hit Try again. If it keeps timing out, refresh the page.",
     };
   }
 
@@ -93,7 +93,7 @@ function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: str
       kind: "server",
       title: "Our scoring service hiccupped",
       detail: message || "The function ran but returned an error.",
-      hint: "We've logged it. Try again in a moment — your answers are saved.",
+      hint: "We've logged it. Try again in a moment. Your answers are saved.",
     };
   }
 
@@ -107,7 +107,7 @@ function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: str
     return {
       kind: "network",
       title: "Couldn't reach the scoring service",
-      detail: "We couldn't make it to the server — could be your connection or ours.",
+      detail: "We couldn't make it to the server. Could be your connection or ours.",
       hint: "Check your connection and try again. If it persists, refresh and we'll resume from your last answer.",
     };
   }
@@ -116,7 +116,7 @@ function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: str
     kind: "unknown",
     title: "Something snagged",
     detail: message || "An unexpected error occurred.",
-    hint: "Try again — your answers are safe on this device.",
+    hint: "Try again. Your answers are safe on this device.",
   };
 }
 

@@ -103,7 +103,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
       <div className="border border-cream/10 rounded-md p-6 bg-surface-1/40">
         <p className="eyebrow text-cream/45 mb-2">Versus the field</p>
         <p className="font-display text-cream/70 text-pretty">
-          No matching cohort yet — your slice publishes once enough peers opt in.
+          No matching cohort yet. Your slice publishes once enough peers opt in.
         </p>
       </div>
     );
@@ -230,7 +230,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
 
 function SpecificityLegend({ active }: { active: number }) {
   const rows: { id: number; label: string; detail: string }[] = [
-    { id: 3, label: "Function + region", detail: "Tightest match — both fields shared" },
+    { id: 3, label: "Function + region", detail: "Tightest match. Both fields shared" },
     { id: 2, label: "Function or region", detail: "One field shared with the cohort" },
     { id: 1, label: "Level fallback", detail: "Everyone at your assessment level" },
     { id: 0, label: "Approximate", detail: "Best available row at this level" },
@@ -255,7 +255,7 @@ function SpecificityLegend({ active }: { active: number }) {
                 <span className={isActive ? "text-brass-bright font-medium" : "text-cream/85"}>
                   {r.label}
                 </span>
-                <span className="text-cream/50"> — {r.detail}</span>
+                <span className="text-cream/50"> · {r.detail}</span>
               </span>
             </li>
           );

@@ -410,7 +410,7 @@ export const COMPANY_QUESTIONS: Question[] = [
       { tier: 2, label: "A draft strategy circulating internally." },
       { tier: 3, label: "An approved strategy with named owners per pillar." },
       { tier: 4, label: "Strategy tied to OKRs and capital allocation." },
-      { tier: 5, label: "AI is the operating model — strategy and AI are inseparable." },
+      { tier: 5, label: "AI is the operating model. Strategy and AI are inseparable." },
     ],
   },
   // P2 Data Foundations
@@ -486,7 +486,7 @@ export const COMPANY_QUESTIONS: Question[] = [
     pillar: 4,
     prompt: "Has the company redesigned operating models around AI?",
     options: [
-      { tier: 0, label: "No — org chart and processes unchanged." },
+      { tier: 0, label: "No. Org chart and processes unchanged." },
       { tier: 1, label: "Talked about; nothing shipped." },
       { tier: 2, label: "One team has restructured around AI." },
       { tier: 3, label: "Two or three functions redesigned around AI." },
@@ -504,7 +504,7 @@ export const COMPANY_QUESTIONS: Question[] = [
       { tier: 1, label: "Tried ChatGPT once or twice." },
       { tier: 2, label: "Uses it weekly for ad-hoc tasks." },
       { tier: 3, label: "Uses it daily, iterates on prompts." },
-      { tier: 4, label: "Builds reusable assets — prompts, templates, mini-tools." },
+      { tier: 4, label: "Builds reusable assets: prompts, templates, mini-tools." },
       { tier: 5, label: "Composes and ships agents to colleagues." },
     ],
   },

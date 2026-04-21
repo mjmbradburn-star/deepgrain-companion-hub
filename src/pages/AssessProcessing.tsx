@@ -203,7 +203,7 @@ export default function AssessProcessing() {
               line2={<>We've sent a magic link to <span className="text-brass-bright not-italic">{emailSentTo}</span>.</>}
             />
             <p className="mt-8 max-w-xl font-display text-lg text-cream/65 leading-relaxed">
-              Click the link to sign in — your answers are saved on this device. The instant you're back, we'll save them to your record and build your report.
+              Click the link to sign in. Your answers are saved on this device. The instant you're back, we'll save them to your record and build your report.
             </p>
             <div className="mt-10 inline-flex items-center gap-3 rounded-md border border-cream/10 bg-surface-1/60 px-4 py-3 max-w-fit">
               <Mail className="h-4 w-4 text-brass-bright" />
