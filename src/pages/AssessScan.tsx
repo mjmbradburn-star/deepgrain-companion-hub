@@ -53,7 +53,7 @@ export default function AssessScan() {
   const [resumed] = useState(() => Object.keys(initialScan.answers ?? {}).length > 0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<SubmitError | null>(null);
   const [lastAttempt, setLastAttempt] = useState<Record<string, number> | null>(null);
 
   // Persist + recompute prompts whenever function changes (level-=function only).
