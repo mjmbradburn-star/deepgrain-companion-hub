@@ -32,8 +32,10 @@ export function RadarChart({
 }: RadarChartProps) {
   const cx = size / 2;
   const cy = size / 2;
-  // leave room for labels
-  const padding = showLabels ? 78 : 24;
+  // leave room for labels — labels render at 5.55 × radius then nudge ±6px,
+  // so the inner radius needs ~92px of padding to keep the "P{n}" caption
+  // and pillar name from clipping at any edge of the SVG bounding box.
+  const padding = showLabels ? 92 : 24;
   const radius = size / 2 - padding;
 
   // Convert (pillarIndex, tier) → (x, y) on the polar grid.
