@@ -184,18 +184,27 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
             <div className="col-span-4">
               <DeltaBar user={d.user} cohort={d.cohort} />
             </div>
-            <span
-              className={`col-span-2 text-right font-mono text-xs tracking-wide tabular-nums ${
-                d.delta > 0
-                  ? "text-brass-bright"
-                  : d.delta < 0
-                  ? "text-pillar-7"
-                  : "text-cream/45"
-              }`}
-            >
-              {d.delta > 0 ? "+" : ""}
-              {d.delta.toFixed(1)}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className={`col-span-2 text-right font-mono text-xs tracking-wide tabular-nums focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/60 rounded cursor-help ${
+                    d.delta > 0
+                      ? "text-brass-bright"
+                      : d.delta < 0
+                      ? "text-pillar-7"
+                      : "text-cream/45"
+                  }`}
+                >
+                  {d.delta > 0 ? "+" : ""}
+                  {d.delta.toFixed(1)}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left" align="center" className="max-w-xs text-xs leading-snug">
+                You vs cohort median for {d.name}, in tier points (0–5 scale, rounded to 1 decimal).
+                You: {d.user.toFixed(1)} · Cohort: {d.cohort.toFixed(1)}.
+              </TooltipContent>
+            </Tooltip>
           </li>
         ))}
       </ol>
