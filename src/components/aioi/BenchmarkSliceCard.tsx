@@ -159,13 +159,13 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
       <div className="px-6 sm:px-8 py-6 grid grid-cols-3 gap-6 border-b border-cream/10">
         <Stat
           label="You"
-          value={userScore}
+          value={formatScore(userScore)}
           accent
           hint="Your weighted AIOI score (0–100 score points, rounded to the nearest whole point)."
         />
         <Stat
           label="Cohort median"
-          value={cohortScore ?? "—"}
+          value={cohortScore == null ? "—" : formatScore(cohortScore)}
           hint={
             cohortScore == null
               ? "Cohort median is unavailable: this slice does not yet publish a median score (the underlying benchmark row has no median_score, usually because the cohort is still below the minimum sample threshold)."
@@ -174,12 +174,12 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
         />
         <Stat
           label="Gap"
-          value={overallDelta == null ? "—" : `${overallDelta > 0 ? "+" : ""}${overallDelta}`}
+          value={formatOverallGap(overallDelta)}
           tone={overallDelta == null ? "neutral" : overallDelta >= 0 ? "ahead" : "behind"}
           hint={
             overallDelta == null
               ? "Gap can't be calculated: it needs both your score and a cohort median, and the cohort median for this slice is unavailable. Once the slice publishes a median, the gap will appear here."
-              : "You vs cohort median, in AIOI score points (0–100 scale). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5)."
+              : `You vs cohort median: ${formatOverallGap(overallDelta)} AIOI score points (0–100 scale; You ${formatScore(userScore)} − Cohort ${formatScore(cohortScore!)}). Positive = ahead of the cohort. Per-pillar deltas below are in tier points (0–5).`
           }
         />
       </div>
