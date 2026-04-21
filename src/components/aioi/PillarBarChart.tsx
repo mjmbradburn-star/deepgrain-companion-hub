@@ -83,7 +83,7 @@ export function PillarBarChart({
         </div>
       </div>
 
-      <ul className="space-y-3 sm:space-y-2.5">
+      <ul className="space-y-4 sm:space-y-2.5">
         {PILLAR_INDICES.map((i) => {
           const userTier = clamp(values[i] ?? 0);
           const cohortTier = cohort && cohort[i] != null ? clamp(cohort[i]) : null;
@@ -93,7 +93,7 @@ export function PillarBarChart({
 
           const trackAndValue = (
             <div className={cn("flex-1 min-w-0", trackValueGrid)}>
-              <div className="relative h-3 sm:h-3.5">
+              <div className="relative h-3.5 sm:h-3.5">
                 {/* Track */}
                 <div className="absolute inset-0 rounded-sm bg-cream/[0.06]" />
                 {/* Subtle interior gridlines at each tier */}
@@ -137,8 +137,8 @@ export function PillarBarChart({
                   <span
                     aria-label={`You: ${userTier.toFixed(1)}`}
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_2px_hsl(var(--walnut))]",
-                      "h-2.5 w-2.5 sm:h-3 sm:w-3",
+                      "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-brass-bright shadow-[0_0_0_1.5px_hsl(var(--walnut))] sm:shadow-[0_0_0_2px_hsl(var(--walnut))]",
+                      "h-2 w-2 sm:h-3 sm:w-3",
                     )}
                     style={{ left: `${userPct}%` }}
                   />
@@ -159,8 +159,8 @@ export function PillarBarChart({
                     <span
                       aria-label={`Cohort median: ${cohortTier!.toFixed(1)}`}
                       className={cn(
-                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-cream/75 bg-walnut",
-                        "h-2.5 w-2.5 sm:h-3 sm:w-3",
+                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border border-cream/75 sm:border-2 bg-walnut",
+                        "h-2 w-2 sm:h-3 sm:w-3",
                       )}
                       style={{ left: `${cohortPct}%` }}
                     />
