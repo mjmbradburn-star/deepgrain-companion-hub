@@ -138,25 +138,27 @@ export default function Ladder() {
 
       {/* ─── Visual ladder ───────────────────────────────────────── */}
       <section className="border-b border-cream/10 bg-surface-0">
-        <div className="container max-w-6xl py-20">
-          <p className="eyebrow mb-8 text-cream/45">The cohort, distributed</p>
+        <div className="container max-w-6xl py-12 sm:py-20">
+          <p className="eyebrow mb-6 sm:mb-8 text-cream/45">The cohort, distributed</p>
           <div className="space-y-3">
             {TIERS.map((t) => (
               <a
                 key={t.tier}
                 href={`#${slug(t.tier)}`}
-                className="group grid grid-cols-12 items-center gap-4 border-b border-cream/10 py-4 hover:bg-surface-1/40 -mx-4 px-4 rounded-sm transition-colors"
+                className="group grid grid-cols-12 items-center gap-x-3 gap-y-1 sm:gap-4 border-b border-cream/10 py-4 hover:bg-surface-1/40 -mx-2 sm:-mx-4 px-2 sm:px-4 rounded-sm transition-colors"
               >
-                <span className="col-span-1 font-mono text-xs text-cream/35 tabular-nums">
+                {/* Mobile: 2 rows. Desktop: single row 12-col grid. */}
+                <span className="col-span-2 sm:col-span-1 font-mono text-xs text-cream/35 tabular-nums">
                   0{t.index}
                 </span>
-                <span className="col-span-3 sm:col-span-2 font-display text-2xl sm:text-3xl text-cream group-hover:text-brass-bright transition-colors">
+                <span className="col-span-7 sm:col-span-2 font-display text-2xl sm:text-3xl text-cream group-hover:text-brass-bright transition-colors">
                   {t.tier}
                 </span>
                 <span className="hidden sm:block sm:col-span-3 font-display italic text-cream/55">
                   {t.tag}
                 </span>
-                <div className="col-span-6 sm:col-span-5">
+                {/* Bar — full row width on mobile (after the label row), 5 cols on desktop */}
+                <div className="col-span-9 col-start-3 sm:col-start-auto sm:col-span-5 order-last sm:order-none">
                   <div className="relative h-2 rounded-full bg-cream/8 overflow-hidden">
                     <div
                       className="absolute inset-y-0 left-0 bg-brass/70 group-hover:bg-brass-bright transition-colors"
@@ -164,13 +166,17 @@ export default function Ladder() {
                     />
                   </div>
                 </div>
-                <span className="col-span-2 sm:col-span-1 text-right font-mono text-xs text-cream/55 tabular-nums">
+                <span className="col-span-3 sm:col-span-1 text-right font-mono text-xs text-cream/55 tabular-nums">
                   {t.populationPct}%
+                </span>
+                {/* Tag line on a second row for mobile */}
+                <span className="col-span-12 sm:hidden font-display italic text-sm text-cream/50 -mt-1">
+                  {t.tag}
                 </span>
               </a>
             ))}
           </div>
-          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
             Notional cohort distribution · {totalPct}% · refreshed against the live benchmark
           </p>
         </div>
@@ -182,16 +188,21 @@ export default function Ladder() {
           {TIERS.map((t) => (
             <article
               key={t.tier}
+      <section className="py-12 sm:py-20 lg:py-28">
+        <div className="container max-w-6xl space-y-16 sm:space-y-24">
+          {TIERS.map((t) => (
+            <article
+              key={t.tier}
               id={slug(t.tier)}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-10 scroll-mt-24"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 scroll-mt-24"
             >
               <aside className="lg:col-span-4">
-                <div className="sticky top-24 space-y-6">
-                  <div className="flex items-baseline gap-4">
-                    <span className="font-display text-7xl leading-none text-brass-bright/30 tabular-nums">
+                <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6">
+                  <div className="flex items-baseline gap-3 sm:gap-4">
+                    <span className="font-display text-5xl sm:text-7xl leading-none text-brass-bright/30 tabular-nums">
                       {String(t.index).padStart(2, "0")}
                     </span>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.22em] text-cream/35">
                       Tier {t.index} of 5
                     </span>
                   </div>
@@ -203,20 +214,20 @@ export default function Ladder() {
                 </div>
               </aside>
 
-              <div className="lg:col-span-8 space-y-8">
-                <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
+              <div className="lg:col-span-8 space-y-6 sm:space-y-8">
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-[1.05] tracking-tight">
                   {t.tier}
                 </h2>
-                <p className="font-display italic text-2xl text-brass-bright/85 leading-snug">
+                <p className="font-display italic text-xl sm:text-2xl text-brass-bright/85 leading-snug">
                   {t.tag}
                 </p>
-                <p className="font-display text-xl text-cream/75 leading-relaxed max-w-2xl">
+                <p className="font-display text-lg sm:text-xl text-cream/75 leading-relaxed max-w-2xl">
                   {t.thesis}
                 </p>
 
                 <List title="You're probably here if" items={t.here} />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 max-w-2xl">
                   <Callout kind="watch" title="The next thing to watch for" body={t.watch} />
                   <Callout kind="next" title="To climb a rung" body={t.next} />
                 </div>
@@ -228,15 +239,15 @@ export default function Ladder() {
 
       {/* ─── CTA ─────────────────────────────────────────────────── */}
       <section className="border-t border-cream/10 bg-surface-0">
-        <div className="container max-w-4xl py-24 text-center">
+        <div className="container max-w-4xl py-16 sm:py-24 text-center">
           <p className="eyebrow mb-5">Find your rung</p>
-          <h2 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight">
             Seven minutes.<br />
             <span className="italic text-brass-bright">A score you can argue with.</span>
           </h2>
           <a
             href="/assess"
-            className="mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
+            className="mt-8 sm:mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors"
           >
             Begin assessment <ArrowRight className="h-4 w-4" />
           </a>
