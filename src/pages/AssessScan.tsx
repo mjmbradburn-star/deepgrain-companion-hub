@@ -8,6 +8,13 @@ import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   PILLAR_NAMES,
   FUNCTIONS,
   REGIONS,
