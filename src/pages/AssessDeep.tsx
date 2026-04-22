@@ -32,6 +32,8 @@ export default function AssessDeep() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [answersSaved, setAnswersSaved] = useState(false);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
 
   // Load respondent + already-answered question IDs (so we skip qs- ones).
@@ -107,28 +109,53 @@ export default function AssessDeep() {
     [allProgressQuestions, answeredIds, answers],
   );
 
+  useEffect(() => {
+    if (!respondent || submitting || remaining.length !== 0) return;
+    const t = window.setTimeout(() => navigate(`/assess/r/${respondent.slug}`), 1200);
+    return () => window.clearTimeout(t);
+  }, [navigate, remaining.length, respondent, submitting]);
+
   const submitAll = async (finalAnswers: Record<string, number>) => {
     if (!respondent) return;
     setSubmitting(true);
+    setSubmitErr(null);
     try {
       const rows = Object.entries(finalAnswers).map(([question_id, tier]) => ({
         respondent_id: respondent.id,
         question_id,
         tier,
       }));
-      if (rows.length > 0) {
-        await supabase.from("responses").insert(rows);
+      if (rows.length > 0 && !answersSaved) {
+        const { error: insertError } = await supabase.from("responses").insert(rows);
+        if (insertError) throw insertError;
+        setAnswersSaved(true);
       }
-      await supabase.functions.invoke("rescore-respondent", { body: { slug: respondent.slug } });
+      const { error: scoreError } = await supabase.functions.invoke("rescore-respondent", { body: { slug: respondent.slug } });
+      if (scoreError) throw scoreError;
+      void supabase.from("events").insert({
+        name: "deepdive_completed",
+        payload: { slug: respondent.slug, respondent_id: respondent.id, answered: Object.keys(finalAnswers).length },
+      });
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
+      setSubmitErr(err instanceof Error ? err.message : "Re-scoring failed");
+      void supabase.from("events").insert({
+        name: "deepdive_rescore_failed",
+        payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
+      });
       setSubmitting(false);
     }
   };
 
   const select = (tier: number) => {
     if (!question) return;
+    if (Object.keys(answers).length === 0) {
+      void supabase.from("events").insert({
+        name: "deepdive_first_question_answered",
+        payload: { slug: respondent?.slug, respondent_id: respondent?.id, question_id: question.id },
+      });
+    }
     const next = { ...answers, [question.id]: tier };
     setAnswers(next);
     window.setTimeout(() => {
