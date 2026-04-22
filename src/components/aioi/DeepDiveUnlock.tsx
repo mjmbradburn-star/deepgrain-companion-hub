@@ -67,14 +67,14 @@ const PAYOFF_BY_LEVEL: Record<string, { eyebrow: string; headline: string; detai
   },
 };
 
-export function DeepDiveUnlock({ slug, level = "function", variant = "card" }: Props) {
+export function DeepDiveUnlock({ slug, level = "function", variant = "card", isAnonymous = false }: Props) {
   const copy = PAYOFF_BY_LEVEL[level] ?? PAYOFF_BY_LEVEL.function;
   if (variant === "overlay") {
     return (
       <div className="absolute inset-0 z-10 flex items-center justify-center p-6 sm:p-10">
         <div className="absolute inset-0 bg-walnut/85 backdrop-blur-md" aria-hidden />
         <div className="relative w-full max-w-2xl">
-          <UnlockBody slug={slug} level={level} copy={copy} compact />
+          <UnlockBody slug={slug} level={level} copy={copy} compact isAnonymous={isAnonymous} />
         </div>
       </div>
     );
@@ -83,7 +83,7 @@ export function DeepDiveUnlock({ slug, level = "function", variant = "card" }: P
   return (
     <section className="container max-w-6xl pb-20">
       <div className="rounded-lg border border-brass/30 bg-gradient-to-br from-surface-1/80 via-surface-1/40 to-surface-0/80 p-8 sm:p-12">
-        <UnlockBody slug={slug} level={level} copy={copy} />
+        <UnlockBody slug={slug} level={level} copy={copy} isAnonymous={isAnonymous} />
       </div>
     </section>
   );
