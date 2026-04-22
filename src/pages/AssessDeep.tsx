@@ -6,6 +6,7 @@ import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { OptionCard } from "@/components/aioi/OptionCard";
 import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
+import { DeepDiveEmailGate } from "@/components/aioi/DeepDiveEmailGate";
 import { Button } from "@/components/ui/button";
 import {
   PILLAR_NAMES,
@@ -16,12 +17,14 @@ import {
 } from "@/lib/assessment";
 import { getQuickscanQuestions } from "@/lib/quickscan";
 import { supabase } from "@/integrations/supabase/client";
+import { claimReportBySlug } from "@/lib/report-claim";
 
 interface RespondentLite {
   id: string;
   slug: string;
   level: Level;
   function: BusinessFunction | null;
+  isAnonymous: boolean;
 }
 
 export default function AssessDeep() {
@@ -35,6 +38,7 @@ export default function AssessDeep() {
   const [answersSaved, setAnswersSaved] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [authGate, setAuthGate] = useState<"checking" | "needs-email" | "blocked" | "ready">("checking");
 
   // Load respondent + already-answered question IDs (so we skip qs- ones).
   useEffect(() => {
@@ -48,13 +52,27 @@ export default function AssessDeep() {
         return;
       }
       const payload = rpc as unknown as {
-        respondent: { id: string; slug: string; level: Level; function: BusinessFunction | null } | null;
+        respondent: { id: string; slug: string; level: Level; function: BusinessFunction | null; is_anonymous: boolean } | null;
       };
       if (!payload.respondent) {
         setLoadErr("Report not found");
         return;
       }
-      setRespondent(payload.respondent);
+      setRespondent({ ...payload.respondent, isAnonymous: payload.respondent.is_anonymous });
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        setAuthGate("needs-email");
+        return;
+      }
+
+      const claim = await claimReportBySlug(payload.respondent.slug, false);
+      if (!claim.ok) {
+        setAuthGate("blocked");
+        setLoadErr(claim.status === "already_claimed" ? "This report is already linked to another email." : "We couldn't save this report to your email.");
+        return;
+      }
+      setAuthGate("ready");
 
       // Load existing responses to skip what's already answered
       const { data: existing } = await supabase
@@ -110,10 +128,10 @@ export default function AssessDeep() {
   );
 
   useEffect(() => {
-    if (!respondent || submitting || remaining.length !== 0) return;
+    if (!respondent || submitting || submitErr || remaining.length !== 0) return;
     const t = window.setTimeout(() => navigate(`/assess/r/${respondent.slug}`), 1200);
     return () => window.clearTimeout(t);
-  }, [navigate, remaining.length, respondent, submitting]);
+  }, [navigate, remaining.length, respondent, submitErr, submitting]);
 
   const submitAll = async (finalAnswers: Record<string, number>) => {
     if (!respondent) return;
@@ -126,7 +144,7 @@ export default function AssessDeep() {
         tier,
       }));
       if (rows.length > 0 && !answersSaved) {
-        const { error: insertError } = await supabase.from("responses").insert(rows);
+        const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
         if (insertError) throw insertError;
         setAnswersSaved(true);
       }
@@ -139,10 +157,10 @@ export default function AssessDeep() {
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
-      setSubmitErr(err instanceof Error ? err.message : "Re-scoring failed");
+      setSubmitErr("Your answer is saved locally. We need to reconnect this report to your email before re-scoring.");
       void supabase.from("events").insert({
         name: "deepdive_rescore_failed",
-        payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
+            payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
       });
       setSubmitting(false);
     }
@@ -184,14 +202,29 @@ export default function AssessDeep() {
     );
   }
 
-  if (submitting || remaining.length === 0) {
+  if (authGate === "needs-email") {
+    return (
+      <AssessChrome ariaLabel="Save report">
+        <main className="container max-w-2xl w-full py-20 sm:py-28">
+          <p className="eyebrow mb-5">Save report</p>
+          <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">Save this report and<br /><span className="italic text-brass-bright">unlock the Deep Dive.</span></h1>
+          <p className="mt-6 font-display text-lg text-cream/65 max-w-md">We need your email before updating this report, so the full report is saved to you.</p>
+          <DeepDiveEmailGate slug={respondent.slug} level={respondent.level} compact />
+        </main>
+      </AssessChrome>
+    );
+  }
+
+  if (authGate === "checking" || submitting || remaining.length === 0) {
     return (
       <AssessChrome ariaLabel="Re-scoring">
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center">
             {!submitErr && <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />}
             <p className="mt-6 font-display text-2xl text-cream/85">
-              {submitErr
+              {authGate === "checking"
+                ? "Saving this report to your email…"
+                : submitErr
                 ? "Your answers are saved. Re-scoring needs another try."
                 : remaining.length === 0
                 ? "Your full report is already complete. Taking you back now…"
