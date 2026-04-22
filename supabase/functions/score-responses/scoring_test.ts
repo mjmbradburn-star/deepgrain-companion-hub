@@ -11,6 +11,7 @@ import {
   PILLAR_WEIGHTS,
   SCORE_BANDS,
   aioiScore,
+  applyConsistencyCaps,
   fallbackDiagnosis,
   fallbackPlan,
   pillarTiers,
@@ -234,4 +235,62 @@ Deno.test("PILLAR_WEIGHTS — sum to ~1.0", () => {
 
 Deno.test("SCORE_BANDS — final band ends at 100", () => {
   assertEquals(SCORE_BANDS[SCORE_BANDS.length - 1].max, 100);
+});
+
+// ─── v1.1 consistency caps ─────────────────────────────────────────────────
+Deno.test("v1.1 caps — Tooling Tier 5 + Data Tier 0 caps Tooling at 1", () => {
+  const result = applyConsistencyCaps(
+    { 1: 3, 2: 0, 3: 5, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
+    [],
+  );
+
+  assertEquals(result.tiers[3], 1);
+  assertEquals(result.capFlags.some((flag) => flag.code === "tooling_data_cap"), true);
+});
+
+Deno.test("v1.1 caps — Governance Tier 5 + low operating reality caps Governance", () => {
+  const result = applyConsistencyCaps(
+    { 1: 3, 2: 1, 3: 1, 4: 1, 5: 1, 6: 5, 7: 1, 8: 1 },
+    [],
+  );
+
+  assertEquals(result.tiers[6], 2);
+  assertEquals(result.capFlags.some((flag) => flag.code === "governance_reality_cap"), true);
+});
+
+Deno.test("v1.1 caps — consistent high scores trigger no caps", () => {
+  const result = applyConsistencyCaps(
+    { 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4 },
+    [
+      { question_id: "qs-c-p3", tier: 4 },
+      { question_id: "qs-c-p3-agents", tier: 4 },
+      { question_id: "c-p3-orchestration", tier: 4 },
+      { question_id: "c-p3-observability", tier: 4 },
+      { question_id: "c-p3-toolconnect", tier: 4 },
+      { question_id: "qs-c-p2", tier: 4 },
+      { question_id: "c-p2-corpus", tier: 4 },
+      { question_id: "c-p2-memory", tier: 4 },
+      { question_id: "qs-c-p5", tier: 4 },
+      { question_id: "c-p5-prompts", tier: 4 },
+      { question_id: "c-p5-evals", tier: 4 },
+    ],
+  );
+
+  assertEquals(result.capFlags.length, 0);
+  assertEquals(result.benchmarkExcluded, false);
+});
+
+Deno.test("v1.1 caps — three or more caps exclude benchmark contribution", () => {
+  const result = applyConsistencyCaps(
+    { 1: 4, 2: 0, 3: 5, 4: 5, 5: 0, 6: 5, 7: 5, 8: 5 },
+    [
+      { question_id: "qs-c-p3", tier: 0 },
+      { question_id: "qs-c-p3-agents", tier: 5 },
+      { question_id: "c-p3-orchestration", tier: 1 },
+      { question_id: "c-p3-observability", tier: 5 },
+    ],
+  );
+
+  assertEquals(result.capFlags.length >= 3, true);
+  assertEquals(result.benchmarkExcluded, true);
 });

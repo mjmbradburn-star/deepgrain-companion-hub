@@ -138,6 +138,11 @@ function answerMap(responses: Response[]): Map<string, number> {
   return new Map(responses.map((r) => [r.question_id, r.tier]));
 }
 
+function inferPillar(questionId: string): number | null {
+  const match = questionId.match(/^(?:qs-[cfi]-p|[cfi]-p)([1-8])/);
+  return match ? Number(match[1]) : null;
+}
+
 function capQuestion(
   flags: CapFlag[],
   answers: Map<string, number>,
@@ -150,24 +155,60 @@ function capQuestion(
   const target = answers.get(targetId);
   const basis = answers.get(basisId);
   if (target === undefined || basis === undefined) return;
-  const max = basis + maxDelta;
+  const max = Math.min(5, basis + maxDelta);
   if (target > max) {
     flags.push({ code, label, from: target, to: max, basis: `${targetId} capped by ${basisId}` });
+    answers.set(targetId, max);
   }
+}
+
+function applyQuestionCaps(responses: Response[], flags: CapFlag[]): Map<string, number> {
+  const answers = answerMap(responses);
+  capQuestion(flags, answers, "qs-c-p3-agents", "qs-c-p3", 1, "agents_tooling_cap", "Agents capped by tooling");
+  capQuestion(flags, answers, "c-p3-observability", "c-p3-orchestration", 0, "observability_orchestration_cap", "Observability capped by orchestration");
+  capQuestion(flags, answers, "c-p3-toolconnect", "qs-c-p3-agents", 1, "toolconnect_agents_cap", "Tool connection capped by agents");
+  capQuestion(flags, answers, "c-p2-corpus", "qs-c-p2", 1, "corpus_data_cap", "Corpus capped by data foundations");
+  capQuestion(flags, answers, "c-p2-memory", "qs-c-p3-agents", 0, "memory_agents_cap", "Memory capped by agents");
+  capQuestion(flags, answers, "c-p5-prompts", "qs-c-p5", 1, "prompts_skills_cap", "Prompts capped by skills");
+  capQuestion(flags, answers, "c-p5-evals", "c-p3-observability", 1, "evals_observability_cap", "Evals capped by observability");
+  capQuestion(flags, answers, "i-p3-agents", "qs-i-p5", 1, "personal_agents_skills_cap", "Personal agents capped by skills");
+  return answers;
+}
+
+function tiersFromCappedAnswers(
+  originalTiers: Record<number, number>,
+  responses: Response[],
+  cappedAnswers: Map<string, number>,
+): Record<number, number> {
+  const sums: Record<number, { sum: number; n: number }> = {};
+  for (const response of responses) {
+    const pillar = inferPillar(response.question_id);
+    if (!pillar) continue;
+    sums[pillar] ??= { sum: 0, n: 0 };
+    sums[pillar].sum += cappedAnswers.get(response.question_id) ?? response.tier;
+    sums[pillar].n += 1;
+  }
+
+  const adjusted: Record<number, number> = { ...originalTiers };
+  for (const [pillar, aggregate] of Object.entries(sums)) {
+    adjusted[Number(pillar)] = Math.round((aggregate.sum / aggregate.n) * 10) / 10;
+  }
+  return adjusted;
 }
 
 export function applyConsistencyCaps(
   tiers: Record<number, number>,
   responses: Response[],
 ): CappedScore {
-  const adjusted: Record<number, number> = { ...tiers };
   const capFlags: CapFlag[] = [];
-  const answers = answerMap(responses);
+  const cappedAnswers = applyQuestionCaps(responses, capFlags);
+  const adjusted = tiersFromCappedAnswers(tiers, responses, cappedAnswers);
 
   const capPillar = (pillar: number, max: number, code: string, label: string, basis: string) => {
-    if ((adjusted[pillar] ?? 0) > max) {
-      capFlags.push({ code, label, from: adjusted[pillar], to: max, basis });
-      adjusted[pillar] = Math.round(max * 10) / 10;
+    const cappedMax = Math.min(5, max);
+    if ((adjusted[pillar] ?? 0) > cappedMax) {
+      capFlags.push({ code, label, from: adjusted[pillar], to: cappedMax, basis });
+      adjusted[pillar] = Math.round(cappedMax * 10) / 10;
     }
   };
 
@@ -179,15 +220,6 @@ export function applyConsistencyCaps(
 
   const operatingReality = Math.max(0, Math.round(((adjusted[2] ?? 0) + (adjusted[3] ?? 0) + (adjusted[4] ?? 0) + (adjusted[5] ?? 0)) / 4));
   capPillar(6, operatingReality + 1, "governance_reality_cap", "Governance capped by operating reality", "Governance claims need matching data, tooling, workflow and skills maturity.");
-
-  capQuestion(capFlags, answers, "qs-c-p3-agents", "qs-c-p3", 1, "agents_tooling_cap", "Agents capped by tooling");
-  capQuestion(capFlags, answers, "c-p3-observability", "c-p3-orchestration", 0, "observability_orchestration_cap", "Observability capped by orchestration");
-  capQuestion(capFlags, answers, "c-p3-toolconnect", "qs-c-p3-agents", 1, "toolconnect_agents_cap", "Tool connection capped by agents");
-  capQuestion(capFlags, answers, "c-p2-corpus", "qs-c-p2", 1, "corpus_data_cap", "Corpus capped by data foundations");
-  capQuestion(capFlags, answers, "c-p2-memory", "qs-c-p3-agents", 0, "memory_agents_cap", "Memory capped by agents");
-  capQuestion(capFlags, answers, "c-p5-prompts", "qs-c-p5", 1, "prompts_skills_cap", "Prompts capped by skills");
-  capQuestion(capFlags, answers, "c-p5-evals", "c-p3-observability", 1, "evals_observability_cap", "Evals capped by observability");
-  capQuestion(capFlags, answers, "i-p3-agents", "qs-i-p5", 1, "personal_agents_skills_cap", "Personal agents capped by skills");
 
   return { tiers: adjusted, capFlags, benchmarkExcluded: capFlags.length >= 3 };
 }

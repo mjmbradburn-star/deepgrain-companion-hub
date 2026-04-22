@@ -68,6 +68,45 @@ export interface MatchedSlice {
   lockedReason?: string;
 }
 
+const SIZE_BAND_LABELS: Record<string, string> = {
+  S: "Early-stage (1–50 people)",
+  M1: "Early scale-up (51–100 people)",
+  M2: "Mid scale-up (101–200 people)",
+  M3: "Late scale-up (201–500 people)",
+  L1: "Growth (501–1,000 people)",
+  L2: "Upper-mid-market (1,001–2,000 people)",
+  XL: "Enterprise (2,001+ people)",
+};
+
+const COMBINED_SIZE_BANDS: Record<string, string[]> = {
+  S: ["S", "M1", "M2"],
+  M1: ["S", "M1", "M2"],
+  M2: ["M1", "M2", "M3"],
+  M3: ["M2", "M3", "L1"],
+  L1: ["M3", "L1", "L2"],
+  L2: ["L1", "L2", "XL"],
+  XL: ["L1", "L2", "XL"],
+};
+
+export function sizeBandLabel(code: string | null | undefined): string {
+  if (!code) return "Unknown size band";
+  return SIZE_BAND_LABELS[code] ?? `Size band ${code}`;
+}
+
+function rollupSizeBand(rows: BenchmarkRow[], bands: string[]): BenchmarkRow | null {
+  const exactRows = rows.filter((x) => bands.includes(String(x.size_band ?? "")) && !x.function && !x.region && !x.sector);
+  if (!exactRows.length) return null;
+  const sampleSize = exactRows.reduce((sum, row) => sum + row.sample_size, 0);
+  if (sampleSize < 20) return null;
+  const weightedMedian = exactRows.reduce((sum, row) => sum + Number(row.median_score ?? 0) * row.sample_size, 0) / sampleSize;
+  const pillar_medians: Record<string, { name: string; tier: number }> = {};
+  for (let pillar = 1; pillar <= 8; pillar++) {
+    const weightedTier = exactRows.reduce((sum, row) => sum + (readPillarTier(row.pillar_medians, pillar) ?? 0) * row.sample_size, 0) / sampleSize;
+    pillar_medians[String(pillar)] = { name: `Pillar ${pillar}`, tier: Math.round(weightedTier * 10) / 10 };
+  }
+  return { ...exactRows[0], id: `combined-${bands.join("-")}`, size_band: bands.join("+"), sample_size: sampleSize, median_score: Math.round(weightedMedian * 100) / 100, pillar_medians };
+}
+
 /**
  * Find the most specific benchmark row for a respondent's function + region,
  * falling back through progressively broader slices.
@@ -89,7 +128,6 @@ export async function fetchBestSlice({
   region?: string | null;
   sizeBand?: string | null;
 }): Promise<MatchedSlice | null> {
-  const fn = normaliseFunction(fnRaw);
   const { data, error } = await supabase
     .from("benchmarks_materialised")
     .select("*")
@@ -101,7 +139,23 @@ export async function fetchBestSlice({
     return null;
   }
 
-  const rows = data as BenchmarkRow[];
+  return selectBestSliceFromRows({ rows: data as BenchmarkRow[], level, function: fnRaw, region, sizeBand });
+}
+
+export function selectBestSliceFromRows({
+  rows,
+  level,
+  function: fnRaw,
+  region,
+  sizeBand,
+}: {
+  rows: BenchmarkRow[];
+  level: Level;
+  function?: string | null;
+  region?: string | null;
+  sizeBand?: string | null;
+}): MatchedSlice | null {
+  const fn = normaliseFunction(fnRaw);
   const totalBase = rows.find((x) => !x.function && !x.region && !x.size_band && !x.sector)?.sample_size ?? 0;
   if (totalBase > 0 && totalBase < 50) {
     return {
@@ -118,7 +172,12 @@ export async function fetchBestSlice({
   if (sizeBand) {
     const exact = find((x) => x.size_band === sizeBand && !x.function && !x.region && !x.sector);
     if (exact && exact.sample_size >= 20) {
-      return { row: exact, label: `Size band ${sizeBand}`, specificity: 4, cohortNote: `Exact size-band cohort · N=${exact.sample_size}` };
+      return { row: exact, label: sizeBandLabel(sizeBand), specificity: 4, cohortNote: `Exact size-band cohort · N=${exact.sample_size}` };
+    }
+    const combinedBands = COMBINED_SIZE_BANDS[sizeBand] ?? [sizeBand];
+    const combined = rollupSizeBand(rows, combinedBands);
+    if (combined) {
+      return { row: combined, label: combinedBands.map(sizeBandLabel).join(" + "), specificity: 3, cohortNote: `Combined adjacent size-band cohort · N=${combined.sample_size}` };
     }
   }
 

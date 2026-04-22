@@ -84,7 +84,7 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           compact ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"
         }`}
       >
-        Unlock your full report — <span className="italic text-brass-bright">ten more questions.</span>
+        Unlock your full report — <span className="italic text-brass-bright">ten more questions, three more minutes.</span>
       </h2>
 
       <p className={`mt-5 font-display text-cream/65 max-w-2xl ${compact ? "text-base" : "text-lg"}`}>

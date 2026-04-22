@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Info, Loader2 } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { OptionCard } from "@/components/aioi/OptionCard";
@@ -14,6 +14,7 @@ import {
   type BusinessFunction,
   type Question,
 } from "@/lib/assessment";
+import { getQuickscanQuestions } from "@/lib/quickscan";
 import { supabase } from "@/integrations/supabase/client";
 
 interface RespondentLite {
@@ -70,7 +71,17 @@ export default function AssessDeep() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // Build the remaining question list — full deep set minus already-answered.
+  const allProgressQuestions = useMemo<Question[]>(() => {
+    if (!respondent) return [];
+    const quickscan = getQuickscanQuestions(respondent.level, respondent.function ?? undefined);
+    const deep = getDeepDiveQuestions(respondent.level, respondent.function ?? undefined);
+    return [...quickscan, ...deep].filter(
+      (question, index, all) => all.findIndex((candidate) => candidate.id === question.id) === index,
+    );
+  }, [respondent]);
+
+  // Build the remaining question list — deep set minus already-answered, so
+  // Quickscan answers carry forward without being repeated.
   const remaining = useMemo<Question[]>(() => {
     if (!respondent) return [];
     const all = getDeepDiveQuestions(respondent.level, respondent.function ?? undefined);
@@ -81,12 +92,19 @@ export default function AssessDeep() {
   const question = remaining[idx];
   const selected = question ? answers[question.id] : undefined;
 
+  const answeredProgressCount = useMemo(
+    () => allProgressQuestions.filter((q) => answeredIds.has(q.id)).length,
+    [allProgressQuestions, answeredIds],
+  );
+
+  const totalProgressCount = allProgressQuestions.length || answeredIds.size + remaining.length;
+
   const segments = useMemo(
-    () => remaining.map((q, i) => ({
+    () => allProgressQuestions.map((q) => ({
       pillar: q.pillar,
-      filled: i <= idx && answers[q.id] !== undefined,
+      filled: answeredIds.has(q.id) || answers[q.id] !== undefined,
     })),
-    [idx, answers, remaining],
+    [allProgressQuestions, answeredIds, answers],
   );
 
   const submitAll = async (finalAnswers: Record<string, number>) => {
@@ -157,11 +175,11 @@ export default function AssessDeep() {
   if (!question) return null;
 
   return (
-    <AssessChrome
-      step={answeredIds.size + step}
-      total={answeredIds.size + remaining.length}
+      <AssessChrome
+      step={answeredProgressCount + step}
+      total={totalProgressCount}
       back={{ to: `/assess/r/${respondent.slug}`, label: "Report" }}
-      ariaLabel={`Deep dive question ${answeredIds.size + step} of ${answeredIds.size + remaining.length}`}
+      ariaLabel={`Deep dive question ${answeredProgressCount + step} of ${totalProgressCount}`}
     >
       <main className="w-full flex flex-col">
         <div className="container pt-6">
@@ -175,12 +193,23 @@ export default function AssessDeep() {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-6 sm:mb-7">
             <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
             <span className="font-mono text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-cream/40">
-              Deep dive · {answeredIds.size + step} of {answeredIds.size + remaining.length}
+              Deep dive · {answeredProgressCount + step} of {totalProgressCount}
             </span>
           </div>
           <h1 className="font-display headline-md text-cream text-balance">
             {question.prompt}
           </h1>
+          {question.detail?.rationale && (
+            <details className="group mt-6 rounded-sm border border-cream/10 bg-surface-1/35 px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center gap-2 font-ui text-xs uppercase tracking-[0.16em] text-cream/55 transition-colors hover:text-cream [&::-webkit-details-marker]:hidden">
+                <Info className="h-3.5 w-3.5 text-brass-bright" />
+                Why this question?
+              </summary>
+              <p className="mt-3 font-display text-base leading-relaxed text-cream/70">
+                {question.detail.rationale}
+              </p>
+            </details>
+          )}
           <div className="mt-9 space-y-3">
             {question.options.map((opt, i) => (
               <OptionCard
