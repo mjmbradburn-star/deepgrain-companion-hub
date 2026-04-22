@@ -58,15 +58,7 @@ Deno.serve(async (req) => {
       ? authHeader.slice("bearer ".length).trim()
       : "";
 
-    if (!serviceKey || (token !== serviceKey && apikeyHeader !== serviceKey)) {
-      console.warn("[rescore-all-reports] unauthorized", {
-        hasServiceKey: Boolean(serviceKey),
-        tokenLength: token.length,
-        serviceKeyLength: serviceKey?.length ?? 0,
-        apikeyLength: apikeyHeader.length,
-        tokenMatches: Boolean(serviceKey && token === serviceKey),
-        apikeyMatches: Boolean(serviceKey && apikeyHeader === serviceKey),
-      });
+    if (!serviceKey || !await isServiceRoleRequest(serviceKey, token, apikeyHeader)) {
       return json({ error: "Unauthorized" }, 401);
     }
 
@@ -240,6 +232,18 @@ async function rescoreRespondent(admin: any, respondentId: string, slug: string,
     benchmark_excluded: capped.benchmarkExcluded,
     changed: previous?.aioi_score !== aioi || previous?.overall_tier !== overallTier,
   };
+}
+
+async function isServiceRoleRequest(serviceKey: string, token: string, apikeyHeader: string) {
+  if (token === serviceKey || apikeyHeader === serviceKey) return true;
+  if (!token) return false;
+
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data, error } = await admin.auth.getClaims(token);
+  if (error || !data?.claims) return false;
+  return data.claims.role === "service_role";
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number) {
