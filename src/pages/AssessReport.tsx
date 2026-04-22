@@ -303,7 +303,7 @@ function ReportView({ data }: { data: ReportData }) {
             data={data}
             pillarValues={pillarValues}
             cohort={cohort ?? undefined}
-            slice={data.slice}
+            slice={report.benchmark_excluded ? { ...(data.slice ?? { row: null as never, label: "Peer benchmark", specificity: 0 }), lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." } : data.slice}
           />
         </TabsPrimitive.Content>
 
