@@ -487,10 +487,11 @@ export default function Benchmarks() {
     return () => { cancelled = true; };
   }, []);
 
-  const filtered = useMemo(
-    () => rows.filter((r) => rowMatches(r, level, fn, size, sector, region)),
+  const benchmarkMatch = useMemo(
+    () => benchmarkFallbackRows(rows, level, fn, size, sector, region),
     [rows, level, fn, size, sector, region],
   );
+  const filtered = benchmarkMatch.rows;
   const view = useMemo(() => aggregate(filtered), [filtered]);
 
   // Cohort overlay = same level, but no other filters — so people can see
@@ -708,6 +709,11 @@ export default function Benchmarks() {
                   Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
                 </p>
               )}
+              {benchmarkMatch.note && view && (
+                <p className="mt-2 max-w-xl font-display italic text-sm text-brass-bright/75">
+                  {benchmarkMatch.note}
+                </p>
+              )}
             </div>
             <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
           </div>
@@ -717,9 +723,12 @@ export default function Benchmarks() {
               Loading cohort…
             </p>
           ) : empty || !view ? (
-            <p className="font-display italic text-cream/55">
-              No data for this slice yet. Try widening the filters above.
-            </p>
+            <div className="rounded-sm border border-brass/25 bg-brass/5 px-4 py-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85">Benchmark pending</p>
+              <p className="mt-1 font-display text-sm text-cream/75 leading-relaxed">
+                No cohort is available for this combination yet. Try resetting one filter, or start a Quickscan to add to the benchmark base.
+              </p>
+            </div>
           ) : (
             <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-5 sm:p-8">
               <PillarBarChart
