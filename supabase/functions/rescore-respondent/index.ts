@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
       generated_at: new Date().toISOString(),
       cap_flags: capped.capFlags,
       benchmark_excluded: capped.benchmarkExcluded,
-      score_audit: { version: "v1.1", raw_pillar_tiers: rawPillarTiers, cap_count: capped.capFlags.length },
+      score_audit: { version: "v1.1", raw_pillar_tiers: rawTiers, cap_count: capped.capFlags.length },
     };
 
     if (existing) {
