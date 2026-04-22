@@ -15,6 +15,7 @@ import {
   tierLabel,
   topHotspots,
 } from "../rescore-respondent/scoring.ts";
+} from "./scoring.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
