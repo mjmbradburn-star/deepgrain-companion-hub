@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
+import { claimReportBySlug } from "@/lib/report-claim";
 import { loadDraft } from "@/lib/assessment";
 
 const emailSchema = z
@@ -26,6 +27,8 @@ export default function SignIn() {
   const { toast } = useToast();
   const next = params.get("next") || "/reports";
   const emailFromUrl = params.get("email") || "";
+  const claimSlug = params.get("claim");
+  const consentMarketing = params.get("consent_marketing") === "1";
 
   const [email, setEmail] = useState(() => {
     if (emailFromUrl) return emailFromUrl;
@@ -79,9 +82,12 @@ export default function SignIn() {
   // If already signed in, jump straight to "next"
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (cancelled) return;
-      if (data.session) navigate(next, { replace: true });
+      if (data.session) {
+        if (claimSlug) await claimReportBySlug(claimSlug, consentMarketing).catch(() => null);
+        navigate(next, { replace: true });
+      }
       else setCheckingSession(false);
     });
     return () => { cancelled = true; };
@@ -106,7 +112,7 @@ export default function SignIn() {
 
     setSubmitting(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
       await sendMagicLink(parsed.data, redirectTo);
       setSentTo(parsed.data);
       setCooldown(COOLDOWN_SECONDS);

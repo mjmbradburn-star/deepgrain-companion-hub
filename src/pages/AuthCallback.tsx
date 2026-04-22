@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { loadDraft, getQuestions } from "@/lib/assessment";
 import { ensureRespondent, flushAnswers, sendMagicLink, SyncError } from "@/lib/sync";
+import { claimReportBySlug } from "@/lib/report-claim";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -56,6 +57,8 @@ export default function AuthCallback() {
   const [cooldown, setCooldown] = useState(0);
 
   const next = params.get("next") || "/reports";
+  const claimSlug = params.get("claim");
+  const consentMarketing = params.get("consent_marketing") === "1";
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +93,10 @@ export default function AuthCallback() {
       const draft = loadDraft();
 
       try {
+        if (claimSlug) {
+          const claim = await claimReportBySlug(claimSlug, consentMarketing);
+          if (!claim.ok) throw new SyncError(claim.status === "already_claimed" ? "This report is already linked to another email." : "Could not save this report to your email.");
+        }
         if (draft.level && Object.keys(draft.answers ?? {}).length > 0) {
           const { respondentId } = await ensureRespondent(draft);
           await flushAnswers(respondentId, draft);
@@ -170,7 +177,7 @@ export default function AuthCallback() {
     if (!knownEmail || resending || cooldown > 0) return;
     setResending(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
       await sendMagicLink(knownEmail, redirectTo);
       setResentTo(knownEmail);
       setCooldown(30);
@@ -185,9 +192,10 @@ export default function AuthCallback() {
 
   if (status === "error") {
     const copy = errorCopy(errorKind);
+    const claimParams = claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : "";
     const retryHref = knownEmail
-      ? `/signin?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}`
-      : `/signin?next=${encodeURIComponent(next)}`;
+      ? `/signin?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}${claimParams}`
+      : `/signin?next=${encodeURIComponent(next)}${claimParams}`;
     return (
       <AssessChrome ariaLabel="Sign-in problem">
         <main className="container max-w-xl w-full py-20 sm:py-28">
