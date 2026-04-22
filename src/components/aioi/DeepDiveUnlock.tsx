@@ -42,6 +42,27 @@ const UNLOCKS: Unlock[] = [
   },
 ];
 
+const UNLOCKS_BY_LEVEL: Record<string, Unlock[]> = {
+  individual: [
+    { title: "Personal operating profile", detail: "A sharper read on the habits, tools, and routines that compound your AI output.", confidence: { from: 32, to: 92 } },
+    { title: "Next-Monday habit", detail: "One concrete change to test in your actual weekly workflow." },
+    { title: "Priority skills", detail: "The fluency gap most likely to unlock better results without adding more tools." },
+    { title: "Peer context", detail: "How your personal stack compares with other operators at the same assessment level." },
+  ],
+  function: [
+    { title: "Team operating roadmap", detail: "A practical sequence for moving AI from pockets of usage into repeatable team workflows.", confidence: { from: 32, to: 92 } },
+    { title: "Workflow redesign targets", detail: "Which handoffs, routines, or data gaps should be rebuilt first." },
+    { title: "Per-pillar diagnoses", detail: "A written read on each of the eight pillars, not just the top three hotspots." },
+    { title: "Tighter benchmark match", detail: "Cohort delta refines down to your function, sector, region, and size when enough data exists." },
+  ],
+  company: [
+    { title: "Board-ready operating plan", detail: "A concise executive read on where AI debt is accumulating and what to do next.", confidence: { from: 32, to: 92 } },
+    { title: "Full 90-day roadmap", detail: "Three sequenced months with named outcomes, effort/impact, and time-to-value." },
+    { title: "Cross-pillar diagnosis", detail: "Where mandate, data, workflow, governance, and measurement are limiting each other." },
+    { title: "Benchmark confidence", detail: "Clear cohort quality labels so the comparison is useful without overclaiming precision." },
+  ],
+};
+
 interface Props {
   slug: string;
   level?: "company" | "function" | "individual" | string;
@@ -96,6 +117,7 @@ export function DeepDiveUnlock({ slug, level = "function", variant = "card", isA
 }
 
 function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }: { slug: string; level: string; copy: { eyebrow: string; headline: string; detail: string }; compact?: boolean; isAnonymous?: boolean }) {
+  const unlocks = UNLOCKS_BY_LEVEL[level] ?? UNLOCKS;
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
@@ -123,7 +145,7 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
       </p>
 
       <ul className={`mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 ${compact ? "" : "lg:grid-cols-2"}`}>
-        {UNLOCKS.map((u) => (
+        {unlocks.map((u) => (
           <li key={u.title} className="flex gap-3 items-start">
             <span
               className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-brass-bright shrink-0"
