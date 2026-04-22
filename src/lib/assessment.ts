@@ -823,10 +823,10 @@ export const V11_COMPANY_DEEP_QUESTIONS: Question[] = [
 export const V11_FUNCTION_DEEP_QUESTIONS: Question[] = [
   { id: "f-p3-agents", pillar: 3, prompt: "Does this function have agents of its own, running day to day?", options: [
     { tier: 0, label: "No." }, { tier: 1, label: "Someone has experimented with an agent on their own time." }, { tier: 2, label: "One agent is running for a specific task, with informal oversight." }, { tier: 3, label: "Two or three agents live, each with a named owner and review cadence." }, { tier: 4, label: "Agents handle the default first pass on production work; humans review." }, { tier: 5, label: "Function workflows are designed agent-first; people handle the hard judgment calls." },
-  ], detail: { rationale: "Functions without agents are still paying full operational debt. Named ownership is the Tier 3 gate.", trap: "Built-in vendor AI features are Tier 1. They are not owned agents.", crosscheck: "Cannot exceed company-level agent tier by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
+  ], detail: { rationale: "Functions without agents are functions still paying full operational debt. Named ownership is the Tier 3 gate.", trap: "Built-in vendor AI features in a CRM, ATS or similar are Tier 1. Vendor features are not owned agents.", crosscheck: "Cannot exceed the company-level agent tier by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
   { id: "f-p5-prompts", pillar: 5, prompt: "How are prompts and skills shared across this function?", options: [
     { tier: 0, label: "They aren't. Everyone starts fresh." }, { tier: 1, label: "A couple of people swap prompts in Slack." }, { tier: 2, label: "A shared document most of the team has read once." }, { tier: 3, label: "An active prompt library used weekly, with named contributors." }, { tier: 4, label: "Versioned skills library with reuse tracked." }, { tier: 5, label: "Skills are function-owned IP, reviewed and eval-gated before deploy." },
-  ], detail: { rationale: "Prompt reuse is the lead indicator of function-level craft.", trap: "A stale Notion page is Tier 1, not Tier 2.", crosscheck: "Should not exceed company-level prompts tier by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
+  ], detail: { rationale: "Prompt reuse is the lead indicator of function-level craft. Solo use with no sharing is Tier 0, regardless of how sophisticated the individual is.", trap: "A stale Notion page of prompts from six months ago is Tier 1, not Tier 2. Active means used in the last fortnight.", crosscheck: "Should not exceed the company-level prompts tier by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
 ];
 
 export const V11_INDIVIDUAL_DEEP_QUESTIONS: Question[] = [
@@ -855,6 +855,26 @@ function byPillarThenStableId(a: Question, b: Question) {
   return a.id.localeCompare(b.id);
 }
 
+const COMPANY_DEEP_ORDER = [
+  "c-p1-strategy",
+  "c-p2-quality", "c-p2-corpus", "c-p2-memory",
+  "c-p3-infra", "c-p3-orchestration", "c-p3-observability", "c-p3-toolconnect",
+  "c-p4-redesign",
+  "c-p5-training", "c-p5-prompts", "c-p5-evals",
+  "c-p6-review",
+  "c-p7-baseline",
+  "c-p8-leadership",
+];
+
+function byCompanyV11Order(a: Question, b: Question) {
+  const aIndex = COMPANY_DEEP_ORDER.indexOf(a.id);
+  const bIndex = COMPANY_DEEP_ORDER.indexOf(b.id);
+  if (aIndex !== -1 || bIndex !== -1) {
+    return (aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex) - (bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex);
+  }
+  return byPillarThenStableId(a, b);
+}
+
 export function getQuestions(level: Level | undefined, fn?: BusinessFunction): Question[] {
   if (level === "company") return COMPANY_QUESTIONS.map((q) => withInstrumentMetadata(q, "deep"));
   if (level === "individual") return INDIVIDUAL_QUESTIONS.map((q) => withInstrumentMetadata(q, "deep"));
@@ -863,7 +883,7 @@ export function getQuestions(level: Level | undefined, fn?: BusinessFunction): Q
 
 export function getDeepDiveQuestions(level: Level | undefined, fn?: BusinessFunction): Question[] {
   const base = getQuestions(level, fn).filter((q) => q.status !== "archived");
-  if (level === "company") return [...base, ...V11_COMPANY_DEEP_QUESTIONS].sort(byPillarThenStableId);
+  if (level === "company") return [...base, ...V11_COMPANY_DEEP_QUESTIONS].sort(byCompanyV11Order);
   if (level === "individual") return [...base, ...V11_INDIVIDUAL_DEEP_QUESTIONS].sort(byPillarThenStableId);
   return [...base, ...V11_FUNCTION_DEEP_QUESTIONS].sort(byPillarThenStableId);
 }
