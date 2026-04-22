@@ -35,6 +35,18 @@ interface ResponseRow {
   tier: number;
 }
 
+interface QuestionPillarRow {
+  id: string;
+  pillar: number;
+}
+
+interface OutcomeRow {
+  id: string;
+  pillar: number;
+  applies_to_tier: number;
+  title: string;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -117,7 +129,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function rescoreRespondent(admin: ReturnType<typeof createClient>, respondentId: string, slug: string, apply: boolean) {
+async function rescoreRespondent(admin: any, respondentId: string, slug: string, apply: boolean) {
   const { data: responses, error: responseErr } = await admin
     .from("responses")
     .select("question_id, tier")
@@ -135,7 +147,7 @@ async function rescoreRespondent(admin: ReturnType<typeof createClient>, respond
   }
 
   const pillarOf = new Map<string, number>();
-  for (const question of questions) pillarOf.set(question.id, question.pillar);
+  for (const question of (questions ?? []) as QuestionPillarRow[]) pillarOf.set(question.id, question.pillar);
 
   const { tiers: rawPillarTiers, answered } = computePillarTiers(responses as ResponseRow[], pillarOf);
   const capped = applyConsistencyCaps(rawPillarTiers, responses as ResponseRow[]);
@@ -185,7 +197,7 @@ async function rescoreRespondent(admin: ReturnType<typeof createClient>, respond
     pillar_tiers: pillarTiersPayload,
     hotspots,
     diagnosis: fallbackDiagnosis(overallTier, hotspots),
-    plan: fallbackPlan(hotspots, outcomes ?? []),
+    plan: fallbackPlan(hotspots, ((outcomes ?? []) as OutcomeRow[])),
     generated_at: new Date().toISOString(),
     cap_flags: capped.capFlags,
     benchmark_excluded: capped.benchmarkExcluded,
