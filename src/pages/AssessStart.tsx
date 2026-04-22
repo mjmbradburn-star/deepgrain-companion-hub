@@ -22,12 +22,13 @@ const ROLE_OPTIONS = [
 ];
 
 const SIZE_OPTIONS = [
-  "Just me",
-  "2–10 people",
-  "11–50 people",
-  "51–250 people",
-  "251–1,000 people",
-  "1,000+ people",
+  "Early-stage (1–50 people)",
+  "Early scale-up (51–100 people)",
+  "Mid scale-up (101–200 people)",
+  "Late scale-up (201–500 people)",
+  "Growth (501–1,000 people)",
+  "Upper-mid-market (1,001–2,000 people)",
+  "Enterprise (2,001+ people)",
 ];
 
 const PAIN_OPTIONS = [

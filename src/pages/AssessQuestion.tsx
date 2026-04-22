@@ -8,7 +8,7 @@ import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { Button } from "@/components/ui/button";
 import {
-  getQuestions,
+  getDeepDiveQuestions,
   PILLAR_NAMES,
   loadDraft,
   saveDraft,
@@ -21,7 +21,7 @@ export default function AssessQuestion() {
   const navigate = useNavigate();
   const [draft, setDraft] = useState<AssessmentDraft>(() => loadDraft());
   const [direction, setDirection] = useState<"forward" | "back">("forward");
-  const questions = useMemo(() => getQuestions(draft.level, draft.qualifier?.function), [draft.level, draft.qualifier?.function]);
+  const questions = useMemo(() => getDeepDiveQuestions(draft.level, draft.qualifier?.function), [draft.level, draft.qualifier?.function]);
   const stepNum = Math.max(1, Math.min(questions.length, parseInt(step ?? "1", 10) || 1));
   const idx = stepNum - 1;
 

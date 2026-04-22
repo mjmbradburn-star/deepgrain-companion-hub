@@ -15,6 +15,7 @@ import {
   pillarTiers as computePillarTiers,
   aioiScore,
   topHotspots,
+  applyConsistencyCaps,
   fallbackDiagnosis,
   fallbackPlan,
 } from "./scoring.ts";
@@ -89,7 +90,9 @@ Deno.serve(async (req) => {
     const pillarOf = new Map<string, number>();
     for (const q of questions ?? []) pillarOf.set(q.id, q.pillar);
 
-    const { tiers, answered } = computePillarTiers(responses, pillarOf);
+    const { tiers: rawTiers, answered } = computePillarTiers(responses, pillarOf);
+    const capped = applyConsistencyCaps(rawTiers, responses);
+    const tiers = capped.tiers;
     const aioi = aioiScore(tiers, answered);
     const overallTier = tierForScore(aioi);
     const hotspots = topHotspots(tiers, 3);
@@ -125,6 +128,9 @@ Deno.serve(async (req) => {
       diagnosis,
       plan,
       generated_at: new Date().toISOString(),
+      cap_flags: capped.capFlags,
+      benchmark_excluded: capped.benchmarkExcluded,
+      score_audit: { version: "v1.1", raw_pillar_tiers: rawTiers, cap_count: capped.capFlags.length },
     };
 
     if (existing) {

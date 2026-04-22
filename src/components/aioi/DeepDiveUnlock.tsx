@@ -24,7 +24,7 @@ interface Unlock {
 const UNLOCKS: Unlock[] = [
   {
     title: "Sharper score",
-    detail: "8 questions per pillar instead of 1. Confidence band tightens from ±9 to ±3.",
+    detail: "Ten more questions extend the scan without repeating what you already answered.",
     confidence: { from: 32, to: 92 },
   },
   {
@@ -75,7 +75,7 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           <Sparkles className="h-3.5 w-3.5" />
         </span>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85">
-          Answer 8 more · ~3 minutes
+          Ten more · ~3 minutes
         </p>
       </div>
 
@@ -84,12 +84,11 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           compact ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"
         }`}
       >
-        Unlock the parts of the report that are still <span className="italic text-brass-bright">blurred out.</span>
+        Unlock your full report — <span className="italic text-brass-bright">ten more questions.</span>
       </h2>
 
       <p className={`mt-5 font-display text-cream/65 max-w-2xl ${compact ? "text-base" : "text-lg"}`}>
-        You answered one question per pillar. Eight more, one per pillar, sharpens the score, opens the
-        full 90-day plan, and writes a diagnosis for each pillar instead of just the three hotspots.
+        You'll see your function-level heatmap, a 90-day roadmap, and a board-ready one-pager.
       </p>
 
       <ul className={`mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 ${compact ? "" : "lg:grid-cols-2"}`}>
@@ -115,7 +114,7 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7"
         >
           <Link to={`/assess/deep/${slug}`}>
-            Answer the 8 more <ArrowRight className="h-4 w-4 ml-1" />
+            Answer ten more <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </Button>
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 inline-flex items-center gap-2">

@@ -9,7 +9,7 @@ import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { Button } from "@/components/ui/button";
 import {
   PILLAR_NAMES,
-  getQuestions,
+  getDeepDiveQuestions,
   type Level,
   type BusinessFunction,
   type Question,
@@ -73,7 +73,7 @@ export default function AssessDeep() {
   // Build the remaining question list — full deep set minus already-answered.
   const remaining = useMemo<Question[]>(() => {
     if (!respondent) return [];
-    const all = getQuestions(respondent.level, respondent.function ?? undefined);
+    const all = getDeepDiveQuestions(respondent.level, respondent.function ?? undefined);
     return all.filter((q) => !answeredIds.has(q.id));
   }, [respondent, answeredIds]);
 
@@ -158,10 +158,10 @@ export default function AssessDeep() {
 
   return (
     <AssessChrome
-      step={step}
-      total={remaining.length}
+      step={answeredIds.size + step}
+      total={answeredIds.size + remaining.length}
       back={{ to: `/assess/r/${respondent.slug}`, label: "Report" }}
-      ariaLabel={`Deep dive question ${step} of ${remaining.length}`}
+      ariaLabel={`Deep dive question ${answeredIds.size + step} of ${answeredIds.size + remaining.length}`}
     >
       <main className="w-full flex flex-col">
         <div className="container pt-6">
@@ -175,7 +175,7 @@ export default function AssessDeep() {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-6 sm:mb-7">
             <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
             <span className="font-mono text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-cream/40">
-              Deep dive · {step} of {remaining.length}
+              Deep dive · {answeredIds.size + step} of {answeredIds.size + remaining.length}
             </span>
           </div>
           <h1 className="font-display headline-md text-cream text-balance">

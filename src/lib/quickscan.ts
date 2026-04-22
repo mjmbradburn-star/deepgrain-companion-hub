@@ -77,8 +77,35 @@ export function getQuickscanQuestions(level: Level, fn?: BusinessFunction): Ques
       options: variant?.options ?? source.options,
     });
   }
+  if (level === "company") {
+    const insertAt = out.findIndex((q) => q.pillar === 4);
+    out.splice(insertAt === -1 ? out.length : insertAt, 0, COMPANY_AGENT_QUESTION);
+  }
   return out;
 }
+
+
+const COMPANY_AGENT_QUESTION: Question = {
+  id: "qs-c-p3-agents",
+  pillar: 3,
+  prompt: "How many AI agents are live in production with a named owner?",
+  options: [
+    { tier: 0, label: "None. We haven't built any." },
+    { tier: 1, label: "We've piloted something. Nothing in production." },
+    { tier: 2, label: "One or two agents live. Ownership is informal." },
+    { tier: 3, label: "Several live agents, each with a named owner, scope, and guardrails." },
+    { tier: 4, label: "Agents sit in the critical path of core workflows, with supervision and evals." },
+    { tier: 5, label: "Multi-agent orchestration is standard. Agents are reviewed weekly like any production system." },
+  ],
+  detail: {
+    rationale: "Named owner is the gate between Tier 2 and Tier 3 because an unowned agent is a liability, not an asset.",
+    trap: "Copilot is assistive autocomplete, not an agent. Tier 3+ needs a named agent and owner.",
+    crosscheck: "Agent tier cannot exceed Tooling infrastructure tier by more than 1.",
+  },
+  version: "v1.1",
+  flow: "quickscan",
+  status: "active",
+};
 
 const SCAN_KEY = "aioi:scan:v1";
 

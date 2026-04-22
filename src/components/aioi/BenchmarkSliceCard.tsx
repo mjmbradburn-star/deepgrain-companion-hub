@@ -109,6 +109,15 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
     );
   }
 
+  if (slice.lockedReason) {
+    return (
+      <div className="border border-cream/10 rounded-md p-6 bg-surface-1/40">
+        <p className="eyebrow text-cream/45 mb-2">Versus the field</p>
+        <p className="font-display text-cream/70 text-pretty">{slice.lockedReason}</p>
+      </div>
+    );
+  }
+
   const cohortScore = slice.row.median_score != null
     ? Math.round(Number(slice.row.median_score))
     : null;
@@ -131,7 +140,7 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
                 type="button"
                 className="mt-1.5 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 hover:text-cream/70 focus:text-cream/70 focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/60 rounded transition-colors cursor-help"
               >
-                <span>{specificityHint(slice.specificity)}</span>
+                <span>{slice.cohortNote ?? specificityHint(slice.specificity)}</span>
                 <span aria-hidden className="text-cream/35">(?)</span>
               </button>
             </TooltipTrigger>

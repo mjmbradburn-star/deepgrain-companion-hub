@@ -70,6 +70,7 @@ interface ReportData {
     level: string;
     function: string | null;
     region: string | null;
+    org_size: string | null;
     submitted_at: string | null;
     is_anonymous: boolean;
   };
@@ -81,6 +82,9 @@ interface ReportData {
     diagnosis: string | null;
     plan: PlanMonth[];
     generated_at: string | null;
+    cap_flags?: Array<{ code: string; label: string }>;
+    benchmark_excluded?: boolean;
+    score_audit?: Record<string, unknown>;
   } | null;
   outcomes: OutcomeRow[];
   cohort: Record<number, number> | null;
@@ -136,6 +140,7 @@ export default function AssessReport() {
         level: payload.respondent.level as "company" | "function" | "individual",
         function: payload.respondent.function ?? null,
         region: payload.respondent.region ?? null,
+        sizeBand: sizeBandCode(payload.respondent.org_size),
       });
       const cohort = slice ? pillarsFromRow(slice.row) : null;
       if (cancelled) return;
@@ -326,6 +331,12 @@ function OverviewTab({
             <TierBadge tier={report.overall_tier} />
           </div>
 
+          {(report.cap_flags?.length ?? 0) > 0 && (
+            <div className="mt-8 rounded-sm border border-brass/25 bg-brass/10 px-4 py-3 text-sm text-cream/70 leading-relaxed">
+              Your score has been adjusted based on cross-pillar consistency checks. High tiers in one pillar require matching capabilities in another. See Methodology for details.
+            </div>
+          )}
+
           {report.diagnosis && (
             <blockquote className="mt-10 border-l-2 border-brass/60 pl-6">
               <p className="font-display italic text-2xl sm:text-3xl text-cream/90 leading-snug text-balance">
@@ -390,7 +401,7 @@ function OverviewTab({
         <BenchmarkSliceCard
           values={pillarValues}
           userScore={report.aioi_score}
-          slice={slice}
+          slice={report.benchmark_excluded ? { ...slice!, lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." } : slice}
         />
       </div>
     </section>
@@ -1120,6 +1131,18 @@ function FullPageMessage({ eyebrow, line1, line2, cta }: { eyebrow: string; line
       </main>
     </div>
   );
+}
+
+function sizeBandCode(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  if (/Early-stage|1[–-]50|Just me|2[–-]10|11[–-]50/i.test(raw)) return "S";
+  if (/Early scale-up|51[–-]100/i.test(raw)) return "M1";
+  if (/Mid scale-up|101[–-]200|51[–-]200/i.test(raw)) return "M2";
+  if (/Late scale-up|201[–-]500|201[–-]600|51[–-]250/i.test(raw)) return "M3";
+  if (/Growth|501[–-]1,000|501[–-]1000|251/i.test(raw)) return "L1";
+  if (/Upper-mid-market|1,001[–-]2,000|1001[–-]2000|601[–-]2000/i.test(raw)) return "L2";
+  if (/Enterprise|2,001\+|2001\+|2000\+|1,000\+|1000\+|1k\+/i.test(raw)) return "XL";
+  return null;
 }
 
 function capitalise(s: string) {

@@ -62,11 +62,24 @@ export interface QuestionOption {
   detail?: string;
 }
 
+export interface QuestionDetail {
+  rationale: string;
+  trap: string;
+  crosscheck: string;
+}
+
+export type QuestionFlow = "quickscan" | "deep" | "both";
+export type QuestionStatus = "active" | "archived";
+
 export interface Question {
   id: string;
   pillar: PillarIndex;
   prompt: string;
   options: QuestionOption[]; // length 6, ordered Dormant..AI-Native
+  detail?: QuestionDetail;
+  version?: string;
+  status?: QuestionStatus;
+  flow?: QuestionFlow;
 }
 
 // ─── FUNCTION level v3 — 12 questions ───────────────────────────────────────
@@ -734,14 +747,125 @@ export const INDIVIDUAL_QUESTIONS: Question[] = [
   },
 ];
 
+
+const DEFAULT_DETAIL: QuestionDetail = {
+  rationale: "This question tests whether AI is part of the operating system, not just an isolated tool choice.",
+  trap: "Overclaiming is common here. The tier should reflect what happens reliably, not what has happened once.",
+  crosscheck: "The answer should be consistent with adjacent pillars and the respondent's operating reality.",
+};
+
+export const RETIRED_DEEP_QUESTION_IDS = new Set<string>([
+  "c-p1-mandate", "c-p2-data", "c-p3-tools", "c-p4-workflow", "c-p5-skills", "c-p6-governance", "c-p7-roi", "c-p8-culture",
+  "f-p1-owner", "f-p2-data", "f-p3-tools", "f-p4-workflow", "f-p5-fluency", "f-p6-policy", "f-p7-roi", "f-p8-talk",
+  "i-p1-intent", "i-p2-context", "i-p3-tools", "i-p4-workflow", "i-p5-fluency", "i-p6-hygiene", "i-p7-time", "i-p8-share",
+]);
+
+export const V11_COMPANY_DEEP_QUESTIONS: Question[] = [
+  {
+    id: "c-p2-corpus", pillar: 2, prompt: "How curated is the corpus your AI actually reads?",
+    options: [
+      { tier: 0, label: "Whatever we point it at." }, { tier: 1, label: "Some documents have been selected, mostly ad hoc." },
+      { tier: 2, label: "A curated set of references per use case, refreshed irregularly." }, { tier: 3, label: "Governed RAG corpus with named owners and refresh cadence." },
+      { tier: 4, label: "Live quality signals feed refresh decisions." }, { tier: 5, label: "Corpus quality is measured continuously and tied to output evals." },
+    ],
+    detail: { rationale: "Most RAG implementations fail at the corpus, not the model. Named ownership is the step-change at Tier 3.", trap: "Putting docs in a vector store is Tier 1 or 2, not Tier 3. Governance and ownership shift the tier.", crosscheck: "Cannot exceed the Data Foundations score by more than 1." }, version: "v1.1", flow: "deep", status: "active",
+  },
+  {
+    id: "c-p2-memory", pillar: 2, prompt: "What does memory look like for your agents and workflows?",
+    options: [
+      { tier: 0, label: "None. Every session starts cold." }, { tier: 1, label: "Per-session memory only." }, { tier: 2, label: "Some shared context passed between steps, uncurated." },
+      { tier: 3, label: "A deliberate memory architecture for the main agents." }, { tier: 4, label: "Memory is governed, versioned, and reviewed." }, { tier: 5, label: "Memory is treated as an IP asset with evals on retrieval quality." },
+    ],
+    detail: { rationale: "Memory is the quiet differentiator. Most companies have not thought about it at all.", trap: "Vendor-provided memory features count as Tier 1 unless there is deliberate architecture on top.", crosscheck: "Memory tier cannot exceed Agents tier." }, version: "v1.1", flow: "deep", status: "active",
+  },
+  {
+    id: "c-p3-orchestration", pillar: 3, prompt: "What orchestrates your AI workflows?",
+    options: [
+      { tier: 0, label: "Nothing. Everything is manual copy-paste." }, { tier: 1, label: "A few Zapier or Make flows, owned informally." }, { tier: 2, label: "n8n, Temporal, or similar is in use for a handful of workflows." },
+      { tier: 3, label: "A workflow engine is in production with named owners and failure handling." }, { tier: 4, label: "Event-driven orchestration feeds AI with fresh context. Memory and vector stores are deliberate." }, { tier: 5, label: "Orchestration, memory, and retrieval are a first-class discipline with cost telemetry." },
+    ],
+    detail: { rationale: "The plumbing underneath agents is what makes them compound or fail. Named owners at Tier 3 is non-negotiable.", trap: "Some Zapier flows are Tier 1 if nobody owns each flow.", crosscheck: "Orchestration should be within 1 tier of the agent question." }, version: "v1.1", flow: "deep", status: "active",
+  },
+  {
+    id: "c-p3-observability", pillar: 3, prompt: "How do you observe AI in production?",
+    options: [
+      { tier: 0, label: "We don't." }, { tier: 1, label: "We see errors when customers complain." }, { tier: 2, label: "We log model calls somewhere we can query." },
+      { tier: 3, label: "We track latency, cost, and failure rates per agent or workflow." }, { tier: 4, label: "Traces and evals run on live traffic with alerts." }, { tier: 5, label: "Observability drives routing, retries, and model swaps automatically." },
+    ],
+    detail: { rationale: "If you cannot see it, you cannot trust it. Tier 3 is where AI becomes a production system.", trap: "Logging calls is not the same as a dashboard showing cost per workflow.", crosscheck: "Observability tier cannot exceed orchestration tier." }, version: "v1.1", flow: "deep", status: "active",
+  },
+  {
+    id: "c-p3-toolconnect", pillar: 3, prompt: "How are your agents connected to tools and data?",
+    options: [
+      { tier: 0, label: "They aren't. Agents exist only in chat windows." }, { tier: 1, label: "Agents use vendor-native integrations." }, { tier: 2, label: "Agents call named APIs through custom glue code." },
+      { tier: 3, label: "Agents use MCP or an equivalent shared tool registry." }, { tier: 4, label: "A shared tool registry and skill library is used across all agents." }, { tier: 5, label: "Tool-use and skills are governed, versioned, and eval-tested as IP." },
+    ],
+    detail: { rationale: "Tool connection is where agent quality actually lives. Shared registries separate serious implementation from glue code.", trap: "Custom API calls are Tier 2, not Tier 3.", crosscheck: "Cannot exceed the agent tier by more than 1." }, version: "v1.1", flow: "deep", status: "active",
+  },
+  {
+    id: "c-p5-prompts", pillar: 5, prompt: "Where do your organisation's best prompts actually live?",
+    options: [
+      { tier: 0, label: "In people's heads or private chat histories." }, { tier: 1, label: "Pasted into Slack, lost within days." }, { tier: 2, label: "In a shared Notion or Google Doc library, lightly organised." },
+      { tier: 3, label: "In a versioned prompt or skills library with named owners." }, { tier: 4, label: "In Git or a dedicated platform with change history." }, { tier: 5, label: "Prompts and skills are treated as IP, with evals and reuse metrics." },
+    ],
+    detail: { rationale: "Prompt storage reveals whether skills are treated as craft or disposable.", trap: "A big library nobody uses is Tier 1, not Tier 2.", crosscheck: "Cannot exceed Skills & Fluency by more than 1." }, version: "v1.1", flow: "deep", status: "active",
+  },
+  {
+    id: "c-p5-evals", pillar: 5, prompt: "How do you evaluate prompt and skill changes before deploying?",
+    options: [
+      { tier: 0, label: "We don't." }, { tier: 1, label: "Someone tries it and eyeballs the output." }, { tier: 2, label: "A second person reviews sample outputs before rollout." },
+      { tier: 3, label: "A test set with known-good outputs is run manually." }, { tier: 4, label: "Automated evals gate deployment." }, { tier: 5, label: "Evals run on live traffic and trigger rollback on regression." },
+    ],
+    detail: { rationale: "Eval discipline separates teams shipping real craft from teams generating churn.", trap: "Trying it a few times is Tier 1, not Tier 3.", crosscheck: "Cannot exceed Observability by more than 1." }, version: "v1.1", flow: "deep", status: "active",
+  },
+];
+
+export const V11_FUNCTION_DEEP_QUESTIONS: Question[] = [
+  { id: "f-p3-agents", pillar: 3, prompt: "Does this function have agents of its own, running day to day?", options: [
+    { tier: 0, label: "No." }, { tier: 1, label: "Someone has experimented with an agent on their own time." }, { tier: 2, label: "One agent is running for a specific task, with informal oversight." }, { tier: 3, label: "Two or three agents live, each with a named owner and review cadence." }, { tier: 4, label: "Agents handle the default first pass on production work; humans review." }, { tier: 5, label: "Function workflows are designed agent-first; people handle the hard judgment calls." },
+  ], detail: { rationale: "Functions without agents are still paying full operational debt. Named ownership is the Tier 3 gate.", trap: "Built-in vendor AI features are Tier 1. They are not owned agents.", crosscheck: "Cannot exceed company-level agent tier by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
+  { id: "f-p5-prompts", pillar: 5, prompt: "How are prompts and skills shared across this function?", options: [
+    { tier: 0, label: "They aren't. Everyone starts fresh." }, { tier: 1, label: "A couple of people swap prompts in Slack." }, { tier: 2, label: "A shared document most of the team has read once." }, { tier: 3, label: "An active prompt library used weekly, with named contributors." }, { tier: 4, label: "Versioned skills library with reuse tracked." }, { tier: 5, label: "Skills are function-owned IP, reviewed and eval-gated before deploy." },
+  ], detail: { rationale: "Prompt reuse is the lead indicator of function-level craft.", trap: "A stale Notion page is Tier 1, not Tier 2.", crosscheck: "Should not exceed company-level prompts tier by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
+];
+
+export const V11_INDIVIDUAL_DEEP_QUESTIONS: Question[] = [
+  { id: "i-p3-agents", pillar: 3, prompt: "Have you built any personal agents or automations that run without you triggering them?", options: [
+    { tier: 0, label: "No. Everything I use is manual." }, { tier: 1, label: "I've experimented but nothing runs on its own." }, { tier: 2, label: "One scheduled automation I built or configured." }, { tier: 3, label: "A handful of agents or scripts handling routine work." }, { tier: 4, label: "Tools wired together act on my behalf across systems." }, { tier: 5, label: "Personal agents run my day-to-day in the background; I review outputs." },
+  ], detail: { rationale: "Builder density starts at the individual level. One shipped personal automation is already Tier 2.", trap: "Scheduled tasks are Tier 2, not Tier 3. Multiple workflows are the gate.", crosscheck: "Personal agent tier cannot exceed Individual skills by more than 1." }, version: "v1.1", flow: "deep", status: "active" },
+];
+
+function withInstrumentMetadata(question: Question, flow: QuestionFlow = "deep"): Question {
+  return {
+    ...question,
+    detail: question.detail ?? DEFAULT_DETAIL,
+    version: question.version ?? "v1.1",
+    status: question.status ?? (RETIRED_DEEP_QUESTION_IDS.has(question.id) ? "archived" : "active"),
+    flow: question.flow ?? flow,
+  };
+}
+
+function applyFunctionVariant(question: Question, fn?: BusinessFunction): Question {
+  const variant = fn ? FUNCTION_VARIANTS[question.id]?.[fn] : undefined;
+  return variant ? { ...question, prompt: variant.prompt, options: variant.options } : question;
+}
+
+function byPillarThenStableId(a: Question, b: Question) {
+  if (a.pillar !== b.pillar) return a.pillar - b.pillar;
+  return a.id.localeCompare(b.id);
+}
+
 export function getQuestions(level: Level | undefined, fn?: BusinessFunction): Question[] {
-  if (level === "company") return COMPANY_QUESTIONS;
-  if (level === "individual") return INDIVIDUAL_QUESTIONS;
-  if (!fn) return FUNCTION_QUESTIONS;
-  return FUNCTION_QUESTIONS.map((q) => {
-    const variant = FUNCTION_VARIANTS[q.id]?.[fn];
-    return variant ? { ...q, prompt: variant.prompt, options: variant.options } : q;
-  });
+  if (level === "company") return COMPANY_QUESTIONS.map((q) => withInstrumentMetadata(q, "deep"));
+  if (level === "individual") return INDIVIDUAL_QUESTIONS.map((q) => withInstrumentMetadata(q, "deep"));
+  return FUNCTION_QUESTIONS.map((q) => withInstrumentMetadata(applyFunctionVariant(q, fn), "deep"));
+}
+
+export function getDeepDiveQuestions(level: Level | undefined, fn?: BusinessFunction): Question[] {
+  const base = getQuestions(level, fn).filter((q) => q.status !== "archived");
+  if (level === "company") return [...base, ...V11_COMPANY_DEEP_QUESTIONS].sort(byPillarThenStableId);
+  if (level === "individual") return [...base, ...V11_INDIVIDUAL_DEEP_QUESTIONS].sort(byPillarThenStableId);
+  return [...base, ...V11_FUNCTION_DEEP_QUESTIONS].sort(byPillarThenStableId);
 }
 
 const DRAFT_KEY = "aioi:draft:v1";
