@@ -58,6 +58,13 @@ function specificityHint(spec: number): string {
   }
 }
 
+function confidenceLabel(slice: MatchedSlice): string {
+  if (slice.row.sample_size >= 100 && slice.specificity >= 3) return "High confidence";
+  if (slice.row.sample_size >= 50) return "Good confidence";
+  if (slice.row.sample_size >= 20) return "Directional cohort";
+  return "Thin cohort";
+}
+
 function cohortExplanation(slice: MatchedSlice): string {
   switch (slice.matchType) {
     case "exact-size": return "Why this cohort? It uses respondents at your assessment level in the same company-size band, because there is enough peer data to publish that slice.";
@@ -163,6 +170,9 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
           </Tooltip>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-cream/55">
             {cohortExplanation(slice)}
+          </p>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/75">
+            {confidenceLabel(slice)} · {specificityHint(slice.specificity)}
           </p>
         </div>
         <div className="text-right space-y-1">
