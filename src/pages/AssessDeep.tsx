@@ -78,7 +78,7 @@ export default function AssessDeep() {
     return [...quickscan, ...deep].filter(
       (question, index, all) => all.findIndex((candidate) => candidate.id === question.id) === index,
     );
-  }, [respondent, answeredIds]);
+  }, [respondent]);
 
   // Build the remaining question list — deep set minus already-answered, so
   // Quickscan answers carry forward without being repeated.
