@@ -109,7 +109,7 @@ describe("Deep Dive anonymous claim flow", () => {
     insertedResponses.length = 0;
     vi.spyOn(window, "setTimeout").mockImplementation((handler: TimerHandler) => {
       if (typeof handler === "function") handler();
-      return 0 as unknown as number;
+      return 0 as unknown as ReturnType<typeof window.setTimeout>;
     });
     supabaseMocks.signInWithOtp.mockResolvedValue({ error: null });
     supabaseMocks.invoke.mockResolvedValue({ error: null });
