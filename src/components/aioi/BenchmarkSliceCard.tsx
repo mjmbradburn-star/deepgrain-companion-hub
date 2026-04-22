@@ -50,10 +50,23 @@ const PILLARS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
  *    0 → last-resort first row at this level */
 function specificityHint(spec: number): string {
   switch (spec) {
+    case 4: return "Exact size-band match";
     case 3: return "Most-specific match · function + region";
     case 2: return "Partial match · function or region only";
     case 1: return "Broad match · level-wide fallback";
     default: return "Approximate match · best available";
+  }
+}
+
+function cohortExplanation(slice: MatchedSlice): string {
+  switch (slice.matchType) {
+    case "exact-size": return "Why this cohort? It uses respondents at your assessment level in the same company-size band, because there is enough peer data to publish that slice.";
+    case "adjacent-size": return "Why this cohort? Your exact size band is still thin, so adjacent bands are combined to avoid showing a noisy comparison.";
+    case "function-region": return "Why this cohort? It matches both your function and region, giving the tightest available operating comparison.";
+    case "function": return "Why this cohort? Function is the strongest available match, so the comparison focuses on teams doing similar work.";
+    case "region": return "Why this cohort? Region is the strongest available match, so the comparison reflects your local adoption context.";
+    case "broad": return "Why this cohort? More specific slices are still thin, so the report uses everyone at your assessment level.";
+    default: return "Why this cohort? It is the best available benchmark row for your assessment level today.";
   }
 }
 
@@ -148,6 +161,9 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
               <SpecificityLegend active={slice.specificity} />
             </TooltipContent>
           </Tooltip>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-cream/55">
+            {cohortExplanation(slice)}
+          </p>
         </div>
         <div className="text-right space-y-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
@@ -239,7 +255,8 @@ export function BenchmarkSliceCard({ values, userScore, slice }: Props) {
 
 function SpecificityLegend({ active }: { active: number }) {
   const rows: { id: number; label: string; detail: string }[] = [
-    { id: 3, label: "Function + region", detail: "Tightest match. Both fields shared" },
+    { id: 4, label: "Exact size band", detail: "Same level and company-size band" },
+    { id: 3, label: "Adjacent / function-region", detail: "Combined size bands or function plus region" },
     { id: 2, label: "Function or region", detail: "One field shared with the cohort" },
     { id: 1, label: "Level fallback", detail: "Everyone at your assessment level" },
     { id: 0, label: "Approximate", detail: "Best available row at this level" },
