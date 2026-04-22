@@ -208,7 +208,7 @@ function ReportView({ data }: { data: ReportData }) {
   const benchmarkSlice = report.benchmark_excluded && data.slice
     ? { ...data.slice, lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." }
     : data.slice;
-  const needsPersonalEmailGate = respondent.is_anonymous && respondent.level === "individual";
+  const needsEmailGate = respondent.is_anonymous;
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
@@ -244,7 +244,7 @@ function ReportView({ data }: { data: ReportData }) {
                   <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
                 </Button>
                 <EmailPdfButton slug={respondent.slug} />
-                {!data.hasDeepdive && !needsPersonalEmailGate && (
+                {!data.hasDeepdive && !needsEmailGate && (
                   <Button size="sm" asChild className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] h-9">
                     <Link to={`/assess/deep/${respondent.slug}`}>Deep Dive <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
                   </Button>
@@ -289,12 +289,12 @@ function ReportView({ data }: { data: ReportData }) {
             slug={respondent.slug}
             level={respondent.level}
             hasDeepdive={data.hasDeepdive}
-            isAnonymous={needsPersonalEmailGate}
+            isAnonymous={needsEmailGate}
           />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={needsPersonalEmailGate} />
+          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={needsEmailGate} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
