@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ChevronLeft } from "lucide-react";
+import { ArrowRight, ChevronLeft, Info } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { OptionCard } from "@/components/aioi/OptionCard";
@@ -153,6 +153,18 @@ export default function AssessQuestion() {
           <h1 className="font-display headline-md text-cream text-balance">
             {question.prompt}
           </h1>
+
+          {question.detail?.rationale && (
+            <details className="group mt-6 rounded-sm border border-cream/10 bg-surface-1/35 px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center gap-2 font-ui text-xs uppercase tracking-[0.16em] text-cream/55 transition-colors hover:text-cream [&::-webkit-details-marker]:hidden">
+                <Info className="h-3.5 w-3.5 text-brass-bright" />
+                Why this question?
+              </summary>
+              <p className="mt-3 font-display text-base leading-relaxed text-cream/70">
+                {question.detail.rationale}
+              </p>
+            </details>
+          )}
 
           <div className="mt-10 space-y-3">
             {question.options.map((opt, i) => (
