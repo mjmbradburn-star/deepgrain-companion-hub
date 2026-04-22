@@ -335,6 +335,7 @@ function OverviewTab({
   hasDeepdive: boolean;
 }) {
   const [chartVariant, setChartVariant] = usePillarChartVariant();
+  const readout = narrativeReadout(report, hasDeepdive);
   return (
     <>
     <section className="container max-w-6xl py-10 sm:py-20">
@@ -355,9 +356,21 @@ function OverviewTab({
             <TierBadge tier={report.overall_tier} />
           </div>
 
+          <div className="mt-6 rounded-md border border-cream/10 bg-surface-1/45 p-5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">What this means</p>
+            <div className="mt-4 space-y-3 text-sm leading-relaxed text-cream/70">
+              <p>{readout.pattern}</p>
+              <p>{readout.bottleneck}</p>
+              <p>{readout.leverage}</p>
+            </div>
+            <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+              Confidence · <span className="text-cream/70">{readout.confidence}</span>
+            </p>
+          </div>
+
           {(report.cap_flags?.length ?? 0) > 0 && (
             <div className="mt-8 rounded-sm border border-brass/25 bg-brass/10 px-4 py-3 text-sm text-cream/70 leading-relaxed">
-              Your score has been adjusted based on cross-pillar consistency checks. High tiers in one pillar require matching capabilities in another. See Methodology for details.
+              Your score has been adjusted where claims in one pillar were not yet supported by the foundations in another. Treat those areas as dependency risks, not failures.
             </div>
           )}
 
@@ -609,6 +622,7 @@ function ReportTab({
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
 
   if (!report) return null;
+  const readout = narrativeReadout(report, data.hasDeepdive);
 
   return (
     <section className="container max-w-5xl py-16 sm:py-20 print:py-0">
@@ -669,6 +683,15 @@ function ReportTab({
           <div className="col-span-7">
             <RadarChartPrintable values={pillarValues} cohort={cohort} />
           </div>
+        </div>
+
+        <div className="mt-6 border border-walnut/15 rounded-sm p-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-2">
+            Board / leadership readout · {readout.confidence}
+          </p>
+          <p className="text-[12px] leading-snug text-walnut/75">
+            {readout.pattern} {readout.bottleneck} {readout.leverage}
+          </p>
         </div>
 
         {/* Hotspots */}
