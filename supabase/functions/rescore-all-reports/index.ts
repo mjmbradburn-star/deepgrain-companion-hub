@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
     const authHeader = req.headers.get("Authorization") ?? "";
-    const apikeyHeader = req.headers.get("apikey") ?? "";
+    const apikeyHeader = (req.headers.get("apikey") ?? "").trim();
     const token = authHeader.toLowerCase().startsWith("bearer ")
       ? authHeader.slice("bearer ".length).trim()
       : "";
