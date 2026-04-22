@@ -92,6 +92,23 @@ interface ReportData {
   hasDeepdive: boolean;
 }
 
+function confidenceCopy(hasDeepdive: boolean, capCount: number) {
+  if (capCount > 0) return "Adjusted for internal contradictions";
+  return hasDeepdive ? "High confidence · Deep Dive complete" : "Directional · Quickscan only";
+}
+
+function narrativeReadout(report: NonNullable<ReportData["report"]>, hasDeepdive: boolean) {
+  const primary = report.hotspots[0];
+  const secondary = report.hotspots[1];
+  const capCount = report.cap_flags?.length ?? 0;
+  return {
+    pattern: `${report.overall_tier} organisations typically have visible AI activity, but the operating system is only as strong as the weakest dependency between mandate, data, workflow and measurement.`,
+    bottleneck: primary ? `${primary.name} is the main bottleneck to resolve first.` : "No single bottleneck dominates the current read.",
+    leverage: secondary ? `The next leverage point is ${secondary.name}, because it determines whether gains repeat outside one pocket of the organisation.` : "The next leverage point is turning isolated practice into a repeatable operating rhythm.",
+    confidence: confidenceCopy(hasDeepdive, capCount),
+  };
+}
+
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
 export default function AssessReport() {
@@ -188,6 +205,9 @@ function ReportView({ data }: { data: ReportData }) {
   }, [report]);
 
   if (!report) return null;
+  const benchmarkSlice = report.benchmark_excluded && data.slice
+    ? { ...data.slice, lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." }
+    : data.slice;
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
@@ -270,14 +290,15 @@ function ReportView({ data }: { data: ReportData }) {
             report={report}
             pillarValues={pillarValues}
             cohort={cohort ?? undefined}
-            slice={data.slice}
+            slice={benchmarkSlice}
             slug={respondent.slug}
+            level={respondent.level}
             hasDeepdive={data.hasDeepdive}
           />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} hasDeepdive={data.hasDeepdive} />
+          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
@@ -285,7 +306,7 @@ function ReportView({ data }: { data: ReportData }) {
             data={data}
             pillarValues={pillarValues}
             cohort={cohort ?? undefined}
-            slice={data.slice}
+            slice={benchmarkSlice}
           />
         </TabsPrimitive.Content>
 
@@ -306,16 +327,18 @@ function ReportView({ data }: { data: ReportData }) {
 
 // ─── Overview ─────────────────────────────────────────────────────────────
 function OverviewTab({
-  report, pillarValues, cohort, slice, slug, hasDeepdive,
+  report, pillarValues, cohort, slice, slug, level, hasDeepdive,
 }: {
   report: NonNullable<ReportData["report"]>;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
   slice: MatchedSlice | null;
   slug: string;
+  level: string;
   hasDeepdive: boolean;
 }) {
   const [chartVariant, setChartVariant] = usePillarChartVariant();
+  const readout = narrativeReadout(report, hasDeepdive);
   return (
     <>
     <section className="container max-w-6xl py-10 sm:py-20">
@@ -336,9 +359,21 @@ function OverviewTab({
             <TierBadge tier={report.overall_tier} />
           </div>
 
+          <div className="mt-6 rounded-md border border-cream/10 bg-surface-1/45 p-5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">What this means</p>
+            <div className="mt-4 space-y-3 text-sm leading-relaxed text-cream/70">
+              <p>{readout.pattern}</p>
+              <p>{readout.bottleneck}</p>
+              <p>{readout.leverage}</p>
+            </div>
+            <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+              Confidence · <span className="text-cream/70">{readout.confidence}</span>
+            </p>
+          </div>
+
           {(report.cap_flags?.length ?? 0) > 0 && (
             <div className="mt-8 rounded-sm border border-brass/25 bg-brass/10 px-4 py-3 text-sm text-cream/70 leading-relaxed">
-              Your score has been adjusted based on cross-pillar consistency checks. High tiers in one pillar require matching capabilities in another. See Methodology for details.
+              Your score has been adjusted where claims in one pillar were not yet supported by the foundations in another. Treat those areas as dependency risks, not failures.
             </div>
           )}
 
@@ -411,15 +446,15 @@ function OverviewTab({
       </div>
     </section>
     <ReportCta tier={report.overall_tier} />
-    {!hasDeepdive && <DeepDiveUnlock slug={slug} variant="card" />}
+    {!hasDeepdive && <DeepDiveUnlock slug={slug} level={level} variant="card" />}
     </>
   );
 }
 
 // ─── Plan ─────────────────────────────────────────────────────────────────
 function PlanTab({
-  plan, outcomes, slug, hasDeepdive,
-}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; hasDeepdive: boolean }) {
+  plan, outcomes, slug, level, hasDeepdive,
+}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; level: string; hasDeepdive: boolean }) {
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
 
   if (plan.length === 0) {
@@ -448,7 +483,7 @@ function PlanTab({
         <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl">
           {hasDeepdive
             ? "Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship, sequenced so the foundations land first."
-            : "Month 1 is unlocked from your scan. Months 2 and 3 need the deep dive. Eight more questions tighten the plan enough to commit to a sequence."}
+            : "Month 1 is unlocked from your scan. Months 2 and 3 need the Deep Dive to tighten the plan enough to commit to a sequence."}
         </p>
       </div>
 
@@ -465,7 +500,7 @@ function PlanTab({
               <PlanMonthArticle key={month.month} month={month} outcomeMap={outcomeMap} />
             ))}
           </div>
-          <DeepDiveUnlock slug={slug} variant="overlay" />
+          <DeepDiveUnlock slug={slug} level={level} variant="overlay" />
         </div>
       )}
     </section>
@@ -590,6 +625,7 @@ function ReportTab({
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
 
   if (!report) return null;
+  const readout = narrativeReadout(report, data.hasDeepdive);
 
   return (
     <section className="container max-w-5xl py-16 sm:py-20 print:py-0">
@@ -650,6 +686,15 @@ function ReportTab({
           <div className="col-span-7">
             <RadarChartPrintable values={pillarValues} cohort={cohort} />
           </div>
+        </div>
+
+        <div className="mt-6 border border-walnut/15 rounded-sm p-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-2">
+            Board / leadership readout · {readout.confidence}
+          </p>
+          <p className="text-[12px] leading-snug text-walnut/75">
+            {readout.pattern} {readout.bottleneck} {readout.leverage}
+          </p>
         </div>
 
         {/* Hotspots */}
@@ -734,6 +779,16 @@ function PrintableCohortStrip({
   userScore: number;
 }) {
   if (!slice) return null;
+  if (slice.lockedReason) {
+    return (
+      <div className="mt-8 border-t border-walnut/15 pt-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-2">
+          Versus the field
+        </p>
+        <p className="text-[12px] leading-snug text-walnut/65">{slice.lockedReason}</p>
+      </div>
+    );
+  }
 
   const cohortPillars = pillarsFromRow(slice.row);
   const cohortScore =
@@ -871,8 +926,8 @@ function InviteTab({ respondentId, slug }: { respondentId: string; slug: string 
         },
       });
       toast({
-        title: `Invites recorded for ${list.length} ${list.length === 1 ? "person" : "people"}`,
-        description: "Outbound delivery via Lovable Emails arrives in the next phase. For now your colleagues should hit the link directly.",
+        title: `Invite list saved for ${list.length} ${list.length === 1 ? "person" : "people"}`,
+        description: "Use the shareable link above for direct delivery while team aggregation is being prepared.",
       });
       setEmails("");
       setNote("");
@@ -947,7 +1002,7 @@ function InviteTab({ respondentId, slug }: { respondentId: string; slug: string 
             {sending ? <>Sending…</> : <><Send className="h-3.5 w-3.5 mr-2" /> Send invites</>}
           </Button>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
-            We'll record these now; outbound delivery follows in Phase 4.
+            Saved for team follow-up; direct sharing uses the link above.
           </span>
         </div>
       </div>

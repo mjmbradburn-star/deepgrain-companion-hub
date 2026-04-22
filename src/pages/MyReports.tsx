@@ -194,7 +194,7 @@ function EmptyState() {
     <div className="border border-dashed border-cream/15 rounded-sm p-10 sm:p-14 text-center">
       <p className="font-display text-2xl text-cream/85 mb-3">No reports yet.</p>
       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/45 mb-6">
-        Take the eight-question scan to generate one.
+        Take the quick scan to generate one.
       </p>
       <Button
         asChild

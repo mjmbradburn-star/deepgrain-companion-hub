@@ -32,6 +32,8 @@ export default function AssessDeep() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [answersSaved, setAnswersSaved] = useState(false);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
 
   // Load respondent + already-answered question IDs (so we skip qs- ones).
@@ -107,28 +109,53 @@ export default function AssessDeep() {
     [allProgressQuestions, answeredIds, answers],
   );
 
+  useEffect(() => {
+    if (!respondent || submitting || remaining.length !== 0) return;
+    const t = window.setTimeout(() => navigate(`/assess/r/${respondent.slug}`), 1200);
+    return () => window.clearTimeout(t);
+  }, [navigate, remaining.length, respondent, submitting]);
+
   const submitAll = async (finalAnswers: Record<string, number>) => {
     if (!respondent) return;
     setSubmitting(true);
+    setSubmitErr(null);
     try {
       const rows = Object.entries(finalAnswers).map(([question_id, tier]) => ({
         respondent_id: respondent.id,
         question_id,
         tier,
       }));
-      if (rows.length > 0) {
-        await supabase.from("responses").insert(rows);
+      if (rows.length > 0 && !answersSaved) {
+        const { error: insertError } = await supabase.from("responses").insert(rows);
+        if (insertError) throw insertError;
+        setAnswersSaved(true);
       }
-      await supabase.functions.invoke("rescore-respondent", { body: { slug: respondent.slug } });
+      const { error: scoreError } = await supabase.functions.invoke("rescore-respondent", { body: { slug: respondent.slug } });
+      if (scoreError) throw scoreError;
+      void supabase.from("events").insert({
+        name: "deepdive_completed",
+        payload: { slug: respondent.slug, respondent_id: respondent.id, answered: Object.keys(finalAnswers).length },
+      });
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
+      setSubmitErr(err instanceof Error ? err.message : "Re-scoring failed");
+      void supabase.from("events").insert({
+        name: "deepdive_rescore_failed",
+        payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
+      });
       setSubmitting(false);
     }
   };
 
   const select = (tier: number) => {
     if (!question) return;
+    if (Object.keys(answers).length === 0) {
+      void supabase.from("events").insert({
+        name: "deepdive_first_question_answered",
+        payload: { slug: respondent?.slug, respondent_id: respondent?.id, question_id: question.id },
+      });
+    }
     const next = { ...answers, [question.id]: tier };
     setAnswers(next);
     window.setTimeout(() => {
@@ -162,10 +189,33 @@ export default function AssessDeep() {
       <AssessChrome ariaLabel="Re-scoring">
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center">
-            <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
+            {!submitErr && <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />}
             <p className="mt-6 font-display text-2xl text-cream/85">
-              {remaining.length === 0 ? "You've already answered everything." : "Re-scoring with the full picture…"}
+              {submitErr
+                ? "Your answers are saved. Re-scoring needs another try."
+                : remaining.length === 0
+                ? "Your full report is already complete. Taking you back now…"
+                : "Re-scoring with the full picture…"}
             </p>
+            {submitErr && (
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Button
+                  size="sm"
+                  onClick={() => void submitAll(answers)}
+                  className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
+                >
+                  Retry scoring
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/assess/r/${respondent.slug}`)}
+                  className="rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-xs tracking-wider uppercase"
+                >
+                  Back to report
+                </Button>
+              </div>
+            )}
           </div>
         </main>
       </AssessChrome>
@@ -196,6 +246,11 @@ export default function AssessDeep() {
               Deep dive · {answeredProgressCount + step} of {totalProgressCount}
             </span>
           </div>
+          {step === 1 && answeredProgressCount > 0 && (
+            <p className="mb-5 rounded-sm border border-cream/10 bg-surface-1/35 px-4 py-3 font-display text-base leading-relaxed text-cream/65">
+              You already answered {answeredProgressCount} questions; we'll only ask what is missing.
+            </p>
+          )}
           <h1 className="font-display headline-md text-cream text-balance">
             {question.prompt}
           </h1>
