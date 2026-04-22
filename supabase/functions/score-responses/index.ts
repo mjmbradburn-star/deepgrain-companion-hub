@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("[score-responses] error:", err);
-    return json({ error: err instanceof Error ? err.message : "Unknown error" }, 500);
+    return json({ error: "Internal server error" }, 500);
   }
 });
 
