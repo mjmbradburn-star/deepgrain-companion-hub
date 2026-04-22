@@ -283,38 +283,49 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          detail: Json
           id: string
           level: Database["public"]["Enums"]["assessment_level"]
           pillar: number
           position: number
           prompt: string
+          status: string
           updated_at: string
+          version: string
         }
         Insert: {
           active?: boolean
           created_at?: string
+          detail?: Json
           id: string
           level: Database["public"]["Enums"]["assessment_level"]
           pillar: number
           position: number
           prompt: string
+          status?: string
           updated_at?: string
+          version?: string
         }
         Update: {
           active?: boolean
           created_at?: string
+          detail?: Json
           id?: string
           level?: Database["public"]["Enums"]["assessment_level"]
           pillar?: number
           position?: number
           prompt?: string
+          status?: string
           updated_at?: string
+          version?: string
         }
         Relationships: []
       }
       reports: {
         Row: {
           aioi_score: number | null
+          benchmark_excluded: boolean
+          cap_flags: Json
           claude_payload: Json | null
           created_at: string
           diagnosis: string | null
@@ -325,10 +336,13 @@ export type Database = {
           pillar_tiers: Json | null
           plan: Json | null
           respondent_id: string
+          score_audit: Json
           updated_at: string
         }
         Insert: {
           aioi_score?: number | null
+          benchmark_excluded?: boolean
+          cap_flags?: Json
           claude_payload?: Json | null
           created_at?: string
           diagnosis?: string | null
@@ -339,10 +353,13 @@ export type Database = {
           pillar_tiers?: Json | null
           plan?: Json | null
           respondent_id: string
+          score_audit?: Json
           updated_at?: string
         }
         Update: {
           aioi_score?: number | null
+          benchmark_excluded?: boolean
+          cap_flags?: Json
           claude_payload?: Json | null
           created_at?: string
           diagnosis?: string | null
@@ -353,6 +370,7 @@ export type Database = {
           pillar_tiers?: Json | null
           plan?: Json | null
           respondent_id?: string
+          score_audit?: Json
           updated_at?: string
         }
         Relationships: [
@@ -372,6 +390,7 @@ export type Database = {
           created_at: string
           function: string | null
           id: string
+          legacy_size_band: string | null
           level: Database["public"]["Enums"]["assessment_level"]
           org_size: string | null
           pain: string | null
@@ -390,6 +409,7 @@ export type Database = {
           created_at?: string
           function?: string | null
           id?: string
+          legacy_size_band?: string | null
           level: Database["public"]["Enums"]["assessment_level"]
           org_size?: string | null
           pain?: string | null
@@ -408,6 +428,7 @@ export type Database = {
           created_at?: string
           function?: string | null
           id?: string
+          legacy_size_band?: string | null
           level?: Database["public"]["Enums"]["assessment_level"]
           org_size?: string | null
           pain?: string | null
