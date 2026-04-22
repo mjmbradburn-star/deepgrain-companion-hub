@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
  *  - "overlay" → blurred-content cover for the locked Plan tab.
  *
  * Both share the same payoff list so the user sees *exactly* what changes
- * after answering 8 more questions: more confident score, full 90-day plan,
- * pillar-level diagnoses, peer benchmarking precision.
+ * after completing the remaining Deep Dive questions: more confident score,
+ * full 90-day plan, pillar-level diagnoses, peer benchmarking precision.
  */
 
 interface Unlock {
@@ -24,7 +24,7 @@ interface Unlock {
 const UNLOCKS: Unlock[] = [
   {
     title: "Sharper score",
-    detail: "Ten more questions extend the scan without repeating what you already answered.",
+    detail: "The Deep Dive extends the scan without repeating what you already answered.",
     confidence: { from: 32, to: 92 },
   },
   {
@@ -43,16 +43,36 @@ const UNLOCKS: Unlock[] = [
 
 interface Props {
   slug: string;
+  level?: "company" | "function" | "individual" | string;
   variant?: "card" | "overlay";
 }
 
-export function DeepDiveUnlock({ slug, variant = "card" }: Props) {
+const PAYOFF_BY_LEVEL: Record<string, { eyebrow: string; headline: string; detail: string }> = {
+  company: {
+    eyebrow: "Deep Dive · completes this report",
+    headline: "Unlock your full company report — board-ready roadmap, no repeated questions.",
+    detail: "You'll see your company heatmap, a sequenced 90-day roadmap, and a board-ready one-pager.",
+  },
+  function: {
+    eyebrow: "Deep Dive · completes this report",
+    headline: "Unlock your full function report — team operating roadmap, no repeated questions.",
+    detail: "You'll see your function heatmap, team operating roadmap, and a board-ready one-pager.",
+  },
+  individual: {
+    eyebrow: "Deep Dive · completes this report",
+    headline: "Unlock your full personal profile — improvement plan, no repeated questions.",
+    detail: "You'll see your personal operating profile, priority habits, and a focused improvement plan.",
+  },
+};
+
+export function DeepDiveUnlock({ slug, level = "function", variant = "card" }: Props) {
+  const copy = PAYOFF_BY_LEVEL[level] ?? PAYOFF_BY_LEVEL.function;
   if (variant === "overlay") {
     return (
       <div className="absolute inset-0 z-10 flex items-center justify-center p-6 sm:p-10">
         <div className="absolute inset-0 bg-walnut/85 backdrop-blur-md" aria-hidden />
         <div className="relative w-full max-w-2xl">
-          <UnlockBody slug={slug} compact />
+          <UnlockBody slug={slug} copy={copy} compact />
         </div>
       </div>
     );
@@ -61,13 +81,13 @@ export function DeepDiveUnlock({ slug, variant = "card" }: Props) {
   return (
     <section className="container max-w-6xl pb-20">
       <div className="rounded-lg border border-brass/30 bg-gradient-to-br from-surface-1/80 via-surface-1/40 to-surface-0/80 p-8 sm:p-12">
-        <UnlockBody slug={slug} />
+        <UnlockBody slug={slug} copy={copy} />
       </div>
     </section>
   );
 }
 
-function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean }) {
+function UnlockBody({ slug, copy, compact = false }: { slug: string; copy: { eyebrow: string; headline: string; detail: string }; compact?: boolean }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
@@ -75,7 +95,7 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           <Sparkles className="h-3.5 w-3.5" />
         </span>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85">
-          Ten more · ~3 minutes
+          {copy.eyebrow}
         </p>
       </div>
 
@@ -84,11 +104,11 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           compact ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"
         }`}
       >
-        Unlock your full report — <span className="italic text-brass-bright">ten more questions, three more minutes.</span>
+        {copy.headline}
       </h2>
 
       <p className={`mt-5 font-display text-cream/65 max-w-2xl ${compact ? "text-base" : "text-lg"}`}>
-        You'll see your function-level heatmap, a 90-day roadmap, and a board-ready one-pager.
+        {copy.detail}
       </p>
 
       <ul className={`mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 ${compact ? "" : "lg:grid-cols-2"}`}>
@@ -114,7 +134,7 @@ function UnlockBody({ slug, compact = false }: { slug: string; compact?: boolean
           className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7"
         >
           <Link to={`/assess/deep/${slug}`}>
-            Answer ten more <ArrowRight className="h-4 w-4 ml-1" />
+            Continue Deep Dive <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </Button>
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 inline-flex items-center gap-2">
