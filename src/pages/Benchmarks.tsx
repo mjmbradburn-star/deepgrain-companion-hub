@@ -766,9 +766,12 @@ export default function Benchmarks() {
                 Cohort across the eight pillars
               </h2>
               {view && (
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
-                  Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+                    Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
+                  </p>
+                  <BenchmarkConfidenceBadge match={benchmarkMatch} view={view} />
+                </div>
               )}
               {benchmarkMatch.note && view && (
                 <p className="mt-2 max-w-xl font-display italic text-sm text-brass-bright/75">
