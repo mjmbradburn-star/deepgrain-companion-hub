@@ -64,6 +64,8 @@ export interface MatchedSlice {
   label: string;
   /** How specific the match is (higher = better). */
   specificity: number;
+  cohortNote?: string;
+  lockedReason?: string;
 }
 
 /**
@@ -80,10 +82,12 @@ export async function fetchBestSlice({
   level,
   function: fnRaw,
   region,
+  sizeBand,
 }: {
   level: Level;
   function?: string | null;
   region?: string | null;
+  sizeBand?: string | null;
 }): Promise<MatchedSlice | null> {
   const fn = normaliseFunction(fnRaw);
   const { data, error } = await supabase
@@ -98,33 +102,49 @@ export async function fetchBestSlice({
   }
 
   const rows = data as BenchmarkRow[];
+  const totalBase = rows.find((x) => !x.function && !x.region && !x.size_band && !x.sector)?.sample_size ?? 0;
+  if (totalBase > 0 && totalBase < 50) {
+    return {
+      row: rows[0],
+      label: `All ${level}-level respondents`,
+      specificity: 0,
+      lockedReason: `Benchmark unlocks at 50 responses in your size band. Currently at N=${totalBase}. Check back soon.`,
+    };
+  }
 
   // Helper: find first row that matches the predicate.
   const find = (pred: (r: BenchmarkRow) => boolean) => rows.find(pred);
+
+  if (sizeBand) {
+    const exact = find((x) => x.size_band === sizeBand && !x.function && !x.region && !x.sector);
+    if (exact && exact.sample_size >= 20) {
+      return { row: exact, label: `Size band ${sizeBand}`, specificity: 4, cohortNote: `Exact size-band cohort · N=${exact.sample_size}` };
+    }
+  }
 
   if (fn && region) {
     const r = find(
       (x) => x.function === fn && x.region === region && !x.size_band && !x.sector,
     );
-    if (r) return { row: r, label: `${fn} · ${region}`, specificity: 3 };
+    if (r) return { row: r, label: `${fn} · ${region}`, specificity: 3, cohortNote: `Matched function and region · N=${r.sample_size}` };
   }
   if (fn) {
     const r = find(
       (x) => x.function === fn && !x.region && !x.size_band && !x.sector,
     );
-    if (r) return { row: r, label: fn, specificity: 2 };
+    if (r) return { row: r, label: fn, specificity: 2, cohortNote: `Matched function cohort · N=${r.sample_size}` };
   }
   if (region) {
     const r = find(
       (x) => x.region === region && !x.function && !x.size_band && !x.sector,
     );
-    if (r) return { row: r, label: region, specificity: 2 };
+    if (r) return { row: r, label: region, specificity: 2, cohortNote: `Matched regional cohort · N=${r.sample_size}` };
   }
   // Level-wide fallback: a row with no secondary dimensions set.
   const r = find(
     (x) => !x.function && !x.region && !x.size_band && !x.sector,
   );
-  if (r) return { row: r, label: `All ${level}-level respondents`, specificity: 1 };
+  if (r) return { row: r, label: `All ${level}-level respondents`, specificity: 1, cohortNote: `Fallback to level-wide cohort · N=${r.sample_size}` };
 
   // Last resort: the most recent row at this level.
   if (rows[0]) return { row: rows[0], label: `${level} cohort`, specificity: 0 };
