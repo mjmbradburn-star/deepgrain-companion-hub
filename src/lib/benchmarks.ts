@@ -178,7 +178,7 @@ export function selectBestSliceFromRows({
     const combinedBands = COMBINED_SIZE_BANDS[sizeBand] ?? [sizeBand];
     const combined = rollupSizeBand(rows, combinedBands);
     if (combined) {
-      return { row: combined, label: combinedBands.map(sizeBandLabel).join(" + "), specificity: 3, matchType: "adjacent-size", cohortNote: `Adjacent size bands combined · N=${combined.sample_size}` };
+      return { row: combined, label: combinedBands.map(sizeBandLabel).join(" + "), specificity: 3, matchType: "adjacent-size", cohortNote: `Combined adjacent size-band cohort · N=${combined.sample_size}` };
     }
   }
 
