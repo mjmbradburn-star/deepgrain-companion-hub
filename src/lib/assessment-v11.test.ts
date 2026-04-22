@@ -65,4 +65,40 @@ describe("AIOI v1.1 question catalogue", () => {
       expect(question.detail?.crosscheck).toBeTruthy();
     }
   });
+
+  it("keeps duplicate quickscan questions out of every live deep dive", () => {
+    const duplicateIds = [
+      "c-p1-mandate", "c-p2-data", "c-p3-tools", "c-p4-workflow", "c-p5-skills", "c-p6-governance", "c-p7-roi", "c-p8-culture",
+      "f-p1-owner", "f-p2-data", "f-p3-tools", "f-p4-workflow", "f-p5-fluency", "f-p6-policy", "f-p7-roi", "f-p8-talk",
+      "i-p1-intent", "i-p2-context", "i-p3-tools", "i-p4-workflow", "i-p5-fluency", "i-p6-hygiene", "i-p7-time", "i-p8-share",
+    ];
+
+    const liveIds = [
+      ...getDeepDiveQuestions("company"),
+      ...getDeepDiveQuestions("function"),
+      ...getDeepDiveQuestions("individual"),
+    ].map((question) => question.id);
+
+    for (const id of duplicateIds) {
+      expect(liveIds).not.toContain(id);
+    }
+  });
+
+  it("gives every active live question six options and rationale metadata", () => {
+    const liveQuestions = [
+      ...getQuickscanQuestions("company"),
+      ...getQuickscanQuestions("function"),
+      ...getQuickscanQuestions("individual"),
+      ...getDeepDiveQuestions("company"),
+      ...getDeepDiveQuestions("function"),
+      ...getDeepDiveQuestions("individual"),
+    ];
+
+    for (const question of liveQuestions) {
+      expect(question.options).toHaveLength(6);
+      if (question.flow === "deep" || question.id === "qs-c-p3-agents") {
+        expect(question.detail?.rationale).toBeTruthy();
+      }
+    }
+  });
 });
