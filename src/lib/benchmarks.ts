@@ -64,6 +64,7 @@ export interface MatchedSlice {
   label: string;
   /** How specific the match is (higher = better). */
   specificity: number;
+  matchType?: "exact-size" | "adjacent-size" | "function-region" | "function" | "region" | "broad" | "approximate";
   cohortNote?: string;
   lockedReason?: string;
 }
@@ -172,12 +173,12 @@ export function selectBestSliceFromRows({
   if (sizeBand) {
     const exact = find((x) => x.size_band === sizeBand && !x.function && !x.region && !x.sector);
     if (exact && exact.sample_size >= 20) {
-      return { row: exact, label: sizeBandLabel(sizeBand), specificity: 4, cohortNote: `Exact size-band cohort · N=${exact.sample_size}` };
+      return { row: exact, label: sizeBandLabel(sizeBand), specificity: 4, matchType: "exact-size", cohortNote: `Exact size-band cohort · N=${exact.sample_size}` };
     }
     const combinedBands = COMBINED_SIZE_BANDS[sizeBand] ?? [sizeBand];
     const combined = rollupSizeBand(rows, combinedBands);
     if (combined) {
-      return { row: combined, label: combinedBands.map(sizeBandLabel).join(" + "), specificity: 3, cohortNote: `Combined adjacent size-band cohort · N=${combined.sample_size}` };
+      return { row: combined, label: combinedBands.map(sizeBandLabel).join(" + "), specificity: 3, matchType: "adjacent-size", cohortNote: `Adjacent size bands combined · N=${combined.sample_size}` };
     }
   }
 
@@ -185,27 +186,27 @@ export function selectBestSliceFromRows({
     const r = find(
       (x) => x.function === fn && x.region === region && !x.size_band && !x.sector,
     );
-    if (r) return { row: r, label: `${fn} · ${region}`, specificity: 3, cohortNote: `Matched function and region · N=${r.sample_size}` };
+    if (r) return { row: r, label: `${fn} · ${region}`, specificity: 3, matchType: "function-region", cohortNote: `Matched function and region · N=${r.sample_size}` };
   }
   if (fn) {
     const r = find(
       (x) => x.function === fn && !x.region && !x.size_band && !x.sector,
     );
-    if (r) return { row: r, label: fn, specificity: 2, cohortNote: `Matched function cohort · N=${r.sample_size}` };
+    if (r) return { row: r, label: fn, specificity: 2, matchType: "function", cohortNote: `Matched function cohort · N=${r.sample_size}` };
   }
   if (region) {
     const r = find(
       (x) => x.region === region && !x.function && !x.size_band && !x.sector,
     );
-    if (r) return { row: r, label: region, specificity: 2, cohortNote: `Matched regional cohort · N=${r.sample_size}` };
+    if (r) return { row: r, label: region, specificity: 2, matchType: "region", cohortNote: `Matched regional cohort · N=${r.sample_size}` };
   }
   // Level-wide fallback: a row with no secondary dimensions set.
   const r = find(
     (x) => !x.function && !x.region && !x.size_band && !x.sector,
   );
-  if (r) return { row: r, label: `All ${level}-level respondents`, specificity: 1, cohortNote: `Fallback to level-wide cohort · N=${r.sample_size}` };
+  if (r) return { row: r, label: `All ${level}-level respondents`, specificity: 1, matchType: "broad", cohortNote: `Broad level-wide cohort · N=${r.sample_size}` };
 
   // Last resort: the most recent row at this level.
-  if (rows[0]) return { row: rows[0], label: `${level} cohort`, specificity: 0 };
+  if (rows[0]) return { row: rows[0], label: `${level} cohort`, specificity: 0, matchType: "approximate" };
   return null;
 }
