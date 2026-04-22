@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { ArrowRight, Check, Loader2, Mail } from "lucide-react";
+import { ArrowRight, Loader2, Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,8 +82,4 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
       </Button>
     </form>
   );
-}
-
-export function DeepDiveSignedInLink({ slug, children }: { slug: string; children: React.ReactNode }) {
-  return <>{children}</>;
 }
