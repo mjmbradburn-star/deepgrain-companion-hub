@@ -189,10 +189,33 @@ export default function AssessDeep() {
       <AssessChrome ariaLabel="Re-scoring">
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center">
-            <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
+            {!submitErr && <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />}
             <p className="mt-6 font-display text-2xl text-cream/85">
-              {remaining.length === 0 ? "You've already answered everything." : "Re-scoring with the full picture…"}
+              {submitErr
+                ? "Your answers are saved. Re-scoring needs another try."
+                : remaining.length === 0
+                ? "Your full report is already complete. Taking you back now…"
+                : "Re-scoring with the full picture…"}
             </p>
+            {submitErr && (
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Button
+                  size="sm"
+                  onClick={() => void submitAll(answers)}
+                  className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
+                >
+                  Retry scoring
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/assess/r/${respondent.slug}`)}
+                  className="rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-xs tracking-wider uppercase"
+                >
+                  Back to report
+                </Button>
+              </div>
+            )}
           </div>
         </main>
       </AssessChrome>
@@ -223,6 +246,11 @@ export default function AssessDeep() {
               Deep dive · {answeredProgressCount + step} of {totalProgressCount}
             </span>
           </div>
+          {step === 1 && answeredProgressCount > 0 && (
+            <p className="mb-5 rounded-sm border border-cream/10 bg-surface-1/35 px-4 py-3 font-display text-base leading-relaxed text-cream/65">
+              You already answered {answeredProgressCount} questions; we'll only ask what is missing.
+            </p>
+          )}
           <h1 className="font-display headline-md text-cream text-balance">
             {question.prompt}
           </h1>
