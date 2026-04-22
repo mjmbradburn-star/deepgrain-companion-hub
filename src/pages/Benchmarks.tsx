@@ -526,6 +526,28 @@ export default function Benchmarks() {
     updateParams({ cmp: isDefault ? null : next.map(encodeURIComponent).join(",") });
   };
 
+  const refreshBenchmarkBase = async () => {
+    setRefreshingBase(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("refresh-benchmark-base", {
+        body: { level, function: fn, size, sector, region },
+      });
+      if (error) throw error;
+      await fetchBenchmarkRows();
+      const payload = data as { seeded?: number; benchmark_rows?: number } | null;
+      toast.success("Benchmark base refreshed", {
+        description: `${payload?.seeded ?? 0} synthetic rows seeded · ${payload?.benchmark_rows ?? 0} benchmark cohorts recomputed.`,
+      });
+    } catch (error) {
+      console.error("[benchmarks] refresh failed", error);
+      toast.error("Couldn't refresh benchmarks", {
+        description: error instanceof Error ? error.message : "The benchmark refresh action failed.",
+      });
+    } finally {
+      setRefreshingBase(false);
+    }
+  };
+
   const fetchBenchmarkRows = useCallback(async () => {
     const { data, error } = await supabase
       .from("benchmarks_materialised")
