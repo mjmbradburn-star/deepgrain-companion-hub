@@ -51,13 +51,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
     const authHeader = req.headers.get("Authorization") ?? "";
+    const apikeyHeader = (req.headers.get("apikey") ?? "").trim();
     const token = authHeader.toLowerCase().startsWith("bearer ")
       ? authHeader.slice("bearer ".length).trim()
       : "";
 
-    if (!serviceKey || token !== serviceKey) {
+    if (!serviceKey || !await isServiceRoleRequest(serviceKey, token, apikeyHeader)) {
       return json({ error: "Unauthorized" }, 401);
     }
 
@@ -231,6 +232,18 @@ async function rescoreRespondent(admin: any, respondentId: string, slug: string,
     benchmark_excluded: capped.benchmarkExcluded,
     changed: previous?.aioi_score !== aioi || previous?.overall_tier !== overallTier,
   };
+}
+
+async function isServiceRoleRequest(serviceKey: string, token: string, apikeyHeader: string) {
+  if (token === serviceKey || apikeyHeader === serviceKey) return true;
+  if (!token) return false;
+
+  const verifier = createClient(Deno.env.get("SUPABASE_URL")!, token, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await verifier.from("email_send_state").select("id").limit(1);
+  return !error;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number) {
