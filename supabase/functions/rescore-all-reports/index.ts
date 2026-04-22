@@ -238,12 +238,12 @@ async function isServiceRoleRequest(serviceKey: string, token: string, apikeyHea
   if (token === serviceKey || apikeyHeader === serviceKey) return true;
   if (!token) return false;
 
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey, {
+  const verifier = createClient(Deno.env.get("SUPABASE_URL")!, token, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data, error } = await admin.auth.getClaims(token);
-  if (error || !data?.claims) return false;
-  return data.claims.role === "service_role";
+  const { error } = await verifier.from("email_send_state").select("id").limit(1);
+  return !error;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number) {
