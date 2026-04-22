@@ -14,7 +14,6 @@ import {
   tierForScore,
   tierLabel,
   topHotspots,
-} from "../rescore-respondent/scoring.ts";
 } from "./scoring.ts";
 
 const corsHeaders = {
