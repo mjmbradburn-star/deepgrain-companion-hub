@@ -119,6 +119,79 @@ export function fallbackDiagnosis(
   return `Operating at ${tier}. The drag is in ${weakest} — that's where the next quarter has to land.`;
 }
 
+
+export interface CapFlag {
+  code: string;
+  label: string;
+  from: number;
+  to: number;
+  basis: string;
+}
+
+export interface CappedScore {
+  tiers: Record<number, number>;
+  capFlags: CapFlag[];
+  benchmarkExcluded: boolean;
+}
+
+function answerMap(responses: Response[]): Map<string, number> {
+  return new Map(responses.map((r) => [r.question_id, r.tier]));
+}
+
+function capQuestion(
+  flags: CapFlag[],
+  answers: Map<string, number>,
+  targetId: string,
+  basisId: string,
+  maxDelta: number,
+  code: string,
+  label: string,
+): void {
+  const target = answers.get(targetId);
+  const basis = answers.get(basisId);
+  if (target === undefined || basis === undefined) return;
+  const max = basis + maxDelta;
+  if (target > max) {
+    flags.push({ code, label, from: target, to: max, basis: `${targetId} capped by ${basisId}` });
+  }
+}
+
+export function applyConsistencyCaps(
+  tiers: Record<number, number>,
+  responses: Response[],
+): CappedScore {
+  const adjusted: Record<number, number> = { ...tiers };
+  const capFlags: CapFlag[] = [];
+  const answers = answerMap(responses);
+
+  const capPillar = (pillar: number, max: number, code: string, label: string, basis: string) => {
+    if ((adjusted[pillar] ?? 0) > max) {
+      capFlags.push({ code, label, from: adjusted[pillar], to: max, basis });
+      adjusted[pillar] = Math.round(max * 10) / 10;
+    }
+  };
+
+  capPillar(3, (adjusted[2] ?? 0) + 1, "tooling_data_cap", "Tooling capped by Data Foundations", "Tooling cannot outrun usable data by more than one tier.");
+  capPillar(4, (adjusted[3] ?? 0) + 1, "workflow_tooling_cap", "Workflow capped by Tooling", "Workflow integration requires matching tooling infrastructure.");
+  capPillar(4, (adjusted[5] ?? 0) + 1, "workflow_skills_cap", "Workflow capped by Skills", "Model-first workflows require operators who can run them.");
+  capPillar(7, (adjusted[4] ?? 0) + 1, "measurement_workflow_cap", "Measurement capped by Workflow", "Reliable ROI depends on stable workflows.");
+  capPillar(8, (adjusted[5] ?? 0) + 1, "culture_skills_cap", "Culture capped by Skills", "Adoption cannot outrun fluency by more than one tier.");
+
+  const operatingReality = Math.max(0, Math.round(((adjusted[2] ?? 0) + (adjusted[3] ?? 0) + (adjusted[4] ?? 0) + (adjusted[5] ?? 0)) / 4));
+  capPillar(6, operatingReality + 1, "governance_reality_cap", "Governance capped by operating reality", "Governance claims need matching data, tooling, workflow and skills maturity.");
+
+  capQuestion(capFlags, answers, "qs-c-p3-agents", "qs-c-p3", 1, "agents_tooling_cap", "Agents capped by tooling");
+  capQuestion(capFlags, answers, "c-p3-observability", "c-p3-orchestration", 0, "observability_orchestration_cap", "Observability capped by orchestration");
+  capQuestion(capFlags, answers, "c-p3-toolconnect", "qs-c-p3-agents", 1, "toolconnect_agents_cap", "Tool connection capped by agents");
+  capQuestion(capFlags, answers, "c-p2-corpus", "qs-c-p2", 1, "corpus_data_cap", "Corpus capped by data foundations");
+  capQuestion(capFlags, answers, "c-p2-memory", "qs-c-p3-agents", 0, "memory_agents_cap", "Memory capped by agents");
+  capQuestion(capFlags, answers, "c-p5-prompts", "qs-c-p5", 1, "prompts_skills_cap", "Prompts capped by skills");
+  capQuestion(capFlags, answers, "c-p5-evals", "c-p3-observability", 1, "evals_observability_cap", "Evals capped by observability");
+  capQuestion(capFlags, answers, "i-p3-agents", "qs-i-p5", 1, "personal_agents_skills_cap", "Personal agents capped by skills");
+
+  return { tiers: adjusted, capFlags, benchmarkExcluded: capFlags.length >= 3 };
+}
+
 export interface Outcome {
   id: string;
   pillar: number;
