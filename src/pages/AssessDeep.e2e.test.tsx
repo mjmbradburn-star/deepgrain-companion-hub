@@ -1,0 +1,136 @@
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import AssessDeep from "./AssessDeep";
+import { getDeepDiveQuestions, type Level } from "@/lib/assessment";
+import { getQuickscanQuestions } from "@/lib/quickscan";
+
+type MockLevel = Extract<Level, "company" | "function">;
+
+const signInWithOtp = vi.fn();
+const getSession = vi.fn();
+const rpc = vi.fn();
+const invoke = vi.fn();
+const from = vi.fn();
+const insertedResponses: Array<{ respondent_id: string; question_id: string; tier: number }> = [];
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    auth: { getSession, signInWithOtp },
+    rpc,
+    functions: { invoke },
+    from,
+  },
+}));
+
+function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
+}
+
+function renderDeep(slug: string) {
+  return render(
+    <MemoryRouter initialEntries={[`/assess/deep/${slug}`]}>
+      <Routes>
+        <Route path="/assess/deep/:slug" element={<><AssessDeep /><LocationProbe /></>} />
+        <Route path="/assess/r/:slug" element={<><h1>Returned report</h1><LocationProbe /></>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+function mockReport(level: MockLevel) {
+  const slug = `${level}-deep-flow`;
+  const respondentId = `${level}-respondent-id`;
+  rpc.mockResolvedValue({
+    data: {
+      respondent: {
+        id: respondentId,
+        slug,
+        level,
+        function: level === "function" ? "sales" : null,
+        is_anonymous: true,
+      },
+    },
+    error: null,
+  });
+  return { slug, respondentId };
+}
+
+function mockTables(existingQuestionIds: string[]) {
+  from.mockImplementation((table: string) => {
+    if (table === "responses") {
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn().mockResolvedValue({ data: existingQuestionIds.map((question_id) => ({ question_id })), error: null }),
+        })),
+        upsert: vi.fn((rows) => {
+          insertedResponses.push(...rows);
+          return Promise.resolve({ error: null });
+        }),
+      };
+    }
+    return { insert: vi.fn().mockResolvedValue({ error: null }) };
+  });
+}
+
+async function sendClaimLink(slug: string) {
+  expect(await screen.findByRole("heading", { name: /save this report/i })).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "lead@example.com" } });
+  fireEvent.click(screen.getByRole("button", { name: /email me a secure link/i }));
+  await waitFor(() => expect(signInWithOtp).toHaveBeenCalledWith({
+    email: "lead@example.com",
+    options: expect.objectContaining({
+      shouldCreateUser: true,
+      emailRedirectTo: expect.stringContaining(`/auth/callback?next=%2Fassess%2Fdeep%2F${slug}`),
+    }),
+  }));
+}
+
+async function completeDeepDive(level: MockLevel) {
+  const questions = getDeepDiveQuestions(level, level === "function" ? "sales" : undefined);
+  for (const question of questions) {
+    expect(await screen.findByText(question.prompt)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(question.options[0].label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+  }
+}
+
+describe("Deep Dive anonymous claim flow", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    insertedResponses.length = 0;
+    signInWithOtp.mockResolvedValue({ error: null });
+    invoke.mockResolvedValue({ error: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each<MockLevel>(["company", "function"])("claims an anonymous %s report by magic link and completes every final Deep Dive step", async (level) => {
+    const { slug, respondentId } = mockReport(level);
+    mockTables(getQuickscanQuestions(level, level === "function" ? "sales" : undefined).map((question) => question.id));
+
+    getSession.mockResolvedValueOnce({ data: { session: null } });
+    const firstRender = renderDeep(slug);
+    await sendClaimLink(slug);
+    firstRender.unmount();
+
+    getSession.mockResolvedValue({ data: { session: { user: { id: `${level}-user-id`, email: "lead@example.com" } } } });
+    renderDeep(slug);
+
+    await completeDeepDive(level);
+
+    const expectedQuestions = getDeepDiveQuestions(level, level === "function" ? "sales" : undefined);
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("rescore-respondent", { body: { slug } }));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(`/assess/r/${slug}`));
+    expect(insertedResponses).toHaveLength(expectedQuestions.length);
+    expect(insertedResponses.map((row) => row.question_id)).toEqual(expectedQuestions.map((question) => question.id));
+    expect(insertedResponses.every((row) => row.respondent_id === respondentId)).toBe(true);
+  });
+});
