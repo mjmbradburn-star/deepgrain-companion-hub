@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { SiteNav } from "@/components/aioi/SiteNav";
@@ -9,7 +9,7 @@ import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { loadScan } from "@/lib/quickscan";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, RefreshCw } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
@@ -456,6 +456,7 @@ function RadarTile({
 export default function Benchmarks() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshingBase, setRefreshingBase] = useState(false);
   const [chartVariant, setChartVariant] = usePillarChartVariant();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -525,24 +526,48 @@ export default function Benchmarks() {
     updateParams({ cmp: isDefault ? null : next.map(encodeURIComponent).join(",") });
   };
 
+  const refreshBenchmarkBase = async () => {
+    setRefreshingBase(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("refresh-benchmark-base", {
+        body: { level, function: fn, size, sector, region },
+      });
+      if (error) throw error;
+      await fetchBenchmarkRows();
+      const payload = data as { seeded?: number; benchmark_rows?: number } | null;
+      toast.success("Benchmark base refreshed", {
+        description: `${payload?.seeded ?? 0} synthetic rows seeded · ${payload?.benchmark_rows ?? 0} benchmark cohorts recomputed.`,
+      });
+    } catch (error) {
+      console.error("[benchmarks] refresh failed", error);
+      toast.error("Couldn't refresh benchmarks", {
+        description: error instanceof Error ? error.message : "The benchmark refresh action failed.",
+      });
+    } finally {
+      setRefreshingBase(false);
+    }
+  };
+
+  const fetchBenchmarkRows = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("benchmarks_materialised")
+      .select("*")
+      .order("refreshed_at", { ascending: false });
+    if (error) console.error("[benchmarks] fetch failed", error);
+    setRows((data as Row[] | null) ?? []);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("benchmarks_materialised")
-        .select("*")
-        .order("refreshed_at", { ascending: false });
-      if (!cancelled) {
-        if (error) console.error("[benchmarks] fetch failed", error);
-        setRows((data as Row[] | null) ?? []);
-        setLoading(false);
-      }
+      await fetchBenchmarkRows();
+      if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchBenchmarkRows]);
 
   // If the visitor has completed a scan on this device, fetch their pillar
   // tiers so we can overlay a "You" marker against the cohort medians in the
@@ -705,6 +730,15 @@ export default function Benchmarks() {
                 </svg>
               </span>
               Copy share link
+            </button>
+            <button
+              onClick={refreshBenchmarkBase}
+              disabled={refreshingBase}
+              className="inline-flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-sm font-ui text-xs tracking-wide transition-colors border bg-brass/10 text-brass-bright border-brass/30 hover:border-brass/60 hover:bg-brass/15 disabled:opacity-50 disabled:cursor-wait"
+              aria-label="Refresh benchmark base data for current filters"
+            >
+              <RefreshCw className={`h-3 w-3 shrink-0 ${refreshingBase ? "animate-spin" : ""}`} aria-hidden />
+              {refreshingBase ? "Refreshing…" : "Refresh benchmark base data"}
             </button>
           </div>
 
