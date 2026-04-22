@@ -109,6 +109,14 @@ interface AggregateView {
   refreshedAt: string;
 }
 
+interface BenchmarkMatch {
+  rows: Row[];
+  note: string | null;
+  specificity: number;
+  matchLabel: string;
+  reason: string;
+}
+
 function aggregate(rows: Row[]): AggregateView | null {
   if (!rows.length) return null;
   let sample = 0;
@@ -158,17 +166,70 @@ function rowMatches(
   return true;
 }
 
-function benchmarkFallbackRows(rows: Row[], level: Level, fn: FunctionSlice, size: SizeBand, sector: Sector, region: Region): { rows: Row[]; note: string | null } {
+function benchmarkFallbackRows(rows: Row[], level: Level, fn: FunctionSlice, size: SizeBand, sector: Sector, region: Region): BenchmarkMatch {
   const exact = rows.filter((r) => rowMatches(r, level, fn, size, sector, region));
-  if (exact.length) return { rows: exact, note: null };
-  const attempts: Array<{ rows: Row[]; note: string }> = [
-    { rows: rows.filter((r) => r.level === level && fn !== "All" && r.function === fn), note: "No exact slice yet; showing the nearest function cohort." },
-    { rows: rows.filter((r) => r.level === level && region !== "All" && r.region === region), note: "No exact slice yet; showing the nearest regional cohort." },
-    { rows: rows.filter((r) => r.level === level && sector !== "All" && r.sector === sector), note: "No exact slice yet; showing the nearest sector cohort." },
-    { rows: rows.filter((r) => r.level === level && !r.function && !r.region && !r.size_band && !r.sector), note: "No exact slice yet; showing the broad level-wide cohort." },
-    { rows: rows.filter((r) => r.level === level), note: "No exact slice yet; showing all available rows for this level." },
+  const requestedSpecificity = [fn, size, sector, region].filter((v) => v !== "All").length;
+  if (exact.length) {
+    return {
+      rows: exact,
+      note: null,
+      specificity: 2 + requestedSpecificity,
+      matchLabel: requestedSpecificity ? "Exact filter match" : "Level-wide match",
+      reason: requestedSpecificity
+        ? "This cohort matches every active filter you selected."
+        : "No secondary filters are active, so this shows the broad level cohort.",
+    };
+  }
+  const attempts: Array<{ rows: Row[]; note: string; specificity: number; matchLabel: string; reason: string }> = [
+    { rows: rows.filter((r) => r.level === level && fn !== "All" && r.function === fn), note: "No exact slice yet; showing the nearest function cohort.", specificity: 3, matchLabel: "Function fallback", reason: "The exact combination is not populated yet, but function is still matched." },
+    { rows: rows.filter((r) => r.level === level && region !== "All" && r.region === region), note: "No exact slice yet; showing the nearest regional cohort.", specificity: 3, matchLabel: "Region fallback", reason: "The exact combination is not populated yet, but region is still matched." },
+    { rows: rows.filter((r) => r.level === level && sector !== "All" && r.sector === sector), note: "No exact slice yet; showing the nearest sector cohort.", specificity: 3, matchLabel: "Sector fallback", reason: "The exact combination is not populated yet, but sector is still matched." },
+    { rows: rows.filter((r) => r.level === level && !r.function && !r.region && !r.size_band && !r.sector), note: "No exact slice yet; showing the broad level-wide cohort.", specificity: 1, matchLabel: "Broad fallback", reason: "Specific slices are still thin, so the page falls back to everyone at this assessment level." },
+    { rows: rows.filter((r) => r.level === level), note: "No exact slice yet; showing all available rows for this level.", specificity: 0, matchLabel: "Approximate fallback", reason: "No clean broad cohort exists yet, so this uses the best available rows for the level." },
   ];
-  return attempts.find((attempt) => attempt.rows.length) ?? { rows: [], note: "No benchmark rows exist for this level yet." };
+  return attempts.find((attempt) => attempt.rows.length) ?? { rows: [], note: "No benchmark rows exist for this level yet.", specificity: 0, matchLabel: "No cohort", reason: "There are no benchmark rows for this assessment level yet." };
+}
+
+function benchmarkConfidence(sample: number, specificity: number): { label: string; tone: "high" | "good" | "directional" | "thin"; detail: string } {
+  if (sample >= 100 && specificity >= 4) return { label: "High confidence", tone: "high", detail: "Large sample and a close match to your selected filters." };
+  if (sample >= 50 && specificity >= 2) return { label: "Good confidence", tone: "good", detail: "Enough responses for a useful read, with a meaningful filter match." };
+  if (sample >= 20) return { label: "Directional", tone: "directional", detail: "Useful as a signal, but the cohort is either smaller or less specific." };
+  return { label: "Thin cohort", tone: "thin", detail: "Treat as early signal only until more opted-in assessments are added." };
+}
+
+function BenchmarkConfidenceBadge({ match, view }: { match: BenchmarkMatch; view: AggregateView }) {
+  const confidence = benchmarkConfidence(view.sample, match.specificity);
+  const toneClass = {
+    high: "border-brass/45 bg-brass/15 text-brass-bright",
+    good: "border-brass/35 bg-brass/10 text-brass-bright/90",
+    directional: "border-cream/20 bg-surface-1/60 text-cream/70",
+    thin: "border-pillar-7/35 bg-pillar-7/10 text-pillar-7",
+  }[confidence.tone];
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className={`inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors cursor-help focus:outline-none focus-visible:ring-1 focus-visible:ring-brass-bright/70 ${toneClass}`}
+          aria-label={`Benchmark confidence: ${confidence.label}`}
+        >
+          {confidence.label}
+          <Info className="h-3 w-3 opacity-70" aria-hidden />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="start" className="max-w-[320px] text-left">
+        <div className="space-y-2 font-ui text-xs leading-relaxed normal-case tracking-normal">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright">{match.matchLabel}</p>
+          <p>{confidence.detail}</p>
+          <p>{match.reason}</p>
+          <p className="text-cream/60">
+            Based on n = {view.sample.toLocaleString()} and match specificity {match.specificity}/6.
+          </p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 /**
@@ -705,9 +766,12 @@ export default function Benchmarks() {
                 Cohort across the eight pillars
               </h2>
               {view && (
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
-                  Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45">
+                    Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
+                  </p>
+                  <BenchmarkConfidenceBadge match={benchmarkMatch} view={view} />
+                </div>
               )}
               {benchmarkMatch.note && view && (
                 <p className="mt-2 max-w-xl font-display italic text-sm text-brass-bright/75">
