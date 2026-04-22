@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
     return json({ ok: true, slug: respondent.slug, score: aioi, tier: overallTier });
   } catch (err) {
     console.error("[submit-quickscan] error:", err);
-    return json({ error: err instanceof Error ? err.message : "Unknown error" }, 500);
+    return json({ error: "Internal server error" }, 500);
   }
 });
 
