@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { SiteNav } from "@/components/aioi/SiteNav";
@@ -9,7 +9,7 @@ import { FilterRow } from "@/components/aioi/BenchmarkFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { loadScan } from "@/lib/quickscan";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, RefreshCw } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
@@ -456,6 +456,7 @@ function RadarTile({
 export default function Benchmarks() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshingBase, setRefreshingBase] = useState(false);
   const [chartVariant, setChartVariant] = usePillarChartVariant();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -525,24 +526,26 @@ export default function Benchmarks() {
     updateParams({ cmp: isDefault ? null : next.map(encodeURIComponent).join(",") });
   };
 
+  const fetchBenchmarkRows = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("benchmarks_materialised")
+      .select("*")
+      .order("refreshed_at", { ascending: false });
+    if (error) console.error("[benchmarks] fetch failed", error);
+    setRows((data as Row[] | null) ?? []);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("benchmarks_materialised")
-        .select("*")
-        .order("refreshed_at", { ascending: false });
-      if (!cancelled) {
-        if (error) console.error("[benchmarks] fetch failed", error);
-        setRows((data as Row[] | null) ?? []);
-        setLoading(false);
-      }
+      await fetchBenchmarkRows();
+      if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchBenchmarkRows]);
 
   // If the visitor has completed a scan on this device, fetch their pillar
   // tiers so we can overlay a "You" marker against the cohort medians in the
