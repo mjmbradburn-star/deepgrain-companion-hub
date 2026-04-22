@@ -75,6 +75,14 @@ type SizeBand = (typeof SIZES)[number];
 type Sector = (typeof SECTORS)[number];
 type Region = (typeof REGIONS)[number];
 
+const SIZE_TO_CODES: Record<SizeBand, string[]> = {
+  All: [],
+  "1–50": ["S"],
+  "51–250": ["M1", "M2", "M3"],
+  "251–1k": ["M3", "L1"],
+  "1k+": ["L2", "XL"],
+};
+
 /** Pillar median JSON comes in two shapes from the recompute function:
  *   shape A (legacy seed): `{ "1": 2.4 }`
  *   shape B (current):     `{ "1": { "name": "...", "tier": 2.4 } }`
@@ -144,10 +152,23 @@ function rowMatches(
 ): boolean {
   if (r.level !== level) return false;
   if (fn !== "All" && r.function !== fn) return false;
-  if (size !== "All" && r.size_band !== size) return false;
+  if (size !== "All" && !SIZE_TO_CODES[size].includes(String(r.size_band ?? ""))) return false;
   if (sector !== "All" && r.sector !== sector) return false;
   if (region !== "All" && r.region !== region) return false;
   return true;
+}
+
+function benchmarkFallbackRows(rows: Row[], level: Level, fn: FunctionSlice, size: SizeBand, sector: Sector, region: Region): { rows: Row[]; note: string | null } {
+  const exact = rows.filter((r) => rowMatches(r, level, fn, size, sector, region));
+  if (exact.length) return { rows: exact, note: null };
+  const attempts: Array<{ rows: Row[]; note: string }> = [
+    { rows: rows.filter((r) => r.level === level && fn !== "All" && r.function === fn), note: "No exact slice yet; showing the nearest function cohort." },
+    { rows: rows.filter((r) => r.level === level && region !== "All" && r.region === region), note: "No exact slice yet; showing the nearest regional cohort." },
+    { rows: rows.filter((r) => r.level === level && sector !== "All" && r.sector === sector), note: "No exact slice yet; showing the nearest sector cohort." },
+    { rows: rows.filter((r) => r.level === level && !r.function && !r.region && !r.size_band && !r.sector), note: "No exact slice yet; showing the broad level-wide cohort." },
+    { rows: rows.filter((r) => r.level === level), note: "No exact slice yet; showing all available rows for this level." },
+  ];
+  return attempts.find((attempt) => attempt.rows.length) ?? { rows: [], note: "No benchmark rows exist for this level yet." };
 }
 
 /**
@@ -466,10 +487,11 @@ export default function Benchmarks() {
     return () => { cancelled = true; };
   }, []);
 
-  const filtered = useMemo(
-    () => rows.filter((r) => rowMatches(r, level, fn, size, sector, region)),
+  const benchmarkMatch = useMemo(
+    () => benchmarkFallbackRows(rows, level, fn, size, sector, region),
     [rows, level, fn, size, sector, region],
   );
+  const filtered = benchmarkMatch.rows;
   const view = useMemo(() => aggregate(filtered), [filtered]);
 
   // Cohort overlay = same level, but no other filters — so people can see
@@ -687,6 +709,11 @@ export default function Benchmarks() {
                   Median {view.median.toFixed(1)} · n = {view.sample.toLocaleString()}
                 </p>
               )}
+              {benchmarkMatch.note && view && (
+                <p className="mt-2 max-w-xl font-display italic text-sm text-brass-bright/75">
+                  {benchmarkMatch.note}
+                </p>
+              )}
             </div>
             <PillarChartVariantToggle value={chartVariant} onChange={setChartVariant} />
           </div>
@@ -696,9 +723,12 @@ export default function Benchmarks() {
               Loading cohort…
             </p>
           ) : empty || !view ? (
-            <p className="font-display italic text-cream/55">
-              No data for this slice yet. Try widening the filters above.
-            </p>
+            <div className="rounded-sm border border-brass/25 bg-brass/5 px-4 py-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85">Benchmark pending</p>
+              <p className="mt-1 font-display text-sm text-cream/75 leading-relaxed">
+                No cohort is available for this combination yet. Try resetting one filter, or start a Quickscan to add to the benchmark base.
+              </p>
+            </div>
           ) : (
             <div className="rounded-lg border border-cream/10 bg-surface-1/40 p-5 sm:p-8">
               <PillarBarChart

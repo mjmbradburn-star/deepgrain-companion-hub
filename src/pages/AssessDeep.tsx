@@ -67,6 +67,10 @@ export default function AssessDeep() {
       }
 
       const claim = await claimReportBySlug(payload.respondent.slug, false);
+      void supabase.from("events").insert({
+        name: claim.ok ? "report_claimed" : "report_claim_failed",
+        payload: { slug: payload.respondent.slug, status: claim.status },
+      });
       if (!claim.ok) {
         setAuthGate("blocked");
         setLoadErr(claim.status === "already_claimed" ? "This report is already linked to another email." : "We couldn't save this report to your email.");
@@ -166,6 +170,15 @@ export default function AssessDeep() {
     }
   };
 
+  const retryScoring = () => {
+    if (!respondent) return;
+    void supabase.from("events").insert({
+      name: "deepdive_rescore_retried",
+      payload: { slug: respondent.slug, respondent_id: respondent.id },
+    });
+    void submitAll(answers);
+  };
+
   const select = (tier: number) => {
     if (!question) return;
     if (Object.keys(answers).length === 0) {
@@ -234,7 +247,7 @@ export default function AssessDeep() {
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <Button
                   size="sm"
-                  onClick={() => void submitAll(answers)}
+                  onClick={retryScoring}
                   className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                 >
                   Retry scoring

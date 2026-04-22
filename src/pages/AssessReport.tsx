@@ -208,7 +208,7 @@ function ReportView({ data }: { data: ReportData }) {
   const benchmarkSlice = report.benchmark_excluded && data.slice
     ? { ...data.slice, lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." }
     : data.slice;
-  const needsPersonalEmailGate = respondent.is_anonymous && respondent.level === "individual";
+  const needsEmailGate = respondent.is_anonymous;
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
@@ -244,7 +244,7 @@ function ReportView({ data }: { data: ReportData }) {
                   <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
                 </Button>
                 <EmailPdfButton slug={respondent.slug} />
-                {!data.hasDeepdive && !needsPersonalEmailGate && (
+                {!data.hasDeepdive && !needsEmailGate && (
                   <Button size="sm" asChild className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] h-9">
                     <Link to={`/assess/deep/${respondent.slug}`}>Deep Dive <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
                   </Button>
@@ -289,12 +289,12 @@ function ReportView({ data }: { data: ReportData }) {
             slug={respondent.slug}
             level={respondent.level}
             hasDeepdive={data.hasDeepdive}
-            isAnonymous={needsPersonalEmailGate}
+            isAnonymous={needsEmailGate}
           />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={needsPersonalEmailGate} />
+          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={needsEmailGate} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
@@ -627,8 +627,8 @@ function ReportTab({
   return (
     <section className="container max-w-5xl py-16 sm:py-20 print:py-0">
       <div className="flex items-center justify-between mb-6 print:hidden">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-          A4 one-pager · Print or save as PDF
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+          Executive one-pager · Print or save as PDF
         </p>
         <Button
           onClick={() => window.print()}
@@ -1155,7 +1155,7 @@ function EmailPdfButton({ slug }: { slug: string }) {
           variant="outline"
           className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.18em] h-9"
         >
-          <FileText className="h-3.5 w-3.5 mr-2" /> Email me the PDF
+          <FileText className="h-3.5 w-3.5 mr-2" /> Email executive PDF
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -1165,10 +1165,10 @@ function EmailPdfButton({ slug }: { slug: string }) {
         <form onSubmit={submit} className="space-y-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
-              Email me the PDF
+              Executive PDF
             </p>
             <p className="mt-1.5 font-display text-sm text-cream/75 leading-snug">
-              We'll generate a one-page PDF and send a download link.
+              We'll generate a board-ready one-page PDF and send a private download link.
             </p>
           </div>
           <Input

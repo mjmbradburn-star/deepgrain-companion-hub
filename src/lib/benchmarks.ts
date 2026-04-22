@@ -23,6 +23,7 @@ const FUNCTION_ID_TO_LABEL: Record<string, string> = {
   "engineering-product": "Engineering & Product",
   "people-hr": "People & HR",
   "finance": "Finance",
+  "ops-cs": "Operations & Supply Chain",
 };
 
 function normaliseFunction(fn: string | null | undefined): string | null {
