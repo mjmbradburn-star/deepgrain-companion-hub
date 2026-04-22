@@ -627,8 +627,8 @@ function ReportTab({
   return (
     <section className="container max-w-5xl py-16 sm:py-20 print:py-0">
       <div className="flex items-center justify-between mb-6 print:hidden">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-          A4 one-pager · Print or save as PDF
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+          Executive one-pager · Print or save as PDF
         </p>
         <Button
           onClick={() => window.print()}
@@ -1155,7 +1155,7 @@ function EmailPdfButton({ slug }: { slug: string }) {
           variant="outline"
           className="border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-[11px] uppercase tracking-[0.18em] h-9"
         >
-          <FileText className="h-3.5 w-3.5 mr-2" /> Email me the PDF
+          <FileText className="h-3.5 w-3.5 mr-2" /> Email executive PDF
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -1165,10 +1165,10 @@ function EmailPdfButton({ slug }: { slug: string }) {
         <form onSubmit={submit} className="space-y-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
-              Email me the PDF
+              Executive PDF
             </p>
             <p className="mt-1.5 font-display text-sm text-cream/75 leading-snug">
-              We'll generate a one-page PDF and send a download link.
+              We'll generate a board-ready one-page PDF and send a private download link.
             </p>
           </div>
           <Input
