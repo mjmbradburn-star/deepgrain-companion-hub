@@ -779,6 +779,16 @@ function PrintableCohortStrip({
   userScore: number;
 }) {
   if (!slice) return null;
+  if (slice.lockedReason) {
+    return (
+      <div className="mt-8 border-t border-walnut/15 pt-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-2">
+          Versus the field
+        </p>
+        <p className="text-[12px] leading-snug text-walnut/65">{slice.lockedReason}</p>
+      </div>
+    );
+  }
 
   const cohortPillars = pillarsFromRow(slice.row);
   const cohortScore =
@@ -916,8 +926,8 @@ function InviteTab({ respondentId, slug }: { respondentId: string; slug: string 
         },
       });
       toast({
-        title: `Invites recorded for ${list.length} ${list.length === 1 ? "person" : "people"}`,
-        description: "Outbound delivery via Lovable Emails arrives in the next phase. For now your colleagues should hit the link directly.",
+        title: `Invite list saved for ${list.length} ${list.length === 1 ? "person" : "people"}`,
+        description: "Use the shareable link above for direct delivery while team aggregation is being prepared.",
       });
       setEmails("");
       setNote("");
@@ -992,7 +1002,7 @@ function InviteTab({ respondentId, slug }: { respondentId: string; slug: string 
             {sending ? <>Sending…</> : <><Send className="h-3.5 w-3.5 mr-2" /> Send invites</>}
           </Button>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
-            We'll record these now; outbound delivery follows in Phase 4.
+            Saved for team follow-up; direct sharing uses the link above.
           </span>
         </div>
       </div>
