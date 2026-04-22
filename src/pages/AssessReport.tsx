@@ -506,6 +506,60 @@ function PlanMonthArticle({
   );
 }
 
+function MethodologyTab({ report }: { report: NonNullable<ReportData["report"]> }) {
+  const capFlags = report.cap_flags ?? [];
+
+  return (
+    <section className="container max-w-5xl py-10 sm:py-20">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+        <div className="lg:col-span-5">
+          <p className="eyebrow mb-5">Methodology</p>
+          <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
+            How v1.1 keeps the score honest.
+          </h2>
+          <p className="mt-6 font-display text-lg text-cream/65 leading-relaxed">
+            The instrument scores each pillar on a 0–5 maturity tier, then applies cross-pillar consistency checks where one capability depends on another.
+          </p>
+        </div>
+
+        <div className="lg:col-span-7 space-y-8">
+          <div className="rounded-md border border-cream/10 bg-surface-1/45 p-5 sm:p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">Consistency checks</p>
+            <ul className="mt-5 space-y-3 text-sm leading-relaxed text-cream/70">
+              <li>Tooling is capped when data foundations are too weak to support it.</li>
+              <li>Workflow maturity is capped by tooling and skills maturity.</li>
+              <li>Measurement is capped when workflows are not embedded enough to measure.</li>
+              <li>Governance and culture are capped when operating reality does not support the claimed tier.</li>
+            </ul>
+          </div>
+
+          {capFlags.length > 0 && (
+            <div className="rounded-md border border-brass/25 bg-brass/10 p-5 sm:p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">Applied to this report</p>
+              <ul className="mt-4 space-y-2 text-sm leading-relaxed text-cream/75">
+                {capFlags.map((flag) => (
+                  <li key={flag.code}>{flag.label}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="rounded-md border border-cream/10 bg-surface-1/45 p-5 sm:p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">v1.1 · April 2026</p>
+            <ul className="mt-5 space-y-3 text-sm leading-relaxed text-cream/70">
+              <li>Added 9 questions covering agents, corpus, memory, prompting, and skills libraries.</li>
+              <li>Retired duplicate Deep Dive questions so Quickscan answers carry forward.</li>
+              <li>Populated rationale detail on live questions.</li>
+              <li>Implemented cross-pillar consistency caps and benchmark exclusion rules.</li>
+              <li>Migrated benchmarking from a 5-band to a 7-band company-size model.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function OutcomeCard({ outcome }: { outcome: OutcomeRow }) {
   return (
     <div className="rounded-md border border-cream/10 bg-surface-1/50 p-5">
