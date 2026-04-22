@@ -243,15 +243,9 @@ function ReportView({ data }: { data: ReportData }) {
                   <Share2 className="h-3.5 w-3.5 mr-2" /> Share link
                 </Button>
                 <EmailPdfButton slug={respondent.slug} />
-                {!data.hasDeepdive && (
-                  <Button
-                    size="sm"
-                    asChild
-                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] h-9"
-                  >
-                    <Link to={`/assess/deep/${respondent.slug}`}>
-                      Go deeper <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                    </Link>
+                {!data.hasDeepdive && !respondent.is_anonymous && (
+                  <Button size="sm" asChild className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] h-9">
+                    <Link to={`/assess/deep/${respondent.slug}`}>Deep Dive <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
                   </Button>
                 )}
                 <ResendReportLink slug={respondent.slug} />
@@ -294,11 +288,12 @@ function ReportView({ data }: { data: ReportData }) {
             slug={respondent.slug}
             level={respondent.level}
             hasDeepdive={data.hasDeepdive}
+            isAnonymous={respondent.is_anonymous}
           />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} />
+          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={respondent.is_anonymous} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
@@ -327,7 +322,7 @@ function ReportView({ data }: { data: ReportData }) {
 
 // ─── Overview ─────────────────────────────────────────────────────────────
 function OverviewTab({
-  report, pillarValues, cohort, slice, slug, level, hasDeepdive,
+  report, pillarValues, cohort, slice, slug, level, hasDeepdive, isAnonymous,
 }: {
   report: NonNullable<ReportData["report"]>;
   pillarValues: Record<number, number>;
@@ -336,6 +331,7 @@ function OverviewTab({
   slug: string;
   level: string;
   hasDeepdive: boolean;
+  isAnonymous: boolean;
 }) {
   const [chartVariant, setChartVariant] = usePillarChartVariant();
   const readout = narrativeReadout(report, hasDeepdive);
@@ -446,15 +442,15 @@ function OverviewTab({
       </div>
     </section>
     <ReportCta tier={report.overall_tier} />
-    {!hasDeepdive && <DeepDiveUnlock slug={slug} level={level} variant="card" />}
+    {!hasDeepdive && <DeepDiveUnlock slug={slug} level={level} variant="card" isAnonymous={isAnonymous} />}
     </>
   );
 }
 
 // ─── Plan ─────────────────────────────────────────────────────────────────
 function PlanTab({
-  plan, outcomes, slug, level, hasDeepdive,
-}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; level: string; hasDeepdive: boolean }) {
+  plan, outcomes, slug, level, hasDeepdive, isAnonymous,
+}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; level: string; hasDeepdive: boolean; isAnonymous: boolean }) {
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
 
   if (plan.length === 0) {
@@ -500,7 +496,7 @@ function PlanTab({
               <PlanMonthArticle key={month.month} month={month} outcomeMap={outcomeMap} />
             ))}
           </div>
-          <DeepDiveUnlock slug={slug} level={level} variant="overlay" />
+          <DeepDiveUnlock slug={slug} level={level} variant="overlay" isAnonymous={isAnonymous} />
         </div>
       )}
     </section>
