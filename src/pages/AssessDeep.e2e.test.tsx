@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AssessDeep from "./AssessDeep";
 import { getDeepDiveQuestions, type Level } from "@/lib/assessment";
@@ -107,16 +107,8 @@ describe("Deep Dive anonymous claim flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     insertedResponses.length = 0;
-    vi.spyOn(window, "setTimeout").mockImplementation((handler: TimerHandler) => {
-      if (typeof handler === "function") handler();
-      return 0 as unknown as ReturnType<typeof window.setTimeout>;
-    });
     supabaseMocks.signInWithOtp.mockResolvedValue({ error: null });
     supabaseMocks.invoke.mockResolvedValue({ error: null });
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it.each<MockLevel>(["company", "function"])("claims an anonymous %s report by magic link and completes every final Deep Dive step", async (level) => {
@@ -139,5 +131,5 @@ describe("Deep Dive anonymous claim flow", () => {
     expect(insertedResponses).toHaveLength(expectedQuestions.length);
     expect(insertedResponses.map((row) => row.question_id)).toEqual(expectedQuestions.map((question) => question.id));
     expect(insertedResponses.every((row) => row.respondent_id === respondentId)).toBe(true);
-  });
+  }, 15_000);
 });
