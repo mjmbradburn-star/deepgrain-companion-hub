@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.103.3";
+import { z } from "https://esm.sh/zod@3.25.76";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,22 +21,35 @@ const ORG_SIZE_BY_FILTER: Record<string, string[]> = {
 
 type Level = typeof LEVELS[number];
 
+const BodySchema = z.object({
+  level: z.enum(LEVELS).default("function"),
+  function: z.enum(["All", ...FUNCTIONS]).default("All"),
+  sector: z.enum(["All", ...SECTORS]).default("All"),
+  region: z.enum(["All", ...REGIONS]).default("All"),
+  size: z.enum(["All", ...SIZE_LABELS]).default("All"),
+});
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-    const body = await req.json().catch(() => ({}));
-    const level = oneOf(body.level, LEVELS, "function") as Level;
-    const fn = oneOf(body.function, ["All", ...FUNCTIONS], "All");
-    const sector = oneOf(body.sector, ["All", ...SECTORS], "All");
-    const region = oneOf(body.region, ["All", ...REGIONS], "All");
-    const size = oneOf(body.size, ["All", ...SIZE_LABELS], "All");
-
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
     const url = Deno.env.get("SUPABASE_URL")?.trim();
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
     if (!serviceKey || !url) return json({ error: "Benchmark refresh is not configured" }, 500);
+
+    const parsed = BodySchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) return json({ error: parsed.error.flatten().fieldErrors }, 400);
+    const { level, sector, region, size } = parsed.data;
+    const fn = parsed.data.function;
+
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const userClient = createClient(url, anonKey ?? "", { global: { headers: { Authorization: authHeader } } });
+    const { data: userData } = await userClient.auth.getUser();
+    const email = userData.user?.email?.toLowerCase() ?? "";
+    if (!email.endsWith("@deepgrain.ai")) return json({ error: "Unauthorized" }, 401);
 
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const prefix = `seed-benchmark-${level}-`;
@@ -93,10 +107,6 @@ Deno.serve(async (req) => {
     return json({ error: "Internal server error" }, 500);
   }
 });
-
-function oneOf<T extends readonly string[]>(value: unknown, allowed: T, fallback: T[number]) {
-  return typeof value === "string" && (allowed as readonly string[]).includes(value) ? value : fallback;
-}
 
 function buildDimensions(filters: { fn: string; sector: string; region: string; size: string }) {
   const functions = filters.fn === "All" ? FUNCTIONS : [filters.fn];
