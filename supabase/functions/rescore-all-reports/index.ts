@@ -59,6 +59,14 @@ Deno.serve(async (req) => {
       : "";
 
     if (!serviceKey || (token !== serviceKey && apikeyHeader !== serviceKey)) {
+      console.warn("[rescore-all-reports] unauthorized", {
+        hasServiceKey: Boolean(serviceKey),
+        tokenLength: token.length,
+        serviceKeyLength: serviceKey?.length ?? 0,
+        apikeyLength: apikeyHeader.length,
+        tokenMatches: Boolean(serviceKey && token === serviceKey),
+        apikeyMatches: Boolean(serviceKey && apikeyHeader === serviceKey),
+      });
       return json({ error: "Unauthorized" }, 401);
     }
 
