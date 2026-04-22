@@ -140,7 +140,23 @@ export async function fetchBestSlice({
     return null;
   }
 
-  const rows = data as BenchmarkRow[];
+  return selectBestSliceFromRows({ rows: data as BenchmarkRow[], level, function: fnRaw, region, sizeBand });
+}
+
+export function selectBestSliceFromRows({
+  rows,
+  level,
+  function: fnRaw,
+  region,
+  sizeBand,
+}: {
+  rows: BenchmarkRow[];
+  level: Level;
+  function?: string | null;
+  region?: string | null;
+  sizeBand?: string | null;
+}): MatchedSlice | null {
+  const fn = normaliseFunction(fnRaw);
   const totalBase = rows.find((x) => !x.function && !x.region && !x.size_band && !x.sector)?.sample_size ?? 0;
   if (totalBase > 0 && totalBase < 50) {
     return {
