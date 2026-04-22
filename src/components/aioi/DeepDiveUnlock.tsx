@@ -67,6 +67,12 @@ const PAYOFF_BY_LEVEL: Record<string, { eyebrow: string; headline: string; detai
   },
 };
 
+const DEPTH_COPY: Record<string, string> = {
+  company: "Complete the full company Deep Dive.",
+  function: "Answer the remaining function Deep Dive questions.",
+  individual: "Answer 1 additional question to refine your personal report.",
+};
+
 export function DeepDiveUnlock({ slug, level = "function", variant = "card", isAnonymous = false }: Props) {
   const copy = PAYOFF_BY_LEVEL[level] ?? PAYOFF_BY_LEVEL.function;
   if (variant === "overlay") {
@@ -111,6 +117,9 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
 
       <p className={`mt-5 font-display text-cream/65 max-w-2xl ${compact ? "text-base" : "text-lg"}`}>
         {copy.detail}
+      </p>
+      <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright/75">
+        {DEPTH_COPY[level] ?? DEPTH_COPY.function}
       </p>
 
       <ul className={`mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 ${compact ? "" : "lg:grid-cols-2"}`}>
