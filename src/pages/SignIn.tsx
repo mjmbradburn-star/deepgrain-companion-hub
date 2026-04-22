@@ -26,6 +26,8 @@ export default function SignIn() {
   const { toast } = useToast();
   const next = params.get("next") || "/reports";
   const emailFromUrl = params.get("email") || "";
+  const claimSlug = params.get("claim");
+  const consentMarketing = params.get("consent_marketing") === "1";
 
   const [email, setEmail] = useState(() => {
     if (emailFromUrl) return emailFromUrl;
@@ -106,7 +108,7 @@ export default function SignIn() {
 
     setSubmitting(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
       await sendMagicLink(parsed.data, redirectTo);
       setSentTo(parsed.data);
       setCooldown(COOLDOWN_SECONDS);
