@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Lock, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DeepDiveEmailGate } from "@/components/aioi/DeepDiveEmailGate";
 
 /**
  * Deep-dive unlock card.
@@ -45,6 +46,7 @@ interface Props {
   slug: string;
   level?: "company" | "function" | "individual" | string;
   variant?: "card" | "overlay";
+  isAnonymous?: boolean;
 }
 
 const PAYOFF_BY_LEVEL: Record<string, { eyebrow: string; headline: string; detail: string }> = {
@@ -72,7 +74,7 @@ export function DeepDiveUnlock({ slug, level = "function", variant = "card" }: P
       <div className="absolute inset-0 z-10 flex items-center justify-center p-6 sm:p-10">
         <div className="absolute inset-0 bg-walnut/85 backdrop-blur-md" aria-hidden />
         <div className="relative w-full max-w-2xl">
-          <UnlockBody slug={slug} copy={copy} compact />
+          <UnlockBody slug={slug} level={level} copy={copy} compact />
         </div>
       </div>
     );
@@ -81,13 +83,13 @@ export function DeepDiveUnlock({ slug, level = "function", variant = "card" }: P
   return (
     <section className="container max-w-6xl pb-20">
       <div className="rounded-lg border border-brass/30 bg-gradient-to-br from-surface-1/80 via-surface-1/40 to-surface-0/80 p-8 sm:p-12">
-        <UnlockBody slug={slug} copy={copy} />
+        <UnlockBody slug={slug} level={level} copy={copy} />
       </div>
     </section>
   );
 }
 
-function UnlockBody({ slug, copy, compact = false }: { slug: string; copy: { eyebrow: string; headline: string; detail: string }; compact?: boolean }) {
+function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }: { slug: string; level: string; copy: { eyebrow: string; headline: string; detail: string }; compact?: boolean; isAnonymous?: boolean }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
@@ -127,20 +129,24 @@ function UnlockBody({ slug, copy, compact = false }: { slug: string; copy: { eye
         ))}
       </ul>
 
-      <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
-        <Button
-          asChild
-          size="lg"
-          className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7"
-        >
-          <Link to={`/assess/deep/${slug}`}>
-            Continue Deep Dive <ArrowRight className="h-4 w-4 ml-1" />
-          </Link>
-        </Button>
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 inline-flex items-center gap-2">
-          <Lock className="h-3 w-3" /> No new login · resumes this same report
-        </p>
-      </div>
+      {isAnonymous ? (
+        <DeepDiveEmailGate slug={slug} level={level} compact={compact} />
+      ) : (
+        <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Button
+            asChild
+            size="lg"
+            className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7"
+          >
+            <Link to={`/assess/deep/${slug}`}>
+              Continue Deep Dive <ArrowRight className="h-4 w-4 ml-1" />
+            </Link>
+          </Button>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 inline-flex items-center gap-2">
+            <Lock className="h-3 w-3" /> No new login · resumes this same report
+          </p>
+        </div>
+      )}
     </div>
   );
 }
