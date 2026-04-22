@@ -48,16 +48,11 @@ Deno.serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    let userId: string;
-    try {
-      const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-      if (claimsErr || !claimsData?.claims?.sub) {
-        return json({ error: "Unauthorized" }, 401);
-      }
-      userId = claimsData.claims.sub as string;
-    } catch {
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData?.user?.id) {
       return json({ error: "Unauthorized" }, 401);
     }
+    const userId = userData.user.id;
 
     // 2. Validate input.
     const body = await req.json().catch(() => ({}));

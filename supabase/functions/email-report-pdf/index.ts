@@ -66,23 +66,23 @@ Deno.serve(async (req) => {
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     })
-    // getClaims throws on malformed JWTs; treat any failure as 401 so we
-    // never leak a stack trace via the outer 500 handler.
-    let claimsData: Awaited<ReturnType<typeof userClient.auth.getClaims>>['data'] = null
+    // Validate the session token in-code because gateway JWT validation is
+    // disabled for Lovable-managed functions.
+    let userData: Awaited<ReturnType<typeof userClient.auth.getUser>>['data'] = null
     try {
-      const result = await userClient.auth.getClaims(token)
+      const result = await userClient.auth.getUser(token)
       if (result.error) {
         return json({ error: 'Unauthorized' }, 401)
       }
-      claimsData = result.data
+      userData = result.data
     } catch (_err) {
       return json({ error: 'Unauthorized' }, 401)
     }
-    if (!claimsData?.claims?.sub) {
+    if (!userData?.user?.id) {
       return json({ error: 'Unauthorized' }, 401)
     }
-    const userId = claimsData.claims.sub as string
-    const userEmail = (claimsData.claims.email as string | undefined)?.toLowerCase() ?? null
+    const userId = userData.user.id
+    const userEmail = userData.user.email?.toLowerCase() ?? null
 
     const body = await req.json().catch(() => ({}))
     const slug = typeof body.slug === 'string' ? body.slug.trim() : ''
