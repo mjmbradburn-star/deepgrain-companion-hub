@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -45,17 +45,22 @@ function renderDeep(slug: string) {
 function mockReport(level: MockLevel) {
   const slug = `${level}-deep-flow`;
   const respondentId = `${level}-respondent-id`;
-  supabaseMocks.rpc.mockResolvedValue({
-    data: {
-      respondent: {
-        id: respondentId,
-        slug,
-        level,
-        function: level === "function" ? "sales" : null,
-        is_anonymous: true,
+  supabaseMocks.rpc.mockImplementation((name: string) => {
+    if (name === "claim_report_by_slug") {
+      return Promise.resolve({ data: { ok: true, status: "claimed", respondent_id: respondentId, slug }, error: null });
+    }
+    return Promise.resolve({
+      data: {
+        respondent: {
+          id: respondentId,
+          slug,
+          level,
+          function: level === "function" ? "sales" : null,
+          is_anonymous: true,
+        },
       },
-    },
-    error: null,
+      error: null,
+    });
   });
   return { slug, respondentId };
 }
@@ -95,23 +100,23 @@ async function completeDeepDive(level: MockLevel) {
   for (const question of questions) {
     expect(await screen.findByText(question.prompt)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: new RegExp(question.options[0].label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") }));
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(250);
-    });
   }
 }
 
 describe("Deep Dive anonymous claim flow", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     vi.clearAllMocks();
     insertedResponses.length = 0;
+    vi.spyOn(window, "setTimeout").mockImplementation((handler: TimerHandler) => {
+      if (typeof handler === "function") handler();
+      return 0 as unknown as number;
+    });
     supabaseMocks.signInWithOtp.mockResolvedValue({ error: null });
     supabaseMocks.invoke.mockResolvedValue({ error: null });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it.each<MockLevel>(["company", "function"])("claims an anonymous %s report by magic link and completes every final Deep Dive step", async (level) => {
