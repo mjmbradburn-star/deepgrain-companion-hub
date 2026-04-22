@@ -248,6 +248,7 @@ function ReportView({ data }: { data: ReportData }) {
                 { value: "overview", label: "Overview" },
                 { value: "plan", label: "Plan" },
                 { value: "report", label: "Report" },
+                { value: "methodology", label: "Methodology" },
                 { value: "invite", label: "Invite" },
               ].map((t) => (
                 <TabsPrimitive.Trigger
@@ -286,6 +287,10 @@ function ReportView({ data }: { data: ReportData }) {
             cohort={cohort ?? undefined}
             slice={data.slice}
           />
+        </TabsPrimitive.Content>
+
+        <TabsPrimitive.Content value="methodology" className="focus-visible:outline-none">
+          <MethodologyTab report={report} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="invite" className="focus-visible:outline-none">
