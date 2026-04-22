@@ -8,19 +8,21 @@ import { getQuickscanQuestions } from "@/lib/quickscan";
 
 type MockLevel = Extract<Level, "company" | "function">;
 
-const signInWithOtp = vi.fn();
-const getSession = vi.fn();
-const rpc = vi.fn();
-const invoke = vi.fn();
-const from = vi.fn();
+const supabaseMocks = vi.hoisted(() => ({
+  signInWithOtp: vi.fn(),
+  getSession: vi.fn(),
+  rpc: vi.fn(),
+  invoke: vi.fn(),
+  from: vi.fn(),
+}));
 const insertedResponses: Array<{ respondent_id: string; question_id: string; tier: number }> = [];
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    auth: { getSession, signInWithOtp },
-    rpc,
-    functions: { invoke },
-    from,
+    auth: { getSession: supabaseMocks.getSession, signInWithOtp: supabaseMocks.signInWithOtp },
+    rpc: supabaseMocks.rpc,
+    functions: { invoke: supabaseMocks.invoke },
+    from: supabaseMocks.from,
   },
 }));
 
@@ -43,7 +45,7 @@ function renderDeep(slug: string) {
 function mockReport(level: MockLevel) {
   const slug = `${level}-deep-flow`;
   const respondentId = `${level}-respondent-id`;
-  rpc.mockResolvedValue({
+  supabaseMocks.rpc.mockResolvedValue({
     data: {
       respondent: {
         id: respondentId,
@@ -59,7 +61,7 @@ function mockReport(level: MockLevel) {
 }
 
 function mockTables(existingQuestionIds: string[]) {
-  from.mockImplementation((table: string) => {
+  supabaseMocks.from.mockImplementation((table: string) => {
     if (table === "responses") {
       return {
         select: vi.fn(() => ({
@@ -79,7 +81,7 @@ async function sendClaimLink(slug: string) {
   expect(await screen.findByRole("heading", { name: /save this report/i })).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "lead@example.com" } });
   fireEvent.click(screen.getByRole("button", { name: /email me a secure link/i }));
-  await waitFor(() => expect(signInWithOtp).toHaveBeenCalledWith({
+  await waitFor(() => expect(supabaseMocks.signInWithOtp).toHaveBeenCalledWith({
     email: "lead@example.com",
     options: expect.objectContaining({
       shouldCreateUser: true,
@@ -104,8 +106,8 @@ describe("Deep Dive anonymous claim flow", () => {
     vi.useFakeTimers();
     vi.clearAllMocks();
     insertedResponses.length = 0;
-    signInWithOtp.mockResolvedValue({ error: null });
-    invoke.mockResolvedValue({ error: null });
+    supabaseMocks.signInWithOtp.mockResolvedValue({ error: null });
+    supabaseMocks.invoke.mockResolvedValue({ error: null });
   });
 
   afterEach(() => {
@@ -116,18 +118,18 @@ describe("Deep Dive anonymous claim flow", () => {
     const { slug, respondentId } = mockReport(level);
     mockTables(getQuickscanQuestions(level, level === "function" ? "sales" : undefined).map((question) => question.id));
 
-    getSession.mockResolvedValueOnce({ data: { session: null } });
+    supabaseMocks.getSession.mockResolvedValueOnce({ data: { session: null } });
     const firstRender = renderDeep(slug);
     await sendClaimLink(slug);
     firstRender.unmount();
 
-    getSession.mockResolvedValue({ data: { session: { user: { id: `${level}-user-id`, email: "lead@example.com" } } } });
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { user: { id: `${level}-user-id`, email: "lead@example.com" } } } });
     renderDeep(slug);
 
     await completeDeepDive(level);
 
     const expectedQuestions = getDeepDiveQuestions(level, level === "function" ? "sales" : undefined);
-    await waitFor(() => expect(invoke).toHaveBeenCalledWith("rescore-respondent", { body: { slug } }));
+    await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledWith("rescore-respondent", { body: { slug } }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(`/assess/r/${slug}`));
     expect(insertedResponses).toHaveLength(expectedQuestions.length);
     expect(insertedResponses.map((row) => row.question_id)).toEqual(expectedQuestions.map((question) => question.id));
