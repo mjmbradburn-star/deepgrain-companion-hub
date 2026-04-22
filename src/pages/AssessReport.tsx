@@ -92,6 +92,23 @@ interface ReportData {
   hasDeepdive: boolean;
 }
 
+function confidenceCopy(hasDeepdive: boolean, capCount: number) {
+  if (capCount > 0) return "Adjusted for internal contradictions";
+  return hasDeepdive ? "High confidence · Deep Dive complete" : "Directional · Quickscan only";
+}
+
+function narrativeReadout(report: NonNullable<ReportData["report"]>, hasDeepdive: boolean) {
+  const primary = report.hotspots[0];
+  const secondary = report.hotspots[1];
+  const capCount = report.cap_flags?.length ?? 0;
+  return {
+    pattern: `${report.overall_tier} organisations typically have visible AI activity, but the operating system is only as strong as the weakest dependency between mandate, data, workflow and measurement.`,
+    bottleneck: primary ? `${primary.name} is the main bottleneck to resolve first.` : "No single bottleneck dominates the current read.",
+    leverage: secondary ? `The next leverage point is ${secondary.name}, because it determines whether gains repeat outside one pocket of the organisation.` : "The next leverage point is turning isolated practice into a repeatable operating rhythm.",
+    confidence: confidenceCopy(hasDeepdive, capCount),
+  };
+}
+
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
 export default function AssessReport() {
@@ -272,12 +289,13 @@ function ReportView({ data }: { data: ReportData }) {
             cohort={cohort ?? undefined}
             slice={data.slice}
             slug={respondent.slug}
+            level={respondent.level}
             hasDeepdive={data.hasDeepdive}
           />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} hasDeepdive={data.hasDeepdive} />
+          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} />
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
