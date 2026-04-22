@@ -215,7 +215,7 @@ export default function AssessDeep() {
     );
   }
 
-  if (authGate === "checking" || submitting || remaining.length === 0) {
+  if (authGate === "checking" || submitting || submitErr || remaining.length === 0) {
     return (
       <AssessChrome ariaLabel="Re-scoring">
         <main className="container flex-1 flex items-center justify-center py-24">
