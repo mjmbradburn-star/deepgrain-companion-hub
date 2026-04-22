@@ -167,27 +167,76 @@ function rowMatches(
 }
 
 function benchmarkFallbackRows(rows: Row[], level: Level, fn: FunctionSlice, size: SizeBand, sector: Sector, region: Region): BenchmarkMatch {
-  const exact = rows.filter((r) => rowMatches(r, level, fn, size, sector, region));
-  const requestedSpecificity = [fn, size, sector, region].filter((v) => v !== "All").length;
-  if (exact.length) {
-    return {
-      rows: exact,
-      note: null,
-      specificity: 2 + requestedSpecificity,
-      matchLabel: requestedSpecificity ? "Exact filter match" : "Level-wide match",
-      reason: requestedSpecificity
-        ? "This cohort matches every active filter you selected."
-        : "No secondary filters are active, so this shows the broad level cohort.",
+  const requested = { function: fn, sector, region, size };
+  const activeDimensions = Object.values(requested).filter((value) => value !== "All").length;
+
+  const scoreRow = (row: Row): { score: number; matched: string[]; missing: string[] } | null => {
+    if (row.level !== level) return null;
+    let score = 100;
+    const matched: string[] = [];
+    const missing: string[] = [];
+
+    const scoreTextDimension = (label: string, selected: string, value: string | null, weight: number) => {
+      if (selected === "All") {
+        if (!value) score += 0.25;
+        return true;
+      }
+      if (value === selected) {
+        score += weight;
+        matched.push(label);
+        return true;
+      }
+      if (!value) {
+        missing.push(label);
+        return true;
+      }
+      return false;
     };
+
+    if (!scoreTextDimension("function", fn, row.function, 40)) return null;
+    if (!scoreTextDimension("sector", sector, row.sector, 30)) return null;
+    if (!scoreTextDimension("region", region, row.region, 20)) return null;
+
+    if (size === "All") {
+      if (!row.size_band) score += 0.25;
+    } else if (SIZE_TO_CODES[size].includes(String(row.size_band ?? ""))) {
+      score += 10;
+      matched.push("size");
+    } else if (!row.size_band) {
+      missing.push("size");
+    } else {
+      return null;
+    }
+
+    return { score, matched, missing };
+  };
+
+  const scored = rows
+    .map((row) => ({ row, result: scoreRow(row) }))
+    .filter((item): item is { row: Row; result: { score: number; matched: string[]; missing: string[] } } => item.result != null);
+
+  if (!scored.length) {
+    return { rows: [], note: "No benchmark rows exist for this level yet.", specificity: 0, matchLabel: "No cohort", reason: "There are no benchmark rows for this assessment level yet." };
   }
-  const attempts: Array<{ rows: Row[]; note: string; specificity: number; matchLabel: string; reason: string }> = [
-    { rows: rows.filter((r) => r.level === level && fn !== "All" && r.function === fn), note: "No exact slice yet; showing the nearest function cohort.", specificity: 3, matchLabel: "Function fallback", reason: "The exact combination is not populated yet, but function is still matched." },
-    { rows: rows.filter((r) => r.level === level && region !== "All" && r.region === region), note: "No exact slice yet; showing the nearest regional cohort.", specificity: 3, matchLabel: "Region fallback", reason: "The exact combination is not populated yet, but region is still matched." },
-    { rows: rows.filter((r) => r.level === level && sector !== "All" && r.sector === sector), note: "No exact slice yet; showing the nearest sector cohort.", specificity: 3, matchLabel: "Sector fallback", reason: "The exact combination is not populated yet, but sector is still matched." },
-    { rows: rows.filter((r) => r.level === level && !r.function && !r.region && !r.size_band && !r.sector), note: "No exact slice yet; showing the broad level-wide cohort.", specificity: 1, matchLabel: "Broad fallback", reason: "Specific slices are still thin, so the page falls back to everyone at this assessment level." },
-    { rows: rows.filter((r) => r.level === level), note: "No exact slice yet; showing all available rows for this level.", specificity: 0, matchLabel: "Approximate fallback", reason: "No clean broad cohort exists yet, so this uses the best available rows for the level." },
-  ];
-  return attempts.find((attempt) => attempt.rows.length) ?? { rows: [], note: "No benchmark rows exist for this level yet.", specificity: 0, matchLabel: "No cohort", reason: "There are no benchmark rows for this assessment level yet." };
+
+  const bestScore = Math.max(...scored.map((item) => item.result.score));
+  const best = scored.filter((item) => item.result.score === bestScore);
+  const matched = Array.from(new Set(best.flatMap((item) => item.result.matched)));
+  const missing = Array.from(new Set(best.flatMap((item) => item.result.missing)));
+  const rowsForBestMatch = best.map((item) => item.row);
+  const exact = activeDimensions === matched.length;
+
+  return {
+    rows: rowsForBestMatch,
+    note: exact ? null : `No exact slice yet; showing the closest cohort by ${matched.length ? matched.join(" + ") : "level"}.`,
+    specificity: 1 + matched.length,
+    matchLabel: exact ? (activeDimensions ? "Exact filter match" : "Level-wide match") : `${matched.length ? matched.join(" + ") : "Level"} fallback`,
+    reason: exact
+      ? activeDimensions
+        ? "This cohort matches every active filter you selected."
+        : "No secondary filters are active, so this shows the broad level cohort."
+      : `The scorer keeps level fixed, then prioritises function, sector, region, and size. ${missing.length ? `Missing active dimensions: ${missing.join(", ")}.` : "It selected the strongest available partial match."}`,
+  };
 }
 
 function benchmarkConfidence(sample: number, specificity: number): { label: string; tone: "high" | "good" | "directional" | "thin"; detail: string } {
