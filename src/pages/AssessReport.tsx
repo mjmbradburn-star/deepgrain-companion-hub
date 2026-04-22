@@ -205,6 +205,9 @@ function ReportView({ data }: { data: ReportData }) {
   }, [report]);
 
   if (!report) return null;
+  const benchmarkSlice = report.benchmark_excluded && data.slice
+    ? { ...data.slice, lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." }
+    : data.slice;
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
@@ -287,7 +290,7 @@ function ReportView({ data }: { data: ReportData }) {
             report={report}
             pillarValues={pillarValues}
             cohort={cohort ?? undefined}
-            slice={data.slice}
+            slice={benchmarkSlice}
             slug={respondent.slug}
             level={respondent.level}
             hasDeepdive={data.hasDeepdive}
@@ -303,7 +306,7 @@ function ReportView({ data }: { data: ReportData }) {
             data={data}
             pillarValues={pillarValues}
             cohort={cohort ?? undefined}
-            slice={report.benchmark_excluded ? { ...(data.slice ?? { row: null as never, label: "Peer benchmark", specificity: 0 }), lockedReason: "This report is excluded from peer benchmarks because three or more consistency checks fired." } : data.slice}
+            slice={benchmarkSlice}
           />
         </TabsPrimitive.Content>
 
