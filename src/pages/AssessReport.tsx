@@ -324,13 +324,14 @@ function ReportView({ data }: { data: ReportData }) {
 
 // ─── Overview ─────────────────────────────────────────────────────────────
 function OverviewTab({
-  report, pillarValues, cohort, slice, slug, hasDeepdive,
+  report, pillarValues, cohort, slice, slug, level, hasDeepdive,
 }: {
   report: NonNullable<ReportData["report"]>;
   pillarValues: Record<number, number>;
   cohort?: Record<number, number>;
   slice: MatchedSlice | null;
   slug: string;
+  level: string;
   hasDeepdive: boolean;
 }) {
   const [chartVariant, setChartVariant] = usePillarChartVariant();
@@ -429,15 +430,15 @@ function OverviewTab({
       </div>
     </section>
     <ReportCta tier={report.overall_tier} />
-    {!hasDeepdive && <DeepDiveUnlock slug={slug} variant="card" />}
+    {!hasDeepdive && <DeepDiveUnlock slug={slug} level={level} variant="card" />}
     </>
   );
 }
 
 // ─── Plan ─────────────────────────────────────────────────────────────────
 function PlanTab({
-  plan, outcomes, slug, hasDeepdive,
-}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; hasDeepdive: boolean }) {
+  plan, outcomes, slug, level, hasDeepdive,
+}: { plan: PlanMonth[]; outcomes: OutcomeRow[]; slug: string; level: string; hasDeepdive: boolean }) {
   const outcomeMap = useMemo(() => new Map(outcomes.map((o) => [o.id, o])), [outcomes]);
 
   if (plan.length === 0) {
@@ -466,7 +467,7 @@ function PlanTab({
         <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl">
           {hasDeepdive
             ? "Drawn from your hotspot pillars and the outcomes library. Each month picks one or two interventions to ship, sequenced so the foundations land first."
-            : "Month 1 is unlocked from your scan. Months 2 and 3 need the deep dive. Eight more questions tighten the plan enough to commit to a sequence."}
+            : "Month 1 is unlocked from your scan. Months 2 and 3 need the Deep Dive to tighten the plan enough to commit to a sequence."}
         </p>
       </div>
 
@@ -483,7 +484,7 @@ function PlanTab({
               <PlanMonthArticle key={month.month} month={month} outcomeMap={outcomeMap} />
             ))}
           </div>
-          <DeepDiveUnlock slug={slug} variant="overlay" />
+          <DeepDiveUnlock slug={slug} level={level} variant="overlay" />
         </div>
       )}
     </section>
