@@ -128,7 +128,6 @@ export async function fetchBestSlice({
   region?: string | null;
   sizeBand?: string | null;
 }): Promise<MatchedSlice | null> {
-  const fn = normaliseFunction(fnRaw);
   const { data, error } = await supabase
     .from("benchmarks_materialised")
     .select("*")
