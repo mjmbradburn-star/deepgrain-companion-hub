@@ -528,6 +528,7 @@ export type Database = {
       }
       gen_slug: { Args: never; Returns: string }
       get_assessment_count: { Args: never; Returns: number }
+      get_auth_email_state: { Args: { _email: string }; Returns: Json }
       get_outcomes_for_report: {
         Args: { _slug: string }
         Returns: {

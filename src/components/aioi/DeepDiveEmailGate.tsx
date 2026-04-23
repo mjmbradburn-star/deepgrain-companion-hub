@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 import { ArrowRight, CheckCircle2, Loader2, Mail, RefreshCw } from "lucide-react";
 
@@ -8,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendDeepDiveClaimLink } from "@/lib/report-claim";
 import { SyncError } from "@/lib/sync";
+import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
+import { lovable } from "@/integrations/lovable";
 
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address").max(254, "Email is too long");
 
@@ -16,7 +19,7 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
   const [email, setEmail] = useState("");
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [sending, setSending] = useState(false);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sentOutcome, setSentOutcome] = useState<AuthAccessOutcome | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -39,10 +42,10 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
     }
     setSending(true);
     try {
-      await sendDeepDiveClaimLink(parsed.data, slug, consentMarketing);
-      setSentTo(parsed.data);
+      const outcome = await sendDeepDiveClaimLink(parsed.data, slug, consentMarketing);
+      setSentOutcome(outcome);
       setCooldown(30);
-      toast({ title: "Check your inbox", description: "We sent a secure sign-in link to save this report and continue." });
+      toast({ title: "Check your inbox", description: `${authAccessCopy(outcome).toast} It will save this report and continue the Deep Dive.` });
     } catch (err) {
       toast({ title: err instanceof SyncError ? err.message : "Could not send the link.", variant: "destructive" });
     } finally {
@@ -50,14 +53,21 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
     }
   };
 
-  if (sentTo) {
+  const signInWithGoogle = async () => {
+    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/assess/deep/${slug}`)}&claim=${encodeURIComponent(slug)}&consent_marketing=${consentMarketing ? "1" : "0"}`;
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { prompt: "select_account" } });
+    if (result.error) toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+  };
+
+  if (sentOutcome) {
+    const copy = authAccessCopy(sentOutcome);
     return (
       <div className="rounded-sm border border-brass/30 bg-brass/5 p-5">
         <p className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
-          <CheckCircle2 className="h-4 w-4" /> Secure link sent
+          <CheckCircle2 className="h-4 w-4" /> {copy.title}
         </p>
         <p className="font-display text-base leading-relaxed text-cream/85">
-          Check <span className="text-cream">{sentTo}</span>. Open the link to save this report and continue the Deep Dive.
+          Check <span className="text-cream">{sentOutcome.email}</span>. {copy.body} It will save this report and continue the Deep Dive.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-cream/55">
           Delivery can take up to a minute. If it is not there, check spam or promotions, then resend below.
@@ -78,14 +88,30 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
             type="button"
             variant="outline"
             onClick={() => {
-              setSentTo(null);
+              setSentOutcome(null);
               setCooldown(0);
             }}
             className="h-11 rounded-sm border-cream/20 bg-transparent px-5 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
           >
             Try another email
           </Button>
+          <Button
+            asChild
+            type="button"
+            variant="outline"
+            className="h-11 rounded-sm border-cream/20 bg-transparent px-5 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
+          >
+            <Link to={`/assess/r/${slug}`}>Back to report</Link>
+          </Button>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={signInWithGoogle}
+          className="mt-3 h-11 w-full rounded-sm border-cream/20 bg-transparent px-5 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
+        >
+          Continue with Google
+        </Button>
       </div>
     );
   }
@@ -128,6 +154,14 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
         className={`h-12 w-full rounded-sm bg-brass px-6 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright ${compact ? "" : "lg:mt-[22px] lg:w-auto"}`}
       >
         {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : <><Mail className="h-4 w-4 mr-2" /> Send secure sign-in link <ArrowRight className="h-4 w-4 ml-2" /></>}
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={signInWithGoogle}
+        className={`h-12 w-full rounded-sm border-cream/20 bg-transparent px-6 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream ${compact ? "" : "lg:col-start-2 lg:w-auto"}`}
+      >
+        Continue with Google
       </Button>
     </form>
   );

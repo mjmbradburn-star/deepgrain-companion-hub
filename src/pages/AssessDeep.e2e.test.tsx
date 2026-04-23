@@ -26,6 +26,12 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
+vi.mock("@/integrations/lovable", () => ({
+  lovable: {
+    auth: { signInWithOAuth: vi.fn().mockResolvedValue({ redirected: true }) },
+  },
+}));
+
 function LocationProbe() {
   const location = useLocation();
   return <div data-testid="location">{location.pathname}</div>;
@@ -46,6 +52,9 @@ function mockReport(level: MockLevel) {
   const slug = `${level}-deep-flow`;
   const respondentId = `${level}-respondent-id`;
   supabaseMocks.rpc.mockImplementation((name: string) => {
+    if (name === "get_auth_email_state") {
+      return Promise.resolve({ data: { ok: true, state: "new" }, error: null });
+    }
     if (name === "claim_report_by_slug") {
       return Promise.resolve({ data: { ok: true, status: "claimed", respondent_id: respondentId, slug }, error: null });
     }

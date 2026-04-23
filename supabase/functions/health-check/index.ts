@@ -144,22 +144,28 @@ async function probeEmailDb() {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const { data: rows } = await supabase
     .from('email_send_log')
-    .select('message_id, template_name, status, error_message, created_at')
+    .select('message_id, template_name, status, error_message, created_at, metadata')
     .gte('created_at', since)
     .order('created_at', { ascending: false })
 
-  const latest = new Map<string, { template_name: string; status: string; error_message: string | null; created_at: string }>()
+  const latest = new Map<string, { template_name: string; status: string; error_message: string | null; created_at: string; metadata: Record<string, unknown> | null }>()
   for (const r of rows ?? []) {
     const key = r.message_id || `${r.template_name}:${r.created_at}`
     if (!latest.has(key)) latest.set(key, r)
   }
 
   const counts: Record<string, number> = {}
+  const authTypeCounts: Record<string, number> = {}
   const pendingAuth: Array<{ age_seconds: number; template_name: string }> = []
   const recentFailures: Array<{ status: string; template_name: string; error: string | null; age_seconds: number }> = []
+  let signupFromSignInSurface = 0
   const nowMs = Date.now()
   for (const r of latest.values()) {
     counts[r.status] = (counts[r.status] ?? 0) + 1
+    if (['signup', 'magiclink', 'recovery', 'reauthentication', 'email_change', 'invite', 'auth_emails'].includes(r.template_name)) {
+      authTypeCounts[r.template_name] = (authTypeCounts[r.template_name] ?? 0) + 1
+    }
+    if (r.template_name === 'signup' && r.metadata?.auth_surface === 'signin') signupFromSignInSurface += 1
     const age_seconds = Math.max(0, Math.round((nowMs - new Date(r.created_at).getTime()) / 1000))
     if (r.status === 'pending' && ['signup', 'magiclink', 'recovery', 'reauthentication', 'email_change', 'invite', 'auth_emails'].includes(r.template_name)) {
       pendingAuth.push({ age_seconds, template_name: r.template_name })
@@ -169,6 +175,8 @@ async function probeEmailDb() {
     }
   }
   result.recent_status_counts_24h = counts
+  result.auth_email_type_counts_24h = authTypeCounts
+  result.signup_confirmations_from_signin_surface_24h = signupFromSignInSurface
   result.auth_email_backlog = {
     pending_count: pendingAuth.length,
     oldest_pending_age_seconds: pendingAuth.reduce((max, row) => Math.max(max, row.age_seconds), 0),

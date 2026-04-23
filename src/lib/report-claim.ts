@@ -33,9 +33,10 @@ export async function sendDeepDiveClaimLink(email: string, slug: string, consent
     name: "deepdive_email_link_requested",
     payload: { slug, consent_marketing: consentMarketing },
   });
-  await sendMagicLink(email, redirectTo);
+  const outcome = await sendMagicLink(email, redirectTo);
   void supabase.from("events").insert({
     name: "deepdive_email_link_sent",
-    payload: { slug, consent_marketing: consentMarketing },
+    payload: { slug, consent_marketing: consentMarketing, auth_state: outcome.state, expected_email_type: outcome.emailType },
   });
+  return outcome;
 }
