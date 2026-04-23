@@ -16,6 +16,7 @@ import { sendMagicLink, SyncError } from "@/lib/sync";
 import { supabase } from "@/integrations/supabase/client";
 import { seoRoutes } from "@/lib/seo";
 import { lovable } from "@/integrations/lovable";
+import { buildAuthCallbackUrl, persistAuthCallbackContext } from "@/lib/auth-callback-url";
 
 const ROLE_OPTIONS = [
   "Founder / CEO",
@@ -250,7 +251,7 @@ export default function AssessStart() {
               update(values);
               const latest = { ...draft, qualifier: { ...(draft.qualifier ?? {}), ...values } };
               try {
-                await sendMagicLink(values.email, `${window.location.origin}/auth/callback`);
+                await sendMagicLink(values.email, buildAuthCallbackUrl({ next: "/assess/q/1", email: values.email }));
                 saveDraft({ ...latest, magicLinkSent: true });
               } catch (err) {
                 console.warn("[magic-link] initial send failed", err);
@@ -259,8 +260,10 @@ export default function AssessStart() {
             }}
             onOAuth={async (values, provider) => {
               update(values);
+              const context = { next: "/assess/q/1", consentMarketing: values.consentMarketing, authMethod: provider };
+              persistAuthCallbackContext(context);
               const result = await lovable.auth.signInWithOAuth(provider, {
-                redirect_uri: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/assess/q/1")}`,
+                redirect_uri: buildAuthCallbackUrl(context),
                 extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
               });
               if (result.error) throw new SyncError(`${provider === "google" ? "Google" : "Apple"} sign-in failed`, result.error);

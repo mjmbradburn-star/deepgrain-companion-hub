@@ -12,6 +12,7 @@ import { claimReportBySlug } from "@/lib/report-claim";
 import { seoRoutes } from "@/lib/seo";
 import { lovable } from "@/integrations/lovable";
 import { authAccessCopy } from "@/lib/auth-access";
+import { buildAuthCallbackUrl, clearAuthCallbackContext, persistAuthCallbackContext, resolveAuthCallbackContext } from "@/lib/auth-callback-url";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -66,11 +67,12 @@ export default function AuthCallback() {
   const [resentTo, setResentTo] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
-  const next = params.get("next") || "/reports";
-  const claimSlug = params.get("claim");
-  const consentMarketing = params.get("consent_marketing") === "1";
-  const emailParam = params.get("email");
-  const authMethod = params.get("auth_method");
+  const callbackContext = resolveAuthCallbackContext(params);
+  const next = callbackContext.next || "/reports";
+  const claimSlug = callbackContext.claim;
+  const consentMarketing = callbackContext.consentMarketing;
+  const emailParam = callbackContext.email;
+  const authMethod = callbackContext.authMethod;
 
   useEffect(() => {
     let cancelled = false;
@@ -134,7 +136,8 @@ export default function AuthCallback() {
         name: "auth_callback_succeeded",
         payload: { next, claim_slug: claimSlug, auth_method: authMethod },
       });
-      const nextParam = params.get("next");
+      clearAuthCallbackContext();
+      const nextParam = callbackContext.next;
       if (nextParam) {
         navigate(nextParam, { replace: true });
         return;
@@ -201,7 +204,7 @@ export default function AuthCallback() {
     if (!knownEmail || resending || cooldown > 0) return;
     setResending(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+      const redirectTo = buildAuthCallbackUrl({ next, claim: claimSlug, consentMarketing, email: knownEmail });
       const outcome = await sendMagicLink(knownEmail, redirectTo);
       void supabase.from("events").insert({
         name: "auth_callback_resend_clicked",
@@ -219,7 +222,9 @@ export default function AuthCallback() {
   };
 
   const handleProvider = async (provider: "google" | "apple") => {
-    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}&auth_method=${provider}`;
+    const context = { next, claim: claimSlug, consentMarketing, email: knownEmail ?? emailParam, authMethod: provider };
+    persistAuthCallbackContext(context);
+    const redirect_uri = buildAuthCallbackUrl(context);
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri,
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
