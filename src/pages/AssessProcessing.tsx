@@ -188,10 +188,10 @@ export default function AssessProcessing() {
     }
   };
 
-  const signInWithGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
+  const signInWithProvider = async (provider: "google" | "apple") => {
+    const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/assess/processing")}`,
-      extraParams: { prompt: "select_account" },
+      extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
     });
     if (result.error) setError(result.error.message);
   };
@@ -216,22 +216,35 @@ export default function AssessProcessing() {
           <>
             <Headline
               eyebrow="One last step"
-              line1="Check your inbox."
-              line2={<>We've sent secure access to <span className="text-brass-bright not-italic">{emailSentTo}</span>.</>}
+              line1="Sign in to save."
+              line2={<>Google or Apple is fastest.</>}
             />
             <p className="mt-8 max-w-xl font-display text-lg text-cream/65 leading-relaxed">
-              {accessCopy?.body ?? "Click the email link to continue."} Your answers are saved on this device. The instant you're back, we'll save them to your record and build your report.
+              Your answers are saved on this device. Sign in to attach them to your report, or use the email backup sent to <span className="text-brass-bright">{emailSentTo}</span>.
             </p>
+            <div className="mt-10 grid gap-3 sm:grid-cols-2 max-w-xl">
+              <Button
+                onClick={() => signInWithProvider("google")}
+                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+              >
+                Continue with Google
+              </Button>
+              <Button
+                onClick={() => signInWithProvider("apple")}
+                variant="outline"
+                className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
+              >
+                Continue with Apple
+              </Button>
+            </div>
             <div className="mt-10 inline-flex items-center gap-3 rounded-md border border-cream/10 bg-surface-1/60 px-4 py-3 max-w-fit">
               <Mail className="h-4 w-4 text-brass-bright" />
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-cream/60">
-                Don't close this tab
+                Email backup is still available
               </span>
             </div>
             <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-cream/30">
               Didn't arrive? <button onClick={resendLink} disabled={resending} className="underline underline-offset-4 hover:text-cream disabled:opacity-50">{resending ? "Sending…" : "Resend"}</button>
-              {" · "}
-              <button onClick={signInWithGoogle} className="underline underline-offset-4 hover:text-cream">Use Google</button>
               {" · "}
               Wrong email? <button onClick={() => navigate("/assess/start")} className="underline underline-offset-4 hover:text-cream">Change it</button>
             </p>
