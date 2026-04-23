@@ -96,11 +96,11 @@ describe("assessment entry and quickscan regression flow", () => {
     supabaseMocks.invoke.mockResolvedValueOnce({ data: null, error: serverError });
 
     renderScan();
-    fireEvent.click(await screen.findByRole("button", { name: /not using it for a task/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /I demo regularly to my team/i }));
 
     expect(await screen.findByText(/Our scoring service hiccupped/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /review answers/i }));
-    expect(await screen.findByText(/How do you share what you learn from AI/i)).toBeInTheDocument();
+    expect(await screen.findByText(/How openly do you share what you do with AI/i)).toBeInTheDocument();
   });
 });
