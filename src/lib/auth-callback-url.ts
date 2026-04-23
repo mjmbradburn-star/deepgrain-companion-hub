@@ -30,7 +30,7 @@ export function persistAuthCallbackContext(context: AuthCallbackContext) {
   }
 }
 
-export function resolveAuthCallbackContext(params: URLSearchParams): Required<AuthCallbackContext> {
+export function resolveAuthCallbackContext(params: URLSearchParams): AuthCallbackContext {
   let pending: AuthCallbackContext = {};
   try {
     pending = JSON.parse(sessionStorage.getItem(PENDING_AUTH_CONTEXT_KEY) || "{}") as AuthCallbackContext;
@@ -41,7 +41,7 @@ export function resolveAuthCallbackContext(params: URLSearchParams): Required<Au
   const claim = params.get("claim") || pending.claim || null;
   const consentParam = params.get("consent_marketing");
   return {
-    next: params.get("next") || pending.next || "/reports",
+    next: params.get("next") || pending.next || null,
     claim,
     consentMarketing: consentParam === null ? !!pending.consentMarketing : consentParam === "1",
     email: params.get("email") || pending.email || null,
