@@ -7,6 +7,7 @@ import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Seo } from "@/components/aioi/Seo";
+import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
@@ -178,31 +179,9 @@ export default function SignIn() {
           </div>
         )}
 
-        <div className="mt-10 grid gap-3">
-          <Button
-            type="button"
-            onClick={() => signInWithProvider("google")}
-            className="w-full h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
-          >
-            Continue with Google
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => signInWithProvider("apple")}
-            className="w-full h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
-          >
-            Continue with Apple
-          </Button>
-        </div>
-
-        <div className="mt-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-cream/10" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">email backup</span>
-          <div className="h-px flex-1 bg-cream/10" />
-        </div>
-
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <div className="mt-10">
+          <AuthAccessPanel onProvider={signInWithProvider}>
+        <form onSubmit={onSubmit} className="space-y-4">
           <label className="block">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/50">
               Email
@@ -235,6 +214,8 @@ export default function SignIn() {
             )}
           </Button>
         </form>
+          </AuthAccessPanel>
+        </div>
 
         {sentOutcome && sentCopy && (
           <div className="mt-8 rounded-sm border border-brass/30 bg-brass/5 p-5">
