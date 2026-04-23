@@ -1003,6 +1003,28 @@ export default function Benchmarks() {
         </div>
       </section>
 
+      <section className="border-t border-cream/10 bg-surface-0 py-12 sm:py-16">
+        <div className="container max-w-5xl grid gap-8 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <p className="eyebrow mb-4 text-cream/45">Benchmark credibility</p>
+            <h2 className="font-display text-3xl text-cream leading-tight">What the cohort means.</h2>
+          </div>
+          <div className="lg:col-span-8 grid gap-5 sm:grid-cols-2">
+            {[
+              ["Confidence", "Large, specific cohorts produce stronger signals. Smaller slices are still useful, but AIOI labels them as directional or thin."],
+              ["Fallbacks", "The fallback scorer keeps assessment level fixed first, then looks for the closest function, sector, region and size match available."],
+              ["Sample size", "Every opted-in completed assessment improves the benchmark base and makes future cohorts more specific."],
+              ["Interpretation", "Benchmarks are context, not a verdict. The most useful comparison is often your weakest pillar versus the cohort median."],
+            ].map(([title, body]) => (
+              <article key={title} className="border-t border-cream/10 pt-5">
+                <h3 className="font-ui text-sm uppercase tracking-[0.16em] text-brass">{title}</h3>
+                <p className="mt-3 font-display text-lg leading-relaxed text-cream/75">{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <SiteFooter />
     </main>
   );
