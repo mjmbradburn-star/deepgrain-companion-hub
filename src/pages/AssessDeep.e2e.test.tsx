@@ -199,4 +199,30 @@ describe("Deep Dive claim and scoring flows", () => {
     expect(insertedResponses).toEqual(savedRows);
     expect(screen.getByTestId("location")).toHaveTextContent(`/assess/deep/${slug}`);
   }, 15_000);
+
+  it("shows a save retry state when individual Deep Dive answers fail to persist", async () => {
+    const { slug } = mockReport("individual");
+    const saveError = { message: 'insert or update on table "responses" violates foreign key constraint "responses_question_id_fkey"' };
+    const upsert = vi.fn().mockResolvedValue({ error: saveError });
+    supabaseMocks.from.mockImplementation((table: string) => {
+      if (table === "responses") {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn().mockResolvedValue({ data: getQuickscanQuestions("individual").map((question) => ({ question_id: question.id })), error: null }),
+          })),
+          upsert,
+        };
+      }
+      return { insert: vi.fn().mockResolvedValue({ error: null }) };
+    });
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { access_token: "individual-token", user: { id: "individual-user-id", email: "lead@example.com" } } } });
+
+    renderDeep(slug);
+    await completeDeepDive("individual");
+
+    await screen.findByText(/We couldn't save your Deep Dive answers yet\. Try again\./i);
+    expect(screen.getByRole("button", { name: /try saving again/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /view report while scoring retries/i })).not.toBeInTheDocument();
+    expect(supabaseMocks.invoke).not.toHaveBeenCalledWith("rescore-respondent", expect.anything());
+  }, 15_000);
 });
