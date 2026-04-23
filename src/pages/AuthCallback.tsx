@@ -70,6 +70,10 @@ export default function AuthCallback() {
     const hashParams = parseHashParams(window.location.hash);
     const linkError = detectLinkError(params, hashParams);
     if (linkError) {
+      void supabase.from("events").insert({
+        name: "auth_callback_failed",
+        payload: { kind: linkError.kind, next, claim_slug: claimSlug },
+      });
       setStatus("error");
       setErrorKind(linkError.kind);
       setErrorDetail(linkError.description ?? null);
@@ -116,6 +120,10 @@ export default function AuthCallback() {
       }
 
       if (cancelled) return;
+      void supabase.from("events").insert({
+        name: "auth_callback_succeeded",
+        payload: { next, claim_slug: claimSlug },
+      });
       const nextParam = params.get("next");
       if (nextParam) {
         navigate(nextParam, { replace: true });
@@ -142,6 +150,10 @@ export default function AuthCallback() {
       supabase.auth.getSession().then(({ data }) => {
         if (cancelled || handled) return;
         if (!data.session) {
+          void supabase.from("events").insert({
+            name: "auth_callback_failed",
+            payload: { kind: "invalid", next, claim_slug: claimSlug },
+          });
           setStatus("error");
           setErrorKind("invalid");
           try {
@@ -181,6 +193,10 @@ export default function AuthCallback() {
     try {
       const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
       await sendMagicLink(knownEmail, redirectTo);
+      void supabase.from("events").insert({
+        name: "auth_callback_resend_clicked",
+        payload: { next, claim_slug: claimSlug },
+      });
       setResentTo(knownEmail);
       setCooldown(30);
       toast({ title: "Check your inbox", description: "We just sent a fresh sign-in link." });

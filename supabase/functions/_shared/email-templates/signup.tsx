@@ -29,12 +29,12 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirm your email to save your AI Operating Index report</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Heading style={h1}>Confirm your email to continue</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
+          Thanks for using{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
@@ -45,13 +45,13 @@ export const SignupEmail = ({
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) to activate your account:
+          ) to save your report and continue the Deep Dive:
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Confirm email
+          Confirm and continue
         </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          If you did not request this from the AI Operating Index, you can safely ignore this email.
         </Text>
       </Container>
     </Body>

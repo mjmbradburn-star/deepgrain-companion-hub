@@ -85,7 +85,7 @@ function mockTables(existingQuestionIds: string[]) {
 async function sendClaimLink(slug: string) {
   expect(await screen.findByRole("heading", { name: /save this report/i })).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "lead@example.com" } });
-  fireEvent.click(screen.getByRole("button", { name: /email me a secure link/i }));
+  fireEvent.click(screen.getByRole("button", { name: /send secure sign-in link/i }));
   await waitFor(() => expect(supabaseMocks.signInWithOtp).toHaveBeenCalledWith({
     email: "lead@example.com",
     options: expect.objectContaining({

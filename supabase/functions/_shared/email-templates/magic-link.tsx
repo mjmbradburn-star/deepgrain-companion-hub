@@ -24,15 +24,15 @@ export const MagicLinkEmail = ({
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your sign-in link for {siteName}</Preview>
+    <Preview>Your secure sign-in link for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your sign-in link</Heading>
+        <Heading style={h1}>Your secure sign-in link</Heading>
         <Text style={text}>
-          Click below to sign in to {siteName}. This link expires shortly.
+          Open this link to save your AI Operating Index report and continue the Deep Dive. It expires shortly.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Sign in
+          Continue securely
         </Button>
         <Text style={footer}>
           If you didn't request this link, you can safely ignore this email.
