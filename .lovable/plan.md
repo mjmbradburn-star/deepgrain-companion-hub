@@ -1,195 +1,166 @@
 
-## Plan to add lightweight post-deploy smoke tests
+## Plan to rebuild the individual report flow from first principles
 
-### Goal
+### What is actually broken
 
-Add a small post-deploy safety check that hits the production site after deployment and verifies the key routes are being served correctly:
+The current individual flow has both logic and layout issues:
 
-```text
-/assess
-/auth/callback
-/reports
-```
+1. **Report claim/sign-in is structurally unsafe**
+   - `public.respondents.user_id` still appears to be **unique per user**, even though the product now allows a user to own multiple reports.
+   - `claim_report_by_slug()` updates `respondents.user_id` when someone signs in to save/claim a report.
+   - If a user already owns any respondent/report, that update can fail at the database level, which matches the visible `"Could not claim report"` failure.
 
-These checks are intentionally lightweight: they validate that deployed deep links resolve to the React app shell, do not return 404/5xx responses, and produce clear CI output.
+2. **Resume logic can attach to the wrong respondent**
+   - `ensureRespondent()` currently reuses the latest in-progress respondent by `(user_id, level)`, not by the actual report/slug being resumed.
+   - That is too broad for the individual flow and can mis-route answers or create confusing claim/sync behavior.
 
-### Files to add/update
+3. **Claim, auth callback, and draft sync are too tightly coupled**
+   - `AuthCallback`, `AssessDeep`, `SignIn`, and the email gate all partly manage the same state.
+   - This makes failure handling brittle and causes duplicate claim attempts / unclear recovery paths.
 
-#### Add
+4. **The locked-report layout is visually unstable**
+   - The current `PlanTab` blur + absolute overlay approach causes headline/content collisions in the individual report.
+   - The email/sign-in section spacing is also too loose and spills awkwardly into surrounding sections.
 
-```text
-scripts/post-deploy-smoke.mjs
-.github/workflows/post-deploy-smoke.yml
-```
+### Implementation order
 
-#### Update
+#### 1. Fix the data model first
 
-```text
-package.json
-```
+Update the backend so the flow is allowed to work:
 
-Add a script such as:
+- Create a migration to remove the unintended **unique-per-user** restriction on `respondents.user_id`.
+- Keep `user_id` nullable for anonymous quickscan reports.
+- Preserve fast lookup indexes on `user_id`, `slug`, and respondent/report joins.
+- Re-check `claim_report_by_slug()` so it cleanly supports:
+  - anonymous report -> first authenticated owner
+  - already-owned-by-same-user -> success
+  - owned-by-different-user -> blocked
+  - invalid/missing slug -> safe failure
 
-```json
-"smoke:postdeploy": "node scripts/post-deploy-smoke.mjs"
-```
+Files involved:
+- `supabase/migrations/*`
 
-### Smoke test script behavior
+#### 2. Rebuild the individual auth/claim state machine
 
-Create a Node-based smoke runner using built-in `fetch`, with no browser dependency.
+Refactor the flow so each step has one job:
 
-It will read the target URL from:
+**Auth**
+- `SignIn` and `DeepDiveEmailGate` should only initiate access:
+  - Google
+  - Apple
+  - email backup
+- Both should pass the same explicit callback context.
 
-```text
-SMOKE_BASE_URL
-```
+**Callback**
+- `AuthCallback` should only:
+  - wait for a real restored session
+  - resolve callback context
+  - claim the target report if `claim` is present
+  - resume draft sync only when there is an assessment draft to resume
+  - send the user to one clear destination
 
-Defaulting to the production custom domain:
+**Deep Dive entry**
+- `AssessDeep` should not aggressively re-claim on every load.
+- It should:
+  - load public report metadata
+  - check auth readiness
+  - if anonymous + user just signed in, claim once
+  - if already owned by current user, continue
+  - if owned by another user, show a clean wrong-account state
 
-```text
-https://aioi.deepgrain.ai
-```
+**Respondent reuse**
+- `ensureRespondent()` should stop reusing “latest in-progress respondent of same level”.
+- Reuse should be based on the current draft/respondent context, not just level.
+- This prevents cross-linking between multiple individual reports.
 
-It will test:
+Files involved:
+- `src/lib/sync.ts`
+- `src/lib/report-claim.ts`
+- `src/lib/auth-callback-url.ts`
+- `src/pages/AuthCallback.tsx`
+- `src/pages/SignIn.tsx`
+- `src/pages/AssessDeep.tsx`
+- `src/pages/AssessProcessing.tsx`
+- `src/components/aioi/DeepDiveEmailGate.tsx`
 
-```text
-/assess
-/auth/callback?error=access_denied&error_description=Smoke+test
-/reports
-```
+#### 3. Simplify the report UI instead of layering over it
 
-For each route, it will confirm:
+Replace the fragile overlay approach with a cleaner locked-plan structure.
 
-- Response status is successful, normally `200`.
-- Response content type is HTML.
-- The app root is present:
+For the individual report:
 
-```html
-<div id="root"></div>
-```
+- Keep **Month 1** fully visible.
+- Replace the blurred months + absolute overlay with a dedicated **locked continuation panel** below Month 1.
+- Move the sign-in/email gate into that panel as a normal flow block, not as text floating over hidden content.
+- Reduce headline scale and max width for the individual variant.
+- Tighten vertical spacing between:
+  - month intro
+  - unlock copy
+  - benefit bullets
+  - OAuth buttons
+  - email form
+- Ensure the unlock panel ends cleanly before `FounderBio` begins.
 
-- The Vite/React script shell is present.
-- The response does not look like a raw hosting-level 404 or 5xx page.
-- The final resolved URL is logged clearly.
+This will eliminate the visible overlap shown in the screenshots and make the sign-in CTA readable.
 
-### Route-specific checks
+Files involved:
+- `src/pages/AssessReport.tsx`
+- `src/components/aioi/DeepDiveUnlock.tsx`
+- `src/components/aioi/DeepDiveEmailGate.tsx`
+- possibly `src/components/aioi/AuthAccessPanel.tsx`
 
-#### `/assess`
+#### 4. Add regression coverage around the real failure paths
 
-Confirms the public assessment entry route is served as an app route and does not break after deploy.
+Update tests to protect the rebuilt flow:
 
-Expected result:
+- existing user can claim a second anonymous report
+- already-owned report returns success, not a hard failure
+- wrong-account claim still blocks access
+- auth callback does not sync the wrong respondent
+- individual Deep Dive route resumes correctly after sign-in
+- report page renders locked month-2/month-3 area without overlay collisions
+- email fallback still preserves `next`, `claim`, and marketing consent context
 
-```text
-PASS /assess — app shell served
-```
+Files involved:
+- `src/pages/AuthCallback.routing.e2e.test.tsx`
+- `src/pages/AuthCallback.email-backup.test.tsx`
+- `src/pages/AuthEmailStatusFlows.e2e.test.tsx`
+- `src/pages/AssessDeep.e2e.test.tsx`
+- `src/pages/AssessReport.e2e.test.tsx`
+- any new focused tests needed around claim/resume behavior
 
-#### `/auth/callback`
+#### 5. Verify in the right environments
 
-Use a safe, non-authenticated error callback URL:
+After implementation, verify in this order:
 
-```text
-/auth/callback?error=access_denied&error_description=Smoke+test
-```
-
-This avoids requiring a real sign-in token while still confirming the deployed callback route is reachable and handled by the SPA fallback.
-
-Expected result:
-
-```text
-PASS /auth/callback — callback route shell served
-```
-
-#### `/reports`
-
-Confirms the private reports deep link is served by the deployed SPA. Client-side auth can then redirect unauthenticated users to sign-in, but the deployment must still serve the route correctly.
-
-Expected result:
-
-```text
-PASS /reports — private route shell served
-```
-
-### Reporting output
-
-The script will print a clear summary:
-
-```text
-Post-deploy smoke test summary
-
-PASS  /assess          200 app shell served
-PASS  /auth/callback   200 app shell served
-PASS  /reports         200 app shell served
-
-Totals:
-- Routes checked: 3
-- Passed: 3
-- Failed: 0
-```
-
-If any route fails, the script exits with a non-zero code so the workflow is marked failed.
-
-### GitHub Actions workflow
-
-Add a separate workflow:
-
-```text
-.github/workflows/post-deploy-smoke.yml
-```
-
-It will support:
-
-1. Automatic run on successful GitHub deployment events:
-
-```yaml
-on:
-  deployment_status:
-```
-
-2. Manual run for production deploy review:
-
-```yaml
-workflow_dispatch:
-```
-
-The workflow will:
-
-- Use Node 20.
-- Install dependencies with `npm ci` only if needed by the project script environment.
-- Run:
-
-```bash
-npm run smoke:postdeploy
-```
-
-- Write a concise result summary to the GitHub Actions job summary.
-
-### Target URL configuration
-
-Use this priority order:
-
-1. `SMOKE_BASE_URL` workflow input, for manual runs.
-2. Repository variable `SMOKE_BASE_URL`, if configured.
-3. Default:
-
-```text
-https://aioi.deepgrain.ai
-```
-
-This allows the same smoke runner to test custom domain, published URL, or preview URL without code changes.
-
-### Notes on “post-deploy” automation
-
-The workflow will run automatically when GitHub receives a successful deployment event. If the deployment provider does not emit GitHub deployment events, the same workflow can still be run manually from GitHub Actions after publishing, and the script remains reusable from any external deploy hook.
+1. local/test flow in preview for layout and route logic
+2. published/custom-domain sign-in flow for real OAuth/callback behavior
+3. individual report -> sign in -> claim -> Deep Dive -> back to report
+4. individual locked report spacing on desktop and smaller widths
 
 ### Acceptance criteria
 
-The implementation is complete when:
+The rebuild is complete when:
 
-- A smoke test script exists and can test the live deployed app.
-- `/assess`, `/auth/callback`, and `/reports` are checked.
-- Failed HTTP responses or missing app shell markers fail the smoke run.
-- Results are printed clearly in CI logs.
-- A GitHub Actions workflow can run the smoke tests post-deploy.
-- The smoke test target URL is configurable.
-- No production app behavior changes are introduced.
+- A signed-in user can successfully claim more than one report over time.
+- Individual report sign-in no longer fails with `"Could not claim report"` for valid owners.
+- Auth callback only performs the work relevant to the incoming context.
+- Deep Dive claim/resume flow is deterministic and recoverable.
+- The individual report’s locked-plan section has no overlapping text or broken spacing.
+- Google/Apple/email backup CTAs are readable, aligned, and visually contained.
+- Existing wrong-account protection still works.
+- Regression tests cover the multi-report ownership and individual-flow paths.
+
+### Technical note
+
+The highest-risk issue is the database constraint mismatch:
+
+```text
+Current behavior expected by product:
+one user -> many respondents/reports over time
+
+Current schema behavior likely:
+one user -> one respondent only
+```
+
+That mismatch must be fixed first; otherwise UI changes alone will not solve the individual sign-in/claim failures.
