@@ -108,18 +108,15 @@ export default function AuthCallback() {
       if (handledRef.current || cancelled) return;
       handledRef.current = true;
 
-      const draft = loadDraft();
-
       try {
         if (claimSlug) {
           const claim = await claimReportBySlug(claimSlug, consentMarketing);
           if (!claim.ok) throw new SyncError(claim.status === "already_claimed" ? "This report is already linked to another email." : "Could not save this report to your email.");
         }
+        const draft = loadDraft();
         if (draft.level && Object.keys(draft.answers ?? {}).length > 0) {
           const { respondentId } = await ensureRespondent(draft);
           await flushAnswers(respondentId, draft);
-        } else if (draft.level) {
-          await ensureRespondent(draft);
         }
       } catch (err) {
         console.error("[auth-callback] sync failed", err);
@@ -137,6 +134,7 @@ export default function AuthCallback() {
         payload: { next, claim_slug: claimSlug, auth_method: authMethod },
       });
       clearAuthCallbackContext();
+      const draft = loadDraft();
       const nextParam = callbackContext.next;
       if (nextParam) {
         navigate(nextParam, { replace: true });
