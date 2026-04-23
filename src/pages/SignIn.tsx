@@ -11,7 +11,6 @@ import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
-import { claimReportBySlug } from "@/lib/report-claim";
 import { loadDraft } from "@/lib/assessment";
 import { seoRoutes } from "@/lib/seo";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
