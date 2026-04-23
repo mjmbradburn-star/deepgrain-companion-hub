@@ -290,10 +290,18 @@ export default function AssessDeep() {
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <Button
                   size="sm"
-                  onClick={retryScoring}
+                  onClick={() => void retryScoring()}
                   className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                 >
-                  Retry scoring
+                  Finish scoring
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void retryScoring(true)}
+                  className="rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-xs tracking-wider uppercase"
+                >
+                  View report while scoring retries
                 </Button>
                 <Button
                   size="sm"
