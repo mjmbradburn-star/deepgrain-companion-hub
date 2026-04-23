@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, ChevronLeft, Info, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Info, Loader2, LogOut } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { OptionCard } from "@/components/aioi/OptionCard";
@@ -20,6 +20,7 @@ import { getQuickscanQuestions } from "@/lib/quickscan";
 import { supabase } from "@/integrations/supabase/client";
 import { claimReportBySlug } from "@/lib/report-claim";
 import { seoRoutes } from "@/lib/seo";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 interface RespondentLite {
   id: string;
@@ -38,11 +39,14 @@ export default function AssessDeep() {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [answersSaved, setAnswersSaved] = useState(false);
+  const [savedAnswers, setSavedAnswers] = useState<Record<string, number>>({});
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [authGate, setAuthGate] = useState<"checking" | "needs-email" | "blocked" | "ready">("checking");
+  const { isReady: authReady, session, user } = useAuthReady();
 
-  // Load respondent + already-answered question IDs (so we skip qs- ones).
+  // Load public respondent metadata first. Authenticated claim/response loading
+  // waits for the browser session to be fully restored below.
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
@@ -61,21 +65,29 @@ export default function AssessDeep() {
         return;
       }
       setRespondent({ ...payload.respondent, isAnonymous: payload.respondent.is_anonymous });
+    })();
+    return () => { cancelled = true; };
+  }, [slug]);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+  useEffect(() => {
+    if (!respondent || !authReady) return;
+    let cancelled = false;
+    (async () => {
+      if (!user) {
         setAuthGate("needs-email");
         return;
       }
 
-      const claim = await claimReportBySlug(payload.respondent.slug, false);
+      setAuthGate("checking");
+      setLoadErr(null);
+      const claim = await claimReportBySlug(respondent.slug, false);
+      if (cancelled) return;
       void supabase.from("events").insert({
         name: claim.ok ? "report_claimed" : "report_claim_failed",
-        payload: { slug: payload.respondent.slug, status: claim.status },
+        payload: { slug: respondent.slug, status: claim.status },
       });
       if (!claim.ok) {
         setAuthGate("blocked");
-        setLoadErr(claim.status === "already_claimed" ? "This report is already linked to another email." : "We couldn't save this report to your email.");
         return;
       }
       setAuthGate("ready");
@@ -84,18 +96,18 @@ export default function AssessDeep() {
       const { data: existing } = await supabase
         .from("responses")
         .select("question_id")
-        .eq("respondent_id", payload.respondent.id);
+        .eq("respondent_id", respondent.id);
       if (!cancelled) {
         setAnsweredIds(new Set((existing ?? []).map((r) => r.question_id)));
       }
 
       void supabase.from("events").insert({
         name: "deepdive_started",
-        payload: { slug, respondent_id: payload.respondent.id },
+        payload: { slug: respondent.slug, respondent_id: respondent.id },
       });
     })();
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [authReady, respondent, user]);
 
   const allProgressQuestions = useMemo<Question[]>(() => {
     if (!respondent) return [];
