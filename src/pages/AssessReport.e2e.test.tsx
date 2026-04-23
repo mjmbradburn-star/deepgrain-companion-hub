@@ -205,4 +205,18 @@ describe("AssessReport production controls", () => {
     expect(screen.queryByRole("button", { name: /continue with google/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /continue deep dive/i })).not.toBeInTheDocument();
   });
+
+  it("renders the authenticated Deep Dive CTA with mobile-safe sizing", async () => {
+    supabaseMocks.rpc.mockImplementation((name: string) => {
+      if (name === "get_report_by_slug") return Promise.resolve({ data: reportPayload({ slug: "mobile-cta", isAnonymous: false, hasDeepdive: false }), error: null });
+      if (name === "get_outcomes_for_report") return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data: null, error: null });
+    });
+
+    renderReport("mobile-cta");
+
+    const deepDiveCta = await screen.findByRole("link", { name: /continue deep dive/i });
+    expect(deepDiveCta).toHaveClass("w-full", "sm:w-auto", "h-12", "min-h-12");
+    expect(deepDiveCta.querySelector("span")).toHaveClass("whitespace-nowrap");
+  });
 });
