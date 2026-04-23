@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AuthEmailState = "new" | "unconfirmed" | "confirmed" | "invalid_email" | "unknown";
+export type AuthEmailState = "no_account" | "new" | "unconfirmed" | "confirmed" | "invalid_email" | "unknown";
 
 export type AuthAccessOutcome = {
   email: string;
@@ -14,9 +14,11 @@ type AuthStateRpcResult = {
 };
 
 export async function getAuthEmailState(email: string): Promise<AuthEmailState> {
-  const { data, error } = await supabase.rpc("get_auth_email_state" as never, { _email: email } as never);
+  const { data, error } = await supabase.functions.invoke("auth-email-status", {
+    body: { email },
+  });
   if (error) {
-    console.warn("[auth-access] state lookup failed", error);
+    console.warn("[auth-access] status endpoint failed", error);
     return "unknown";
   }
 

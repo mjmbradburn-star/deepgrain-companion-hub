@@ -52,9 +52,6 @@ function mockReport(level: MockLevel) {
   const slug = `${level}-deep-flow`;
   const respondentId = `${level}-respondent-id`;
   supabaseMocks.rpc.mockImplementation((name: string) => {
-    if (name === "get_auth_email_state") {
-      return Promise.resolve({ data: { ok: true, state: "new" }, error: null });
-    }
     if (name === "claim_report_by_slug") {
       return Promise.resolve({ data: { ok: true, status: "claimed", respondent_id: respondentId, slug }, error: null });
     }
@@ -117,7 +114,10 @@ describe("Deep Dive anonymous claim flow", () => {
     vi.clearAllMocks();
     insertedResponses.length = 0;
     supabaseMocks.signInWithOtp.mockResolvedValue({ error: null });
-    supabaseMocks.invoke.mockResolvedValue({ error: null });
+    supabaseMocks.invoke.mockImplementation((name: string) => {
+      if (name === "auth-email-status") return Promise.resolve({ data: { ok: true, state: "no_account" }, error: null });
+      return Promise.resolve({ error: null });
+    });
   });
 
   it.each<MockLevel>(["company", "function"])("claims an anonymous %s report by magic link and completes every final Deep Dive step", async (level) => {
