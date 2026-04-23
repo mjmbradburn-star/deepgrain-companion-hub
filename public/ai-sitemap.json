@@ -66,6 +66,15 @@
       "summary": "Shows aggregated opted-in benchmark medians by level, function, size, sector and region, with confidence and fallback explanations."
     },
     {
+      "url": "https://aioi.deepgrain.ai/ai/overview",
+      "contentType": "text/html",
+      "pageType": "ai-readable-overview",
+      "title": "AI Overview for LLMs | AI Operating Index",
+      "description": "Dedicated public overview for LLM discovery, summarizing the site, navigation paths, and eight-pillar framework.",
+      "primaryKeywords": ["AI Operating Index overview", "AI maturity scan", "LLM discovery", "AI readiness framework"],
+      "summary": "Explains what AIOI does, how users and crawlers should navigate it, and links directly to each of the eight pillar sections."
+    },
+    {
       "url": "https://aioi.deepgrain.ai/privacy",
       "contentType": "text/html",
       "pageType": "policy",

@@ -8,6 +8,7 @@ export type SeoRouteKey =
   | "pillars"
   | "ladder"
   | "benchmarks"
+  | "aiOverview"
   | "privacy"
   | "signin"
   | "reports"
@@ -61,6 +62,13 @@ export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
     path: "/benchmarks",
     image: `${SITE_URL}/og/benchmarks.png`,
     imageAlt: "AI adoption benchmark data share card",
+  },
+  aiOverview: {
+    title: "AI Overview for LLMs | AI Operating Index",
+    description: "A public AI-readable overview of the AI Operating Index, crawlable entry points, navigation, and the eight-pillar AI maturity framework.",
+    path: "/ai/overview",
+    image: `${SITE_URL}/og/home.png`,
+    imageAlt: "AI Operating Index overview share card",
   },
   privacy: {
     title: "Privacy Policy | AI Operating Index",
