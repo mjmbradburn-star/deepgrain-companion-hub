@@ -17,6 +17,7 @@ import { seoRoutes } from "@/lib/seo";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
 import { lovable } from "@/integrations/lovable";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { buildAuthCallbackUrl, persistAuthCallbackContext } from "@/lib/auth-callback-url";
 
 const emailSchema = z
   .string()
@@ -120,7 +121,7 @@ export default function SignIn() {
 
     setSubmitting(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+      const redirectTo = buildAuthCallbackUrl({ next, claim: claimSlug, consentMarketing });
       const outcome = await sendMagicLink(parsed.data, redirectTo);
       setSentOutcome(outcome);
       setCooldown(COOLDOWN_SECONDS);
@@ -134,7 +135,9 @@ export default function SignIn() {
   };
 
   const signInWithProvider = async (provider: "google" | "apple") => {
-    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}&auth_method=${provider}`;
+    const context = { next, claim: claimSlug, consentMarketing, authMethod: provider };
+    persistAuthCallbackContext(context);
+    const redirect_uri = buildAuthCallbackUrl(context);
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri,
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,

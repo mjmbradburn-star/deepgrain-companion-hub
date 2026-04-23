@@ -13,6 +13,7 @@ import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
 import { lovable } from "@/integrations/lovable";
 import { useAuthReady } from "@/hooks/use-auth-ready";
 import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
+import { buildAuthCallbackUrl, persistAuthCallbackContext } from "@/lib/auth-callback-url";
 
 /**
  * Dev-only: sign in a synthetic test user so the full flow can be
@@ -176,7 +177,7 @@ export default function AssessProcessing() {
     if (!emailSentTo || resending) return;
     setResending(true);
     try {
-      const outcome = await sendMagicLink(emailSentTo, `${window.location.origin}/auth/callback`);
+      const outcome = await sendMagicLink(emailSentTo, buildAuthCallbackUrl({ next: "/assess/processing", email: emailSentTo }));
       setAccessOutcome(outcome);
     } catch (err) {
       console.error("[resend] failed", err);
@@ -187,8 +188,10 @@ export default function AssessProcessing() {
   };
 
   const signInWithProvider = async (provider: "google" | "apple") => {
+    const context = { next: "/assess/processing", authMethod: provider };
+    persistAuthCallbackContext(context);
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/assess/processing")}`,
+      redirect_uri: buildAuthCallbackUrl(context),
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
     });
     if (result.error) setError(result.error.message);
