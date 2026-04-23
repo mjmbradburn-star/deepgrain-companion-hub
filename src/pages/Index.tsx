@@ -9,9 +9,15 @@ import { FounderBio } from "@/components/aioi/FounderBio";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { Reveal } from "@/components/aioi/Reveal";
 import { Seo } from "@/components/aioi/Seo";
+import { useEffect } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { applicationJsonLd, faqItems, faqJsonLd, organizationJsonLd, seoRoutes, websiteJsonLd } from "@/lib/seo";
 
 const Index = () => {
+  useEffect(() => {
+    trackEvent("seo_landing_viewed", { route: "/" }, { optional: true });
+  }, []);
+
   return (
     <main className="min-h-screen bg-walnut text-cream">
       <Seo {...seoRoutes.home} jsonLd={[organizationJsonLd(), websiteJsonLd(), applicationJsonLd(), faqJsonLd()]} />

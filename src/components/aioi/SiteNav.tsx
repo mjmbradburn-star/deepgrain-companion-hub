@@ -27,6 +27,7 @@ export function SiteNav() {
   }, []);
 
   const links = [
+    { href: "/assess", label: "Assessment" },
     { href: "/pillars", label: "Pillars" },
     { href: "/ladder", label: "Ladder" },
     { href: "/benchmarks", label: "Benchmarks" },
