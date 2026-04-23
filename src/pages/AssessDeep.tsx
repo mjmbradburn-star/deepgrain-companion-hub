@@ -267,6 +267,27 @@ export default function AssessDeep() {
     );
   }
 
+  if (authGate === "blocked") {
+    return (
+      <AssessChrome ariaLabel="Report access problem">
+        <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
+        <main className="container max-w-xl w-full py-20 sm:py-28">
+          <p className="eyebrow mb-5">Wrong account</p>
+          <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">This report is linked<br /><span className="italic text-brass-bright">to another sign-in.</span></h1>
+          <p className="mt-6 font-display text-lg text-cream/65 max-w-md">Sign out, then continue with the Google, Apple, or email account originally used for this report.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button onClick={() => void supabase.auth.signOut().then(() => setAuthGate("needs-email"))} className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]">
+              <LogOut className="mr-2 h-4 w-4" /> Use another account
+            </Button>
+            <Button variant="outline" onClick={() => navigate(`/assess/r/${respondent.slug}`)} className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]">
+              Back to report
+            </Button>
+          </div>
+        </main>
+      </AssessChrome>
+    );
+  }
+
   if (authGate === "checking" || submitting || submitErr || remaining.length === 0) {
     return (
       <AssessChrome ariaLabel="Re-scoring">
