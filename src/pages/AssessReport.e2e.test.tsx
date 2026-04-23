@@ -135,4 +135,39 @@ describe("AssessReport production controls", () => {
     expect(await screen.findByRole("button", { name: /continue with google/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /send secure sign-in link/i })).toBeInTheDocument();
   });
+
+  it("keeps shared quickscan reports public but locks Deep Dive behind the claim gate", async () => {
+    supabaseMocks.rpc.mockImplementation((name: string) => {
+      if (name === "get_report_by_slug") return Promise.resolve({ data: reportPayload({ slug: "shared-lock", isAnonymous: true, hasDeepdive: false }), error: null });
+      if (name === "get_outcomes_for_report") return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data: null, error: null });
+    });
+
+    renderReport("shared-lock");
+
+    expect(await screen.findByText(/Your operating shape, in one picture/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /continue deep dive/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "owner@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: /send secure sign-in link/i }));
+
+    await waitFor(() => expect(syncMocks.sendMagicLink).toHaveBeenCalledWith(
+      "owner@example.com",
+      expect.stringContaining("/auth/callback?next=%2Fassess%2Fdeep%2Fshared-lock&claim=shared-lock"),
+    ));
+  });
+
+  it("shows unlocked shared report CTAs when Deep Dive is already complete", async () => {
+    supabaseMocks.rpc.mockImplementation((name: string) => {
+      if (name === "get_report_by_slug") return Promise.resolve({ data: reportPayload({ slug: "shared-unlocked", isAnonymous: false, hasDeepdive: true }), error: null });
+      if (name === "get_outcomes_for_report") return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data: null, error: null });
+    });
+
+    renderReport("shared-unlocked");
+
+    expect(await screen.findByText(/High confidence · Deep Dive complete/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /continue with google/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /continue deep dive/i })).not.toBeInTheDocument();
+  });
 });
