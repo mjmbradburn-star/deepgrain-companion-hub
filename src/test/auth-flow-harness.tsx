@@ -51,11 +51,15 @@ export function reportPayload({
   slug = "report-1",
   level = "function",
   isAnonymous = false,
+  isOwner = !isAnonymous,
+  isOwned = !isAnonymous,
   hasDeepdive = false,
 }: {
   slug?: string;
   level?: TestLevel;
   isAnonymous?: boolean;
+  isOwner?: boolean;
+  isOwned?: boolean;
   hasDeepdive?: boolean;
 } = {}) {
   return {
@@ -68,6 +72,8 @@ export function reportPayload({
       org_size: "Early-stage (1–50 people)",
       submitted_at: "2026-01-01T00:00:00.000Z",
       is_anonymous: isAnonymous,
+      is_owned: isOwned,
+      is_owner: isOwner,
     },
     report: {
       aioi_score: 64,

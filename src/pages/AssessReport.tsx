@@ -77,6 +77,8 @@ interface ReportData {
     org_size: string | null;
     submitted_at: string | null;
     is_anonymous: boolean;
+    is_owned?: boolean;
+    is_owner?: boolean;
   };
   report: {
     aioi_score: number;
@@ -467,7 +469,7 @@ function PlanTab({
   }
 
   // When the user hasn't done the deep dive, only the first month is shown
-  // in the clear; months 2-3 sit behind a blur with an unlock overlay.
+  // in the clear; months 2-3 are represented by a normal-flow locked panel.
   const visiblePlan = hasDeepdive ? plan : plan.slice(0, 1);
   const lockedPlan = hasDeepdive ? [] : plan.slice(1);
 
@@ -493,16 +495,34 @@ function PlanTab({
       </div>
 
       {lockedPlan.length > 0 && (
-        <div className="relative mt-12">
-          <div className="space-y-12 select-none pointer-events-none blur-sm opacity-60" aria-hidden>
-            {lockedPlan.map((month) => (
-              <PlanMonthArticle key={month.month} month={month} outcomeMap={outcomeMap} />
-            ))}
-          </div>
-          <DeepDiveUnlock slug={slug} level={level} variant="overlay" isAnonymous={isAnonymous} />
-        </div>
+        <LockedPlanContinuation
+          lockedMonths={lockedPlan.map((month) => month.month)}
+          slug={slug}
+          level={level}
+          isAnonymous={isAnonymous}
+        />
       )}
     </section>
+  );
+}
+
+function LockedPlanContinuation({
+  lockedMonths, slug, level, isAnonymous,
+}: { lockedMonths: number[]; slug: string; level: string; isAnonymous: boolean }) {
+  return (
+    <div className="mt-12 border-t border-cream/10 pt-8 sm:pt-10">
+      <div className="rounded-lg border border-brass/30 bg-surface-1/55 p-5 sm:p-8 lg:p-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-brass/35 bg-brass/10 text-brass-bright">
+            <Lock className="h-4 w-4" />
+          </span>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
+            Months {lockedMonths.join(" + ")} locked until Deep Dive
+          </p>
+        </div>
+        <DeepDiveUnlock slug={slug} level={level} variant="inline" isAnonymous={isAnonymous} />
+      </div>
+    </div>
   );
 }
 

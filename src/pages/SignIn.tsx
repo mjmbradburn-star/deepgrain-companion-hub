@@ -9,9 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Seo } from "@/components/aioi/Seo";
 import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
-import { claimReportBySlug } from "@/lib/report-claim";
 import { loadDraft } from "@/lib/assessment";
 import { seoRoutes } from "@/lib/seo";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
@@ -87,14 +85,18 @@ export default function SignIn() {
     }
   }, [params]);
 
-  // If already signed in, jump straight to "next"
+  // If already signed in, jump straight to the callback when a claim is needed
+  // so report ownership is handled by one deterministic state machine.
   useEffect(() => {
     let cancelled = false;
     if (!authReady) return;
     (async () => {
       if (session) {
-        if (claimSlug) await claimReportBySlug(claimSlug, consentMarketing).catch(() => null);
         if (cancelled) return;
+        if (claimSlug) {
+          navigate(`/auth/callback?next=${encodeURIComponent(next)}&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}`, { replace: true });
+          return;
+        }
         navigate(next, { replace: true });
       }
       else setCheckingSession(false);
@@ -121,7 +123,9 @@ export default function SignIn() {
 
     setSubmitting(true);
     try {
-      const redirectTo = buildAuthCallbackUrl({ next, claim: claimSlug, consentMarketing });
+      const context = { next, claim: claimSlug, consentMarketing, email: parsed.data };
+      persistAuthCallbackContext(context);
+      const redirectTo = buildAuthCallbackUrl(context);
       const outcome = await sendMagicLink(parsed.data, redirectTo);
       setSentOutcome(outcome);
       setCooldown(COOLDOWN_SECONDS);
@@ -135,7 +139,7 @@ export default function SignIn() {
   };
 
   const signInWithProvider = async (provider: "google" | "apple") => {
-    const context = { next, claim: claimSlug, consentMarketing, authMethod: provider };
+    const context = { next, claim: claimSlug, consentMarketing, email: email || null, authMethod: provider };
     persistAuthCallbackContext(context);
     const redirect_uri = buildAuthCallbackUrl(context);
     const result = await lovable.auth.signInWithOAuth(provider, {
