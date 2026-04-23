@@ -118,13 +118,16 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
           />
           Send me occasional AI operating-model notes from Deepgrain.
         </label>
+        <p className="mt-3 text-sm leading-relaxed text-cream/45">
+          We will send a secure sign-in link. If this is your first time, the email may ask you to confirm your address first.
+        </p>
       </div>
       <Button
         type="submit"
         disabled={sending || !email}
         className={`h-12 w-full rounded-sm bg-brass px-6 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright ${compact ? "" : "lg:mt-[22px] lg:w-auto"}`}
       >
-        {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : <><Mail className="h-4 w-4 mr-2" /> Email me a secure link <ArrowRight className="h-4 w-4 ml-2" /></>}
+        {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : <><Mail className="h-4 w-4 mr-2" /> Send secure sign-in link <ArrowRight className="h-4 w-4 ml-2" /></>}
       </Button>
     </form>
   );
