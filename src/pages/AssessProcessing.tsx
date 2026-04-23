@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { loadDraft } from "@/lib/assessment";
 import { finaliseAssessment, sendMagicLink, SyncError } from "@/lib/sync";
 import { seoRoutes } from "@/lib/seo";
+import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
+import { lovable } from "@/integrations/lovable";
 
 /**
  * Dev-only: sign in a synthetic test user so the full flow can be
@@ -64,6 +66,7 @@ export default function AssessProcessing() {
   const [phase, setPhase] = useState<Phase>("checking");
   const [error, setError] = useState<string | null>(null);
   const [emailSentTo, setEmailSentTo] = useState<string | null>(null);
+  const [accessOutcome, setAccessOutcome] = useState<AuthAccessOutcome | null>(null);
   const [shown, setShown] = useState<string[]>([]);
   const [resending, setResending] = useState(false);
   const finalisedRef = useRef(false); // guard against StrictMode double-fire
@@ -175,7 +178,8 @@ export default function AssessProcessing() {
     if (!emailSentTo || resending) return;
     setResending(true);
     try {
-      await sendMagicLink(emailSentTo, `${window.location.origin}/auth/callback`);
+      const outcome = await sendMagicLink(emailSentTo, `${window.location.origin}/auth/callback`);
+      setAccessOutcome(outcome);
     } catch (err) {
       console.error("[resend] failed", err);
       setError(err instanceof SyncError ? err.message : "Could not resend the link.");
@@ -183,6 +187,16 @@ export default function AssessProcessing() {
       setResending(false);
     }
   };
+
+  const signInWithGoogle = async () => {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/assess/processing")}`,
+      extraParams: { prompt: "select_account" },
+    });
+    if (result.error) setError(result.error.message);
+  };
+
+  const accessCopy = accessOutcome ? authAccessCopy(accessOutcome) : null;
 
   return (
     <AssessChrome ariaLabel="Building your report">
@@ -203,10 +217,10 @@ export default function AssessProcessing() {
             <Headline
               eyebrow="One last step"
               line1="Check your inbox."
-              line2={<>We've sent a magic link to <span className="text-brass-bright not-italic">{emailSentTo}</span>.</>}
+              line2={<>We've sent secure access to <span className="text-brass-bright not-italic">{emailSentTo}</span>.</>}
             />
             <p className="mt-8 max-w-xl font-display text-lg text-cream/65 leading-relaxed">
-              Click the link to sign in. Your answers are saved on this device. The instant you're back, we'll save them to your record and build your report.
+              {accessCopy?.body ?? "Click the email link to continue."} Your answers are saved on this device. The instant you're back, we'll save them to your record and build your report.
             </p>
             <div className="mt-10 inline-flex items-center gap-3 rounded-md border border-cream/10 bg-surface-1/60 px-4 py-3 max-w-fit">
               <Mail className="h-4 w-4 text-brass-bright" />
@@ -216,6 +230,8 @@ export default function AssessProcessing() {
             </div>
             <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-cream/30">
               Didn't arrive? <button onClick={resendLink} disabled={resending} className="underline underline-offset-4 hover:text-cream disabled:opacity-50">{resending ? "Sending…" : "Resend"}</button>
+              {" · "}
+              <button onClick={signInWithGoogle} className="underline underline-offset-4 hover:text-cream">Use Google</button>
               {" · "}
               Wrong email? <button onClick={() => navigate("/assess/start")} className="underline underline-offset-4 hover:text-cream">Change it</button>
             </p>
