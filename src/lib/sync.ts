@@ -17,6 +17,7 @@ import {
   saveDraft,
   type AssessmentDraft,
 } from "./assessment";
+import { sendAccessLink } from "./auth-access";
 
 export interface SyncResult {
   respondentId: string;
@@ -195,14 +196,7 @@ export async function finaliseAssessment(): Promise<SyncResult> {
   return { respondentId, slug, inserted };
 }
 
-/** Send a magic link to the given email. Returns when the request was accepted. */
+/** Send the correct access email for this address. Returns when the request was accepted. */
 export async function sendMagicLink(email: string, redirectTo: string) {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: redirectTo,
-      shouldCreateUser: true,
-    },
-  });
-  if (error) throw new SyncError(error.message, error);
+  return sendAccessLink(email, redirectTo);
 }
