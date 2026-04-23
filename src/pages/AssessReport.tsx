@@ -37,6 +37,7 @@ import { ReportCta } from "@/components/aioi/ReportCta";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { seoRoutes } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
+import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 
 // ─── Types coming back from the report row ────────────────────────────────
 interface PillarTierEntry {
@@ -1037,7 +1038,7 @@ function ResendReportLink({ slug }: { slug: string }) {
     if (!email || sending || cooldown > 0) return;
     setSending(true);
     try {
-      const redirectTo = `${window.location.origin}/assess/r/${slug}`;
+      const redirectTo = buildAuthCallbackUrl({ next: `/assess/r/${slug}`, email });
       await sendMagicLink(email, redirectTo);
       toast({
         title: "Link sent",

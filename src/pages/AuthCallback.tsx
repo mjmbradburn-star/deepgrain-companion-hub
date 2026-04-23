@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Loader2, Mail, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +66,7 @@ export default function AuthCallback() {
   const [resending, setResending] = useState(false);
   const [resentTo, setResentTo] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
+  const handledRef = useRef(false);
 
   const callbackContext = resolveAuthCallbackContext(params);
   const next = callbackContext.next || "/reports";
@@ -76,7 +77,6 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let cancelled = false;
-    let handled = false;
 
     // 1. Detect link errors surfaced via URL hash/query before doing anything else.
     const hashParams = parseHashParams(window.location.hash);
@@ -105,8 +105,8 @@ export default function AuthCallback() {
     }
 
     const handle = async () => {
-      if (handled || cancelled) return;
-      handled = true;
+      if (handledRef.current || cancelled) return;
+      handledRef.current = true;
 
       const draft = loadDraft();
 
@@ -144,7 +144,7 @@ export default function AuthCallback() {
       }
       const answered = Object.keys(draft.answers ?? {}).length;
       const totalQuestions = getQuestions(draft.level, draft.qualifier?.function).length;
-      if (answered >= totalQuestions) {
+      if (draft.level && totalQuestions > 0 && answered >= totalQuestions) {
         navigate("/assess/processing", { replace: true });
       } else if (draft.level && answered > 0) {
         navigate(`/assess/q/${answered + 1}`, { replace: true });
@@ -159,9 +159,9 @@ export default function AuthCallback() {
     // no recognisable error, treat it as an invalid link rather than spinning
     // forever.
     const noSessionTimer = window.setTimeout(() => {
-      if (handled || cancelled) return;
+      if (handledRef.current || cancelled) return;
       supabase.auth.getSession().then(({ data }) => {
-        if (cancelled || handled) return;
+        if (cancelled || handledRef.current) return;
         if (!data.session) {
           void supabase.from("events").insert({
             name: "auth_callback_failed",
