@@ -6,7 +6,7 @@ import AssessDeep from "./AssessDeep";
 import { getDeepDiveQuestions, type Level } from "@/lib/assessment";
 import { getQuickscanQuestions } from "@/lib/quickscan";
 
-type MockLevel = Extract<Level, "company" | "function">;
+type MockLevel = Extract<Level, "company" | "function" | "individual">;
 
 const supabaseMocks = vi.hoisted(() => ({
   signInWithOtp: vi.fn(),
@@ -73,20 +73,22 @@ function mockReport(level: MockLevel) {
 }
 
 function mockTables(existingQuestionIds: string[]) {
+  const upsert = vi.fn((rows) => {
+    insertedResponses.push(...rows);
+    return Promise.resolve({ error: null });
+  });
   supabaseMocks.from.mockImplementation((table: string) => {
     if (table === "responses") {
       return {
         select: vi.fn(() => ({
           eq: vi.fn().mockResolvedValue({ data: existingQuestionIds.map((question_id) => ({ question_id })), error: null }),
         })),
-        upsert: vi.fn((rows) => {
-          insertedResponses.push(...rows);
-          return Promise.resolve({ error: null });
-        }),
+        upsert,
       };
     }
     return { insert: vi.fn().mockResolvedValue({ error: null }) };
   });
+  return { upsert };
 }
 
 async function sendClaimLink(slug: string) {
@@ -110,7 +112,7 @@ async function completeDeepDive(level: MockLevel) {
   }
 }
 
-describe("Deep Dive anonymous claim flow", () => {
+describe("Deep Dive claim and scoring flows", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     insertedResponses.length = 0;
@@ -145,5 +147,54 @@ describe("Deep Dive anonymous claim flow", () => {
     expect(insertedResponses).toHaveLength(expectedQuestions.length);
     expect(insertedResponses.map((row) => row.question_id)).toEqual(expectedQuestions.map((question) => question.id));
     expect(insertedResponses.every((row) => row.respondent_id === respondentId)).toBe(true);
+  }, 15_000);
+
+  it.each<MockLevel>(["individual", "function", "company"])("claims a %s report after OAuth sign-in and lands back on the report", async (level) => {
+    const { slug, respondentId } = mockReport(level);
+    mockTables(getQuickscanQuestions(level, level === "function" ? "sales" : undefined).map((question) => question.id));
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { access_token: `${level}-oauth-token`, user: { id: `${level}-user-id`, email: "lead@example.com" } } } });
+
+    renderDeep(slug);
+
+    await waitFor(() => expect(supabaseMocks.rpc).toHaveBeenCalledWith("claim_report_by_slug", {
+      _slug: slug,
+      _consent_marketing: false,
+    }));
+    expect(screen.queryByRole("heading", { name: /save this report/i })).not.toBeInTheDocument();
+
+    await completeDeepDive(level);
+
+    await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledWith("rescore-respondent", {
+      body: { slug },
+      headers: { Authorization: `Bearer ${level}-oauth-token` },
+    }));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(`/assess/r/${slug}`));
+    expect(insertedResponses.every((row) => row.respondent_id === respondentId)).toBe(true);
+  }, 15_000);
+
+  it("keeps saved Deep Dive answers and retries only scoring when re-score fails", async () => {
+    const { slug } = mockReport("company");
+    const { upsert } = mockTables(getQuickscanQuestions("company").map((question) => question.id));
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { access_token: "company-token", user: { id: "company-user-id", email: "lead@example.com" } } } });
+    supabaseMocks.invoke.mockImplementation((name: string) => {
+      if (name === "rescore-respondent") return Promise.resolve({ error: { message: "gateway rejected scoring" } });
+      return Promise.resolve({ error: null });
+    });
+
+    renderDeep(slug);
+    await completeDeepDive("company");
+
+    await screen.findByText(/Your answers are saved\. Re-scoring needs another try\./i);
+    expect(screen.getByRole("button", { name: /finish scoring/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /view report while scoring retries/i })).toBeInTheDocument();
+    expect(upsert).toHaveBeenCalledTimes(1);
+    const savedRows = [...insertedResponses];
+
+    fireEvent.click(screen.getByRole("button", { name: /finish scoring/i }));
+
+    await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledTimes(2));
+    expect(upsert).toHaveBeenCalledTimes(1);
+    expect(insertedResponses).toEqual(savedRows);
+    expect(screen.getByTestId("location")).toHaveTextContent(`/assess/deep/${slug}`);
   }, 15_000);
 });
