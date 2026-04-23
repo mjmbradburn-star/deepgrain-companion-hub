@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
+import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
 import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
@@ -30,6 +31,8 @@ import {
   clearScan,
 } from "@/lib/quickscan";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
+import { seoRoutes } from "@/lib/seo";
 
 const VALID_LEVELS: Level[] = ["company", "function", "individual"];
 
@@ -164,7 +167,7 @@ export default function AssessScan() {
 
   // Telemetry: scan started
   useEffect(() => {
-    void supabase.from("events").insert({ name: "quickscan_started", payload: { level } });
+    trackEvent("quickscan_started", { level });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -255,6 +258,7 @@ export default function AssessScan() {
           return;
         }
         saveScan({ ...loadScan(), slug: data.slug });
+        trackEvent("quickscan_completed", { level, slug: data.slug });
         clearScan();
         navigate(`/assess/r/${data.slug}`);
       } catch (err) {
@@ -335,6 +339,7 @@ export default function AssessScan() {
   if (submitting || submitError) {
     return (
       <AssessChrome ariaLabel={submitError ? "Report generation failed" : "Building your report"}>
+        <Seo {...seoRoutes.flow} path="/assess/scan" />
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center max-w-md">
             {submitting ? (
@@ -414,6 +419,7 @@ export default function AssessScan() {
       back={{ to: "/assess", label: "Level" }}
       ariaLabel={`Quickscan question ${step} of ${questions.length}`}
     >
+      <Seo {...seoRoutes.flow} path="/assess/scan" />
       <main className="w-full flex flex-col">
         <div className="container pt-6">
           <ProgressBar
