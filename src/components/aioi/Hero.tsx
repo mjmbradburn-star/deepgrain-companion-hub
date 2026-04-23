@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 export function Hero() {
   const [scrolled, setScrolled] = useState(false);
@@ -103,7 +104,7 @@ export function Hero() {
             size="lg"
             className="h-14 sm:h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto inline-flex items-center justify-center gap-2 leading-none shrink-0 motion-tap"
           >
-            <a href="/assess">
+            <a href="/assess" onClick={() => trackEvent("primary_cta_clicked", { location: "home_hero", label: "3-minute AI maturity scan" }, { optional: true })}>
               <span>3-minute AI maturity scan</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </a>
