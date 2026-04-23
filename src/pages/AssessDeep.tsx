@@ -165,9 +165,9 @@ export default function AssessDeep() {
         const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
         if (insertError) throw insertError;
         setAnswersSaved(true);
+        setSavedAnswers(finalAnswers);
       }
-      const { error: scoreError } = await supabase.functions.invoke("rescore-respondent", { body: { slug: respondent.slug } });
-      if (scoreError) throw scoreError;
+      await scoreReport();
       void supabase.from("events").insert({
         name: "deepdive_completed",
         payload: { slug: respondent.slug, respondent_id: respondent.id, answered: Object.keys(finalAnswers).length },
@@ -175,7 +175,7 @@ export default function AssessDeep() {
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
-      setSubmitErr("Your answer is saved locally. We need to reconnect this report to your email before re-scoring.");
+      setSubmitErr("Your Deep Dive answers are saved. We could not refresh the score yet.");
       void supabase.from("events").insert({
         name: "deepdive_rescore_failed",
             payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
@@ -184,13 +184,37 @@ export default function AssessDeep() {
     }
   };
 
-  const retryScoring = () => {
+  const scoreReport = async () => {
     if (!respondent) return;
+    if (!session?.access_token) {
+      setAuthGate("needs-email");
+      throw new Error("Sign-in required before scoring");
+    }
+    const { error: scoreError } = await supabase.functions.invoke("rescore-respondent", {
+      body: { slug: respondent.slug },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (scoreError) throw scoreError;
+  };
+
+  const retryScoring = async (goToReportAfter = false) => {
+    if (!respondent) return;
+    setSubmitting(true);
+    setSubmitErr(null);
     void supabase.from("events").insert({
       name: "deepdive_rescore_retried",
       payload: { slug: respondent.slug, respondent_id: respondent.id },
     });
-    void submitAll(answers);
+    try {
+      await scoreReport();
+      navigate(`/assess/r/${respondent.slug}`);
+    } catch (err) {
+      console.error("[deep] scoring retry failed", err);
+      setSubmitErr("Your Deep Dive answers are saved. We could not refresh the score yet.");
+      if (goToReportAfter) navigate(`/assess/r/${respondent.slug}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const select = (tier: number) => {
@@ -203,6 +227,7 @@ export default function AssessDeep() {
     }
     const next = { ...answers, [question.id]: tier };
     setAnswers(next);
+    setSavedAnswers(next);
     window.setTimeout(() => {
       if (step < remaining.length) setStep(step + 1);
       else void submitAll(next);
