@@ -6,7 +6,7 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-type AuthEmailState = 'new' | 'unconfirmed' | 'confirmed' | 'invalid_email' | 'unknown'
+type AuthEmailState = 'no_account' | 'unconfirmed' | 'confirmed' | 'invalid_email' | 'unknown'
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, state: 'unknown' satisfies AuthEmailState })
   }
 
-  const result = data as { ok?: boolean; state?: AuthEmailState } | null
-  return json({ ok: result?.ok !== false, state: result?.state ?? 'unknown' })
+  const result = data as { ok?: boolean; state?: AuthEmailState | 'new' } | null
+  const state = result?.state === 'new' ? 'no_account' : result?.state ?? 'unknown'
+  return json({ ok: result?.ok !== false, state })
 })
