@@ -28,6 +28,8 @@ interface RespondentLite {
   level: Level;
   function: BusinessFunction | null;
   isAnonymous: boolean;
+  isOwned: boolean;
+  isOwner: boolean;
 }
 
 export default function AssessDeep() {
@@ -57,13 +59,13 @@ export default function AssessDeep() {
         return;
       }
       const payload = rpc as unknown as {
-        respondent: { id: string; slug: string; level: Level; function: BusinessFunction | null; is_anonymous: boolean } | null;
+        respondent: { id: string; slug: string; level: Level; function: BusinessFunction | null; is_anonymous: boolean; is_owned?: boolean; is_owner?: boolean } | null;
       };
       if (!payload.respondent) {
         setLoadErr("Report not found");
         return;
       }
-      setRespondent({ ...payload.respondent, isAnonymous: payload.respondent.is_anonymous });
+      setRespondent({ ...payload.respondent, isAnonymous: payload.respondent.is_anonymous, isOwned: !!payload.respondent.is_owned, isOwner: !!payload.respondent.is_owner });
     })();
     return () => { cancelled = true; };
   }, [slug]);
@@ -79,15 +81,21 @@ export default function AssessDeep() {
 
       setAuthGate("checking");
       setLoadErr(null);
-      const claim = await claimReportBySlug(respondent.slug, false);
+      const { data: fresh } = await supabase.rpc("get_report_by_slug", { _slug: respondent.slug });
       if (cancelled) return;
-      void supabase.from("events").insert({
-        name: claim.ok ? "report_claimed" : "report_claim_failed",
-        payload: { slug: respondent.slug, status: claim.status },
-      });
-      if (!claim.ok) {
+      const freshRespondent = (fresh as { respondent?: { is_anonymous?: boolean; is_owned?: boolean; is_owner?: boolean } } | null)?.respondent;
+      if (freshRespondent?.is_owned && !freshRespondent.is_owner) {
         setAuthGate("blocked");
         return;
+      }
+
+      if (freshRespondent?.is_anonymous ?? respondent.isAnonymous) {
+        const claim = await claimReportBySlug(respondent.slug, false);
+        if (cancelled) return;
+        if (!claim.ok) {
+          setAuthGate("blocked");
+          return;
+        }
       }
       setAuthGate("ready");
 
