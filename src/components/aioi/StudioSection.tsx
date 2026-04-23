@@ -7,7 +7,6 @@ interface Service {
   brand: "Deepgrain" | "People X AI";
   blurb: string;
   duration: string;
-  pricing: string;
 }
 
 const SERVICES: Service[] = [
@@ -17,7 +16,6 @@ const SERVICES: Service[] = [
     blurb:
       "Get the first real workflow into production. Pick the function with the most operating debt and rebuild it around the model.",
     duration: "4–6 weeks",
-    pricing: "from £25k",
   },
   {
     name: "AI Build Sprint",
@@ -25,7 +23,6 @@ const SERVICES: Service[] = [
     blurb:
       "Ship a production-grade AI workflow with evals, observability and a clear handover. For teams who already know what to build.",
     duration: "6–10 weeks",
-    pricing: "from £45k",
   },
   {
     name: "Fractional AI Partner",
@@ -33,7 +30,6 @@ const SERVICES: Service[] = [
     blurb:
       "Embedded senior partner across governance, evals and org redesign. For Integrated and Leveraged orgs scaling AI across functions.",
     duration: "2 days / month, 6+ months",
-    pricing: "from £12k / month",
   },
   {
     name: "AI Workforce Programme",
@@ -41,7 +37,6 @@ const SERVICES: Service[] = [
     blurb:
       "Build fluency across the whole organisation. Cohort-based, function-specific, with measurable outputs not just attendance.",
     duration: "8–12 weeks",
-    pricing: "from £35k",
   },
 ];
 
@@ -111,9 +106,6 @@ export function StudioSection() {
                 <div className="flex items-center justify-between mb-4">
                   <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-cream/35">
                     {s.brand}
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-brass-bright/80">
-                    {s.pricing}
                   </span>
                 </div>
                 <h3 className="font-display text-2xl text-cream leading-snug mb-3 group-hover:text-brass-bright transition-colors">
