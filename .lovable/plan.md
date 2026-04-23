@@ -1,174 +1,249 @@
 
-## Fix the two Deep Dive flow failures quickly
+## Deep test and cleanup plan before production
 
-### Problems to address
+### Goal
 
-1. **OAuth handoff from the report is not explicit enough**
-   - After “Continue with Google”, the user should see clear in-app confirmation that sign-in succeeded.
-   - The flow should then go straight to `/assess/deep/:slug`, not leave the user wondering whether sign-in worked.
+Make the assessment, authentication, report, and Deep Dive flows production-safe by adding regression coverage, removing duplicated/fragile flow code, and checking for loops or confusing recovery states without changing the intended user experience.
 
-2. **Deep Dive completion can fall into a retry loop**
-   - The answers may be saved, but re-scoring fails.
-   - The current screen only offers “Retry scoring” or “Back to report”, which can trap the user in the same state.
-   - This is likely to affect individual, function, and company reports because they share the same Deep Dive completion path.
+## 1. Map the full production flow
 
-## Implementation plan
-
-### 1. Make OAuth redirects report-aware and visible
-
-Update the Google/Apple sign-in URLs from the Deep Dive gate so they preserve:
-
-- report slug
-- intended destination: `/assess/deep/:slug`
-- claim intent
-- provider/method, e.g. `auth_method=google`
-
-Then update `AuthCallback` so that when OAuth succeeds it shows a short confirmation state such as:
-
-- “Signed in with Google.”
-- “Saving this report to your account.”
-- “Taking you to the Deep Dive.”
-
-After claiming the report, it should immediately route to:
+Create a documented flow map covering every route and transition:
 
 ```text
+Home / Assessment landing
+↓
+/assess
+↓
+/assess/scan
+↓
+/assess/r/:slug
+↓
+Deep Dive unlock
+↓
+Google / Apple / email backup
+↓
+/auth/callback
+↓
 /assess/deep/:slug
+↓
+/assess/r/:slug
+↓
+/reports
 ```
 
-### 2. Add an auth-ready guard before report claim / Deep Dive loading
+Also cover legacy/full-flow routes still in use:
 
-Add a small auth readiness hook or helper so authenticated work does not run until the session is fully restored.
+```text
+/assess/start
+↓
+/assess/q/:step
+↓
+/assess/processing
+↓
+/auth/callback
+↓
+/assess/r/:slug
+```
 
-Use it in:
+This gives us a checklist for every button, redirect, retry state, and recovery path.
 
+## 2. Add a shared auth-flow test harness
+
+Build reusable test helpers so the same scenarios can be tested without copy-paste:
+
+- mocked signed-out session
+- mocked signed-in session
+- mocked OAuth success
+- mocked email-link success
+- mocked expired / invalid / used / unconfirmed email-link callbacks
+- mocked report claim success
+- mocked report already claimed by another account
+- mocked scoring success
+- mocked scoring failure
+- mocked saved-answers-then-scoring-fails state
+
+Use this in page-level E2E-style tests for:
+
+- `SignIn`
 - `AuthCallback`
-- `AssessDeep`
+- `DeepDiveEmailGate`
+- `AssessStart`
 - `AssessProcessing`
-- `MyReports` if needed
+- `AssessScan`
+- `AssessDeep`
+- `AssessReport`
+- `MyReports`
 
-This prevents authenticated calls from firing while the browser has returned from OAuth but the session is not yet available to the client.
+## 3. Test every assessment entry and question path
 
-The important rule:
+Add regression tests for the public assessment flow:
 
-```text
-Do not claim reports, load private responses, or invoke scoring until auth is ready and user/session exists.
-```
+### `/assess`
+- company card starts company scan
+- function card starts function scan
+- individual card starts individual scan
+- selected level is persisted correctly
+- back/home controls do not break flow
 
-### 3. Harden the Deep Dive page after OAuth
+### `/assess/scan`
+- renders the correct question count per level
+- company includes the additional agent question
+- function prompts respect the selected function
+- option buttons save answers and advance
+- previous/back works
+- keyboard shortcuts work only when safe
+- double-click or Enter/button race does not submit twice
+- submit success routes to `/assess/r/:slug`
+- submit timeout/network/server/validation failures show retry UI
+- “Try again” retries the saved payload only once
+- “Review answers” returns to editable questions without losing answers
 
-Update `AssessDeep` so the flow becomes:
+## 4. Test report page buttons and locked/unlocked states
 
-```text
-Load public report by slug
-↓
-Wait for auth readiness
-↓
-If signed out: show OAuth-first gate
-↓
-If signed in: claim report
-↓
-Load existing answers
-↓
-Show remaining Deep Dive questions
-```
+Add tests for `AssessReport` covering:
 
-If the claim succeeds, do not show the email gate again.
+- loading state
+- missing report state
+- report-building/no-report state
+- ready report state
+- Share link button
+- Email executive PDF popover
+- PDF email success
+- PDF generated but email handoff fails, showing direct link
+- PDF failure toast
+- Deep Dive CTA for anonymous reports shows auth gate
+- Deep Dive CTA for claimed reports routes directly to `/assess/deep/:slug`
+- “Resend report link” appears only for signed-in users
+- resend report link uses the centralized auth callback URL builder, not a raw report URL
+- tab switching does not hide or duplicate important CTAs
 
-If the claim fails because the report belongs to another account, show a clear “wrong account” recovery state with:
+## 5. Test all sign-in and sign-up paths
 
-- sign out / use another account
-- back to report
-- contact/support-style instruction if needed
+Extend auth tests to cover every entry point:
 
-### 4. Fix the re-scoring failure loop
+### `/signin`
+- signed-out user sees Google, Apple, and email backup
+- signed-in user redirects to `next`
+- `next`, `claim`, `consent_marketing`, and `email` are preserved
+- email backup covers all `auth-email-status` states
+- expired / invalid callback errors route back with a clear action
+- Google/Apple failures show a toast and leave the user on the page
 
-Update the Deep Dive completion logic so it separates three phases:
+### `DeepDiveEmailGate`
+- Google preserves `/assess/deep/:slug`
+- Apple preserves `/assess/deep/:slug`
+- email backup preserves `claim` and `consent_marketing`
+- resend does not create duplicate state or lose the slug
+- “Try another email” resets only the email gate state
+- “Back to report” returns to `/assess/r/:slug`
 
-1. **Save new answers**
-2. **Re-score report**
-3. **Route back to updated report**
+### `AssessStart`
+- consent requirement blocks OAuth and email backup until benchmark consent is checked
+- Google/Apple begin auth with the same layout and copy as the other auth gates
+- email backup saves qualifier data and routes into questions
+- magic-link resend state is clear and non-duplicative
 
-If answers save but scoring fails:
+### `AssessProcessing`
+- signed-in users finalize once only
+- signed-out users see auth options and resend/change-email actions
+- OAuth returns to processing and finalizes
+- email backup returns to processing and finalizes
+- errors offer retry/start-over without reload loops
 
-- do not imply the answers are only “saved locally”
-- do not create an endless “retry scoring” loop
-- show a clearer state:
+## 6. Harden and test `AuthCallback`
 
-```text
-Your Deep Dive answers are saved.
-We could not refresh the score yet.
-```
+Add targeted tests for callback routing:
 
-Primary action:
+- no `next` defaults safely to `/reports`
+- `next=/assess/processing` resumes assessment progress
+- `next=/assess/deep/:slug` claims report then enters Deep Dive
+- `next=/assess/r/:slug` returns to report end state
+- persisted sessionStorage context is used when provider drops params
+- URL params override stale sessionStorage context
+- callback context is cleared after successful routing
+- claim failure shows the right recovery UI
+- sync failure shows “signed in, but sync hit a snag”
+- no-session timeout does not spin forever
+- callback effect does not run twice under React StrictMode
 
-```text
-Finish scoring
-```
+## 7. Test Deep Dive across all levels
 
-Secondary action:
+Extend `AssessDeep.e2e.test.tsx` so all report levels are covered consistently:
 
-```text
-View report while scoring is retried
-```
+- individual OAuth claim -> Deep Dive -> report
+- function OAuth claim -> Deep Dive -> report
+- company OAuth claim -> Deep Dive -> report
+- individual email backup claim -> Deep Dive -> report
+- function email backup claim -> Deep Dive -> report
+- company email backup claim -> Deep Dive -> report
+- signed-out Deep Dive shows auth gate
+- signed-in Deep Dive does not show auth gate
+- already-owned report proceeds
+- already-claimed report shows wrong-account recovery
+- existing quickscan answers are skipped
+- existing Deep Dive answers are skipped
+- all remaining answers are upserted once
+- scoring receives the current session token
+- saved answers + scoring failure shows safe recovery
+- “Finish scoring” retries scoring only
+- “View report while scoring retries” does not resubmit answers
+- no endless retry or redirect loop
 
-The retry should only re-run scoring if answers are already saved, not re-submit the same responses unnecessarily.
+## 8. Backend function and auth configuration checks
 
-### 5. Fix backend function configuration for scoring auth
+Verify and add tests/checks for scoring-related functions:
 
-The `rescore-respondent` function validates the user token inside the function, but the project config currently does not list it under function-specific auth settings.
+- `submit-quickscan`
+- `score-responses`
+- `rescore-respondent`
+- `email-report-pdf`
+- `auth-email-status`
 
-Add function config entries for scoring functions that perform in-code auth validation:
+Confirm:
 
-```toml
-[functions.rescore-respondent]
-verify_jwt = false
+- functions that validate auth internally are not blocked at the gateway
+- functions that should be public have explicit safe validation inside the function
+- scoring functions handle missing/invalid tokens with clear responses
+- response bodies are always consumed in Deno tests
+- no auth-sensitive code depends on localStorage/sessionStorage for authorization
 
-[functions.score-responses]
-verify_jwt = false
-```
+No database schema change is planned unless tests reveal a real data-access gap.
 
-This avoids the gateway rejecting valid sessions before the function’s own ownership check runs.
+## 9. Remove redundant and fragile code
 
-### 6. Pass the current session token explicitly when re-scoring
+Refactor only where tests prove it is safe.
 
-Before invoking `rescore-respondent`, get the current session and pass its access token in the function request headers.
+### Candidates to consolidate
 
-If no session is available:
+- duplicate OAuth button handling into one helper/component pattern
+- duplicate auth callback URL construction into `auth-callback-url.ts`
+- duplicate cooldown/resend logic into small reusable hooks if worthwhile
+- duplicate “signed out, continue with Google/Apple/email backup” copy
+- raw callback/report URLs replaced with centralized URL builders
+- repeated report claim telemetry reduced to one place where possible
+- reload-based retry in `AssessProcessing` replaced with a controlled retry if practical
 
-- route back through sign-in with the report slug preserved
-- do not show “retry scoring” as if it were a scoring problem
+### Guardrails
 
-### 7. Add tests for all three report levels
+- do not rewrite core scoring logic unnecessarily
+- do not change database tables unless a failing test requires it
+- do not alter visual design beyond consistency fixes
+- keep current routes stable
+- keep existing public report access by slug intact
+- keep Google and Apple first, email backup secondary
 
-Add/extend regression tests for:
+## 10. Loop and race-condition audit
 
-- individual report OAuth claim → lands on Deep Dive
-- function report OAuth claim → lands on Deep Dive
-- company report OAuth claim → lands on Deep Dive
-- Deep Dive answer save succeeds but scoring fails → no endless loop
-- retry after saved answers invokes scoring only
-- unauthenticated Deep Dive access shows OAuth-first gate
-- signed-in Deep Dive access does not show the gate again
+Review and test for:
 
-### Files to update
-
-- `src/pages/AuthCallback.tsx`
-- `src/pages/AssessDeep.tsx`
-- `src/pages/AssessProcessing.tsx`
-- `src/components/aioi/DeepDiveEmailGate.tsx`
-- `src/pages/SignIn.tsx` if shared OAuth redirect handling needs alignment
-- `src/hooks/use-auth-ready.ts` or equivalent new auth readiness helper
-- `supabase/config.toml`
-- `src/pages/AssessDeep.e2e.test.tsx`
-- `src/pages/AuthCallback.email-backup.test.tsx`
-
-### Expected outcome
-
-After the fix:
-
-- clicking Google/Apple from the report clearly confirms sign-in
-- the user is routed straight into the correct Deep Dive
-- Deep Dive completion no longer gets stuck on the retry screen
-- saved answers are preserved
-- scoring retries are safe and specific
-- individual, function, and company Deep Dive flows behave consistently
+- effects that navigate repeatedly
+- effects that depend on unstable objects
+- StrictMode double execution
+- duplicate finalise/scoring calls
+- duplicate answer upserts
+- timers that survive unmount
+- auth callback running before session is ready
+- stale sessionStorage auth context
+- stale localStorage assessment/scan drafts
+- “already complete” Deep Dive state repeatedly bouncing between report and Deep Dive
+- report-building states
