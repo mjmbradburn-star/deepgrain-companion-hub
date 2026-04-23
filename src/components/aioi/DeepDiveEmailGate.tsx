@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { ArrowRight, Loader2, Mail } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Mail, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +17,17 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     void supabase.from("events").insert({ name: "deepdive_email_cta_viewed", payload: { slug, level } });
   }, [level, slug]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -34,7 +41,8 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
     try {
       await sendDeepDiveClaimLink(parsed.data, slug, consentMarketing);
       setSentTo(parsed.data);
-      toast({ title: "Check your inbox", description: "We sent a secure link to save this report and continue." });
+      setCooldown(30);
+      toast({ title: "Check your inbox", description: "We sent a secure sign-in link to save this report and continue." });
     } catch (err) {
       toast({ title: err instanceof SyncError ? err.message : "Could not send the link.", variant: "destructive" });
     } finally {
@@ -45,8 +53,39 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
   if (sentTo) {
     return (
       <div className="rounded-sm border border-brass/30 bg-brass/5 p-5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright mb-2">Link sent</p>
-        <p className="font-display text-base text-cream/85">Check <span className="text-cream">{sentTo}</span>. Open the link to save this report and answer the Deep Dive.</p>
+        <p className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
+          <CheckCircle2 className="h-4 w-4" /> Secure link sent
+        </p>
+        <p className="font-display text-base leading-relaxed text-cream/85">
+          Check <span className="text-cream">{sentTo}</span>. Open the link to save this report and continue the Deep Dive.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-cream/55">
+          Delivery can take up to a minute. If it is not there, check spam or promotions, then resend below.
+        </p>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <Button
+            type="button"
+            disabled={sending || cooldown > 0}
+            onClick={() => {
+              void supabase.from("events").insert({ name: "deepdive_email_resend_clicked", payload: { slug } });
+              void submit({ preventDefault: () => undefined } as React.FormEvent);
+            }}
+            className="h-11 rounded-sm bg-brass px-5 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright"
+          >
+            {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : cooldown > 0 ? <>Resend in {cooldown}s</> : <><RefreshCw className="h-4 w-4 mr-2" /> Resend secure link</>}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setSentTo(null);
+              setCooldown(0);
+            }}
+            className="h-11 rounded-sm border-cream/20 bg-transparent px-5 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
+          >
+            Try another email
+          </Button>
+        </div>
       </div>
     );
   }
