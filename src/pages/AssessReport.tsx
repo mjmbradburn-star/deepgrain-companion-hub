@@ -342,7 +342,7 @@ function OverviewTab({
   const readout = narrativeReadout(report, hasDeepdive);
   return (
     <>
-    <section className="container max-w-6xl py-10 sm:py-20">
+    <section className="container max-w-6xl py-8 sm:py-20">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         {/* Left — score + diagnosis */}
         <div className="lg:col-span-5">
@@ -436,14 +436,14 @@ function OverviewTab({
       </div>
 
       {!hasDeepdive && (
-        <div className="mt-10 lg:mt-12">
+        <div className="mt-8 sm:mt-10 lg:mt-12">
           <DeepDiveUnlock slug={slug} level={level} variant="inline" isAnonymous={isAnonymous} />
         </div>
       )}
 
       {/* Cohort delta card — full width below the completion prompt.
           Spacing keeps the benchmark close while making Deep Dive the next action. */}
-      <div className="mt-10 lg:mt-12">
+      <div className="mt-8 sm:mt-10 lg:mt-12">
         <BenchmarkSliceCard
           values={pillarValues}
           userScore={report.aioi_score}
