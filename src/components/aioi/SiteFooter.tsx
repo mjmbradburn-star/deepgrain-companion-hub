@@ -15,8 +15,6 @@ export function SiteFooter() {
             <a href="/ladder" className="hover:text-cream">Ladder</a>
             <a href="/benchmarks" className="hover:text-cream">Benchmarks</a>
             <a href="/privacy" className="hover:text-cream">Privacy</a>
-            <a href="/sitemap.xml" className="hover:text-cream">Sitemap</a>
-            <a href="/llms.txt" className="hover:text-cream">llms.txt</a>
             <a href="https://deepgrain.ai" target="_blank" rel="noopener noreferrer" className="hover:text-brass-bright">deepgrain.ai ↗</a>
           </nav>
         </div>
