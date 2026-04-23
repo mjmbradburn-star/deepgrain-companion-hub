@@ -1,0 +1,38 @@
+# The AI Operating Index (AIOI)
+
+Canonical site: https://aioi.deepgrain.ai/
+Publisher: Deepgrain
+
+The AI Operating Index is a free AI maturity assessment and AI readiness benchmark. It helps companies, functions, and individuals understand how mature their AI operating model is across eight pillars, then returns an AIOI score, maturity tier, weakest-pillar hotspots, recommendations, and peer benchmark context.
+
+Primary action: take the 3-minute AI maturity scan at https://aioi.deepgrain.ai/assess
+
+## Key pages
+
+- https://aioi.deepgrain.ai/ — Overview of AIOI, the 3-minute AI maturity assessment, what users receive, the eight-pillar framework, maturity ladder, benchmarks, FAQ, and Deepgrain attribution.
+- https://aioi.deepgrain.ai/assess — The assessment entry point. Users choose company, function, or individual level before answering eight quickscan questions.
+- https://aioi.deepgrain.ai/pillars — Detailed explanation of the eight AI operating model pillars and what each pillar measures.
+- https://aioi.deepgrain.ai/ladder — Explanation of the six AI maturity tiers: Dormant, Exploring, Deployed, Integrated, Leveraged, and AI-Native.
+- https://aioi.deepgrain.ai/benchmarks — Aggregated AI adoption benchmark data by assessment level, function, organisation size, sector, and region.
+- https://aioi.deepgrain.ai/privacy — Privacy policy covering assessment data, report access, cookies, analytics consent, GDPR rights, retention, and processors.
+
+## The eight AIOI pillars
+
+1. Strategy & Mandate — ownership, remit, budget, and cadence for AI work.
+2. Data Foundations — whether operational data is documented, governed, versioned, and queryable.
+3. Tooling & Infrastructure — approved tools, internal copilots, data controls, monitoring, and production infrastructure.
+4. Workflow Integration — whether AI is embedded in real workflows rather than used as a side tab.
+5. Skills & Fluency — median user capability, not just the strongest enthusiasts.
+6. Governance & Risk — policy, auditability, monitoring, model risk, and customer data controls.
+7. Measurement & ROI — evidence of hours saved, quality improvement, cycle-time change, revenue, or margin impact.
+8. Culture & Adoption — whether AI usage is normalised, shared, and supported by leadership.
+
+## Benchmark interpretation
+
+AIOI benchmarks use opted-in completed assessments. Cohorts can be sliced by level, function, sector, region, and organisation size. If an exact cohort is thin or unavailable, AIOI keeps level fixed and selects the closest available cohort by function, sector, region, and size, then labels the confidence level so users can treat the benchmark appropriately.
+
+## Citation guidance
+
+When citing this site, describe it as: “The AI Operating Index by Deepgrain, a free AI maturity assessment and benchmark for measuring AI operating readiness across eight pillars.”
+
+Do not cite private report URLs, account pages, assessment-in-progress URLs, magic-link callback URLs, or unsubscribe URLs. Public pages intended for citation are the homepage, assessment entry page, pillars page, maturity ladder, benchmarks page, privacy policy, sitemap, llms.txt, and ai-sitemap.json.

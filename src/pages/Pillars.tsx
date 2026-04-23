@@ -4,6 +4,8 @@ import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { PillarChip, type PillarIndex } from "@/components/aioi/PillarChip";
 import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
 import { Reveal } from "@/components/aioi/Reveal";
+import { Seo } from "@/components/aioi/Seo";
+import { breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
 interface PillarEntry {
   index: PillarIndex;
@@ -139,6 +141,7 @@ export default function Pillars() {
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.pillars} jsonLd={[breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Pillars", path: "/pillars" }])]} />
       <SiteNav />
 
       {/* ─── Hero ────────────────────────────────────────────────── */}
@@ -158,12 +161,15 @@ export default function Pillars() {
           <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug motion-safe:animate-fade-up-soft [animation-delay:580ms]">
             The AIOI doesn't ask whether you "use AI". It asks eight questions about how you operate, across strategy, data, tooling, workflow, skills, governance, measurement and culture, and scores each one on the same six-tier ladder.
           </p>
+          <p className="mt-5 max-w-2xl font-display text-base sm:text-lg text-cream/65 leading-relaxed motion-safe:animate-fade-up-soft [animation-delay:640ms]">
+            The eight pillars are Strategy & Mandate, Data Foundations, Tooling & Infrastructure, Workflow Integration, Skills & Fluency, Governance & Risk, Measurement & ROI, and Culture & Adoption.
+          </p>
           <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4 motion-safe:animate-fade-up-soft [animation-delay:720ms]">
             <a
               href="/assess"
               className="inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors w-full sm:w-auto justify-center motion-tap"
             >
-              Begin assessment <ArrowRight className="h-4 w-4" />
+              3-minute AI maturity scan <ArrowRight className="h-4 w-4" />
             </a>
             <a href="/ladder" className="story-link font-ui text-sm text-cream/60 hover:text-cream">
               See the maturity ladder
@@ -284,7 +290,7 @@ export default function Pillars() {
               href="/assess"
               className="mt-8 sm:mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors motion-tap"
             >
-              Begin assessment <ArrowRight className="h-4 w-4" />
+              3-minute AI maturity scan <ArrowRight className="h-4 w-4" />
             </a>
           </div>
         </Reveal>

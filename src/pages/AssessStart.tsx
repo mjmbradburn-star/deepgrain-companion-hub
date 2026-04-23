@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
+import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FUNCTIONS, LEVELS, REGIONS, loadDraft, saveDraft, type BusinessFunction, type Region } from "@/lib/assessment";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { supabase } from "@/integrations/supabase/client";
+import { seoRoutes } from "@/lib/seo";
 
 const ROLE_OPTIONS = [
   "Founder / CEO",
@@ -110,6 +112,7 @@ export default function AssessStart() {
       back={{ to: stepIndex === 0 ? "/assess" : "#", label: stepIndex === 0 ? "Levels" : "Back" }}
       ariaLabel="Qualifier"
     >
+      <Seo {...seoRoutes.flow} path="/assess/start" />
       <main className="container max-w-2xl w-full py-16 sm:py-20 flex flex-col">
         {levelMeta && (
           <p className="eyebrow mb-6 animate-fade-in">

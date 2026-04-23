@@ -1,5 +1,7 @@
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { SiteNav } from "@/components/aioi/SiteNav";
+import { Seo } from "@/components/aioi/Seo";
+import { breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
 const sections = [
   {
@@ -47,6 +49,7 @@ const sections = [
 export default function Privacy() {
   return (
     <div className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.privacy} jsonLd={[breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Privacy", path: "/privacy" }])]} />
       <SiteNav />
       <main className="container max-w-4xl pb-20 pt-28 sm:pb-28 sm:pt-36">
         <p className="eyebrow mb-5">Legal</p>
@@ -71,6 +74,8 @@ export default function Privacy() {
           <h2 className="font-ui text-sm font-semibold uppercase tracking-[0.16em] text-brass">Search and analytics links</h2>
           <p className="mt-3 font-display text-lg text-cream/75">
             Sitemap: <a className="text-cream underline decoration-brass underline-offset-4 hover:text-brass" href="/sitemap.xml">https://aioi.deepgrain.ai/sitemap.xml</a>
+            <br />
+            LLM discovery: <a className="text-cream underline decoration-brass underline-offset-4 hover:text-brass" href="/llms.txt">https://aioi.deepgrain.ai/llms.txt</a>
           </p>
         </section>
       </main>

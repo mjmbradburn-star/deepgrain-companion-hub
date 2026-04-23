@@ -4,10 +4,12 @@ import { ArrowRight, FileText, Loader2, LogOut, Plus } from "lucide-react";
 
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
+import { Seo } from "@/components/aioi/Seo";
 import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { seoRoutes } from "@/lib/seo";
 
 interface RespondentRow {
   id: string;
@@ -61,6 +63,7 @@ export default function MyReports() {
 
   return (
     <div className="min-h-screen bg-walnut text-cream flex flex-col">
+      <Seo {...seoRoutes.reports} />
       <SiteNav />
 
       <main className="flex-1 container max-w-5xl pt-28 sm:pt-36 pb-20">

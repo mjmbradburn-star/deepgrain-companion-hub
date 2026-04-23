@@ -3,11 +3,13 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Loader2, Mail, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
+import { Seo } from "@/components/aioi/Seo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { loadDraft, getQuestions } from "@/lib/assessment";
 import { ensureRespondent, flushAnswers, sendMagicLink, SyncError } from "@/lib/sync";
 import { claimReportBySlug } from "@/lib/report-claim";
+import { seoRoutes } from "@/lib/seo";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -198,6 +200,7 @@ export default function AuthCallback() {
       : `/signin?next=${encodeURIComponent(next)}${claimParams}`;
     return (
       <AssessChrome ariaLabel="Sign-in problem">
+        <Seo {...seoRoutes.flow} path="/auth/callback" />
         <main className="container max-w-xl w-full py-20 sm:py-28">
           <p className="eyebrow mb-5">{copy.eyebrow}</p>
           <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
@@ -274,6 +277,7 @@ export default function AuthCallback() {
 
   return (
     <AssessChrome ariaLabel="Signing you in">
+      <Seo {...seoRoutes.flow} path="/auth/callback" />
       <main className="container max-w-2xl w-full py-24">
         <p className="eyebrow mb-5">Signing you in</p>
         <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">

@@ -10,10 +10,13 @@ export function SiteFooter() {
             </p>
           </div>
           <nav className="flex flex-wrap gap-x-8 gap-y-3 font-ui text-sm text-cream/60">
+            <a href="/assess" className="hover:text-cream">Start assessment</a>
             <a href="/pillars" className="hover:text-cream">Pillars</a>
             <a href="/ladder" className="hover:text-cream">Ladder</a>
             <a href="/benchmarks" className="hover:text-cream">Benchmarks</a>
             <a href="/privacy" className="hover:text-cream">Privacy</a>
+            <a href="/sitemap.xml" className="hover:text-cream">Sitemap</a>
+            <a href="/llms.txt" className="hover:text-cream">llms.txt</a>
             <a href="https://deepgrain.ai" target="_blank" rel="noopener noreferrer" className="hover:text-brass-bright">deepgrain.ai ↗</a>
           </nav>
         </div>

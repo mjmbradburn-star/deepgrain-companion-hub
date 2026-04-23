@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, ChevronLeft, Info } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
+import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
 import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
@@ -15,6 +16,7 @@ import {
   type AssessmentDraft,
 } from "@/lib/assessment";
 import { pushAnswer } from "@/lib/sync";
+import { seoRoutes } from "@/lib/seo";
 
 export default function AssessQuestion() {
   const { step } = useParams<{ step: string }>();
@@ -125,6 +127,7 @@ export default function AssessQuestion() {
       back={{ to: "#", label: "Back" }}
       ariaLabel={`Question ${stepNum} of ${questions.length}`}
     >
+      <Seo {...seoRoutes.flow} path={`/assess/q/${stepNum}`} />
       <main className="w-full flex flex-col">
         {/* Progress bar — full width under the chrome */}
         <div className="container pt-6">

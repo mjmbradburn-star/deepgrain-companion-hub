@@ -3,6 +3,8 @@ import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { TierBadge, type Tier } from "@/components/aioi/TierBadge";
 import { Reveal } from "@/components/aioi/Reveal";
+import { Seo } from "@/components/aioi/Seo";
+import { breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
 interface TierEntry {
   tier: Tier;
@@ -120,6 +122,7 @@ export default function Ladder() {
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.ladder} jsonLd={[breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Maturity ladder", path: "/ladder" }])]} />
       <SiteNav />
 
       {/* ─── Hero ────────────────────────────────────────────────── */}
@@ -138,6 +141,9 @@ export default function Ladder() {
           <div className="mt-5 h-px w-20 sm:w-24 bg-brass/70 origin-left motion-safe:animate-underline-draw [animation-delay:480ms]" />
           <p className="mt-6 sm:mt-8 max-w-2xl font-display text-lg sm:text-xl lg:text-2xl text-cream/70 leading-snug motion-safe:animate-fade-up-soft [animation-delay:580ms]">
             Every pillar is scored on the same ladder. Your AIOI is the weighted aggregate. The gap between your weakest and strongest pillar is usually a more interesting number than the average.
+          </p>
+          <p className="mt-5 max-w-2xl font-display text-base sm:text-lg text-cream/65 leading-relaxed motion-safe:animate-fade-up-soft [animation-delay:640ms]">
+            The AI maturity ladder turns an AI readiness assessment into six clear operating states: Dormant, Exploring, Deployed, Integrated, Leveraged and AI-Native.
           </p>
         </div>
       </section>
@@ -262,14 +268,14 @@ export default function Ladder() {
           <div className="container max-w-4xl py-16 sm:py-24 text-center">
             <p className="eyebrow mb-5">Find your rung</p>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight">
-              Seven minutes.<br />
+              Three minutes.<br />
               <span className="italic text-brass-bright">A score you can argue with.</span>
             </h2>
             <a
               href="/assess"
               className="mt-8 sm:mt-10 inline-flex items-center gap-2 h-12 px-7 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase transition-colors motion-tap"
             >
-              Begin assessment <ArrowRight className="h-4 w-4" />
+              3-minute AI maturity scan <ArrowRight className="h-4 w-4" />
             </a>
             <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
               Or read <a href="/pillars" className="story-link hover:text-cream">the eight pillars</a> first

@@ -11,6 +11,9 @@ import { loadScan } from "@/lib/quickscan";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, RefreshCw } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { Seo } from "@/components/aioi/Seo";
+import { trackEvent } from "@/lib/analytics";
+import { benchmarkDatasetJsonLd, breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
 type Row = Database["public"]["Tables"]["benchmarks_materialised"]["Row"] & {
@@ -507,11 +510,12 @@ export default function Benchmarks() {
     );
   };
 
-  const setLevel = (v: Level) => updateParams({ level: v === "function" ? null : v });
-  const setFn = (v: FunctionSlice) => updateParams({ fn: v === "All" ? null : v });
-  const setSize = (v: SizeBand) => updateParams({ size: v === "All" ? null : v });
-  const setSector = (v: Sector) => updateParams({ sector: v === "All" ? null : v });
-  const setRegion = (v: Region) => updateParams({ region: v === "All" ? null : v });
+  const trackFilterChange = (filter: string, value: string) => trackEvent("benchmark_filter_changed", { filter, value }, { optional: true });
+  const setLevel = (v: Level) => { trackFilterChange("level", v); updateParams({ level: v === "function" ? null : v }); };
+  const setFn = (v: FunctionSlice) => { trackFilterChange("function", v); updateParams({ fn: v === "All" ? null : v }); };
+  const setSize = (v: SizeBand) => { trackFilterChange("size", v); updateParams({ size: v === "All" ? null : v }); };
+  const setSector = (v: Sector) => { trackFilterChange("sector", v); updateParams({ sector: v === "All" ? null : v }); };
+  const setRegion = (v: Region) => { trackFilterChange("region", v); updateParams({ region: v === "All" ? null : v }); };
   const setCompareOpen = (open: boolean | ((v: boolean) => boolean)) => {
     const next = typeof open === "function" ? open(compareOpen) : open;
     updateParams({ compare: next ? "1" : null });
@@ -651,6 +655,7 @@ export default function Benchmarks() {
 
   return (
     <main className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.benchmarks} jsonLd={[benchmarkDatasetJsonLd(), breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Benchmarks", path: "/benchmarks" }])]} />
       <SiteNav />
 
       <section className="pt-24 sm:pt-32 pb-10 sm:pb-12 border-b border-cream/10">
@@ -667,6 +672,9 @@ export default function Benchmarks() {
           <p className="mt-5 sm:mt-6 max-w-2xl font-display text-base sm:text-lg text-cream/70 leading-[1.5] text-pretty motion-safe:animate-fade-up-soft [animation-delay:480ms]">
             Live medians from every assessment that opted in. Slice by level, function,
             organisation size, sector, and region. Then compare functions side by side.
+          </p>
+          <p className="mt-4 max-w-2xl font-display text-base text-cream/65 leading-relaxed motion-safe:animate-fade-up-soft [animation-delay:560ms]">
+            The benchmark is an AI adoption and AI readiness dataset. When your exact cohort is too thin, AIOI keeps the selected level fixed and falls back to the closest available slice by function, sector, region and size.
           </p>
         </div>
       </section>
@@ -992,6 +1000,28 @@ export default function Benchmarks() {
               );
             })}
           </ol>
+        </div>
+      </section>
+
+      <section className="border-t border-cream/10 bg-surface-0 py-12 sm:py-16">
+        <div className="container max-w-5xl grid gap-8 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <p className="eyebrow mb-4 text-cream/45">Benchmark credibility</p>
+            <h2 className="font-display text-3xl text-cream leading-tight">What the cohort means.</h2>
+          </div>
+          <div className="lg:col-span-8 grid gap-5 sm:grid-cols-2">
+            {[
+              ["Confidence", "Large, specific cohorts produce stronger signals. Smaller slices are still useful, but AIOI labels them as directional or thin."],
+              ["Fallbacks", "The fallback scorer keeps assessment level fixed first, then looks for the closest function, sector, region and size match available."],
+              ["Sample size", "Every opted-in completed assessment improves the benchmark base and makes future cohorts more specific."],
+              ["Interpretation", "Benchmarks are context, not a verdict. The most useful comparison is often your weakest pillar versus the cohort median."],
+            ].map(([title, body]) => (
+              <article key={title} className="border-t border-cream/10 pt-5">
+                <h3 className="font-ui text-sm uppercase tracking-[0.16em] text-brass">{title}</h3>
+                <p className="mt-3 font-display text-lg leading-relaxed text-cream/75">{body}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
