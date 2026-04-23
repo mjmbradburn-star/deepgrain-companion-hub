@@ -11,6 +11,7 @@ type MockLevel = Extract<Level, "company" | "function">;
 const supabaseMocks = vi.hoisted(() => ({
   signInWithOtp: vi.fn(),
   getSession: vi.fn(),
+  onAuthStateChange: vi.fn(),
   rpc: vi.fn(),
   invoke: vi.fn(),
   from: vi.fn(),
@@ -19,7 +20,7 @@ const insertedResponses: Array<{ respondent_id: string; question_id: string; tie
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    auth: { getSession: supabaseMocks.getSession, signInWithOtp: supabaseMocks.signInWithOtp },
+    auth: { getSession: supabaseMocks.getSession, onAuthStateChange: supabaseMocks.onAuthStateChange, signInWithOtp: supabaseMocks.signInWithOtp },
     rpc: supabaseMocks.rpc,
     functions: { invoke: supabaseMocks.invoke },
     from: supabaseMocks.from,
@@ -114,6 +115,7 @@ describe("Deep Dive anonymous claim flow", () => {
     vi.clearAllMocks();
     insertedResponses.length = 0;
     supabaseMocks.signInWithOtp.mockResolvedValue({ error: null });
+    supabaseMocks.onAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
     supabaseMocks.invoke.mockImplementation((name: string) => {
       if (name === "auth-email-status") return Promise.resolve({ data: { ok: true, state: "no_account" }, error: null });
       return Promise.resolve({ error: null });
