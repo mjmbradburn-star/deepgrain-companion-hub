@@ -1,119 +1,127 @@
 
-## CI workflow plan for PR regression blocking
+## Plan to add flaky E2E detection in CI
 
 ### Goal
 
-Add a GitHub Actions workflow that runs the full production regression checks on every pull request. If any test fails, the PR check fails so it can be used as a required merge gate before production deploy.
+Update the pull request regression gate so any failed frontend E2E spec is automatically rerun up to two more times. The CI output will clearly distinguish between:
 
-### Files to add/update
+- Passed on first attempt
+- Flaky but recovered on retry
+- Still failing after all retries
 
-1. Add:
+This makes production deploy reviews safer because intermittent tests are visible instead of silently hidden.
+
+### What will change
+
+#### 1. Add a small E2E retry runner
+
+Create a Node script, for example:
 
 ```text
-.github/workflows/e2e-regression.yml
+scripts/run-e2e-with-flake-detection.mjs
 ```
 
-2. Optionally add package scripts in:
+It will:
+
+1. Find all frontend E2E specs:
 
 ```text
-package.json
+src/pages/*.e2e.test.tsx
 ```
 
-to make the commands easier to run locally and in CI.
+2. Run each spec individually with Vitest.
+3. If a spec fails, rerun only that failed spec up to two more times.
+4. Track each spec’s final state:
+   - `PASS` — passed on first try
+   - `FLAKY` — failed once, then passed on retry
+   - `FAIL` — failed after all three attempts
+5. Print a clear summary table in the CI log.
 
-### Workflow behavior
+Example output:
 
-The workflow will run on every pull request:
+```text
+E2E regression summary
+
+PASS   AssessDeep.e2e.test.tsx              attempt 1/3
+PASS   AssessProcessing.e2e.test.tsx        attempt 1/3
+FLAKY  MyReports.e2e.test.tsx               passed on attempt 2/3
+FAIL   AuthCallback.routing.e2e.test.tsx    failed after 3/3 attempts
+
+Totals:
+- Specs passed first try: 6
+- Flaky specs recovered: 1
+- Specs still failing: 1
+```
+
+### CI behavior
+
+#### Passing CI
+
+CI will pass when:
+
+- Every E2E spec eventually passes within 3 attempts.
+
+If one or more tests recovered after retry, the workflow still passes but the summary clearly reports the flaky specs.
+
+#### Failing CI
+
+CI will fail when:
+
+- Any E2E spec still fails after the initial run plus two retries.
+
+This continues to block merges for real failures.
+
+### Package script update
+
+Update `package.json` from the current direct Vitest command:
+
+```json
+"test:e2e": "vitest run $(ls src/pages/*.e2e.test.tsx | tr '\\n' ' ')"
+```
+
+to:
+
+```json
+"test:e2e": "node scripts/run-e2e-with-flake-detection.mjs"
+```
+
+The GitHub Actions workflow can continue to call:
+
+```text
+npm run test:e2e
+```
+
+so the CI workflow remains simple and stable.
+
+### Workflow update
+
+Keep the existing PR workflow and job names, but improve the frontend E2E step name so reviewers understand flaky detection is active:
 
 ```yaml
-on:
-  pull_request:
+- name: Run frontend E2E regression suite with flaky detection
+  run: npm run test:e2e
 ```
 
-It will include:
+The backend edge-function tests will remain unchanged unless you want the same retry behavior added there later.
 
-- Node setup
-- Dependency install with `npm ci`
-- Frontend E2E regression tests
-- Backend edge-function auth/security regression tests
-- Clear failure status if any suite fails
-- GitHub Actions concurrency so newer PR pushes cancel older runs
+### Reporting details
 
-### CI jobs
+The runner will print:
 
-#### 1. Frontend E2E regression job
-
-Runs the full browser-flow-style Vitest suite:
-
-```text
-src/pages/**/*.e2e.test.tsx
-```
-
-This covers the existing assessment, sign-in/sign-up, auth callback, processing, reports, My Reports, shared reports, and Deep Dive regression flows.
-
-Command:
-
-```bash
-npx vitest run "src/pages/**/*.e2e.test.tsx"
-```
-
-#### 2. Backend function regression job
-
-Runs the Deno-based backend safety checks for scoring and report PDF paths, including invalid, malformed, anonymous, and expired-looking token scenarios.
-
-Command set:
-
-```bash
-deno test -A \
-  supabase/functions/score-responses/scoring_test.ts \
-  supabase/functions/score-responses/auth-access_test.ts \
-  supabase/functions/rescore-respondent/auth-access_test.ts \
-  supabase/functions/email-report-pdf/access-control_test.ts \
-  supabase/functions/email-report-pdf/email-handoff_test.ts
-```
-
-This job will require the workflow environment to provide:
-
-```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_PUBLISHABLE_KEY
-```
-
-These should be stored as GitHub repository secrets or variables for the connected backend test environment.
-
-#### 3. Optional production safety checks
-
-Include these in the same workflow so the PR gate catches non-test breakage too:
-
-```bash
-npm run lint
-npm run build
-```
-
-This keeps the deploy gate stricter: tests passing is necessary, but broken lint/build also blocks merge.
-
-### Merge blocking behavior
-
-The workflow file itself makes PR checks fail when tests fail.
-
-To fully block merges in GitHub, the repository should require the workflow status checks before merging into the production branch. The required checks should be named clearly, for example:
-
-```text
-Frontend E2E regression
-Backend edge-function regression
-Build and lint
-```
-
-If branch protection is already enabled, the new checks can be selected as required status checks. If it is not enabled yet, I will add a short note in the workflow/README explaining that this final “block merge” enforcement is controlled by GitHub branch protection settings.
+- one line per spec
+- how many attempts each spec needed
+- a final total summary
+- a “flaky tests detected” section when applicable
+- a non-zero exit code only if any spec remains failing after all retries
 
 ### Acceptance criteria
 
-The CI setup is complete when:
+The change is complete when:
 
-- A new PR automatically runs the regression workflow.
-- Frontend E2E tests run on every PR.
-- Backend scoring/report PDF safety checks run on every PR.
-- Any failed test causes the PR workflow to fail.
-- Build or lint failures also fail the workflow.
-- The check names are stable and easy to mark as required in GitHub.
+- Frontend E2E specs are run individually.
+- Any failed spec is retried up to two more times.
+- Flaky specs are reported clearly in CI logs.
+- Persistent failures still fail the workflow and block merges.
+- The existing workflow still runs on every pull request.
+- Backend regression checks and build/lint checks are not weakened.
 - No production app behavior changes are introduced.
