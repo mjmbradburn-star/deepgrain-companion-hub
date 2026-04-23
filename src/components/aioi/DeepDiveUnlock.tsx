@@ -171,10 +171,10 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
           <Button
             asChild
             size="lg"
-            className="w-full sm:w-auto rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] h-12 min-h-12 px-5 sm:px-7"
+            className="w-full sm:w-auto rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[10px] min-[360px]:text-[11px] sm:text-xs uppercase tracking-[0.1em] min-[360px]:tracking-[0.14em] sm:tracking-[0.18em] h-12 min-h-12 px-4 min-[360px]:px-5 sm:px-7"
           >
             <Link to={`/assess/deep/${slug}`}>
-              <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+              <span className="inline-flex items-center justify-center gap-1.5 min-[360px]:gap-2 whitespace-nowrap">
                 Continue Deep Dive <ArrowRight className="h-4 w-4" />
               </span>
             </Link>

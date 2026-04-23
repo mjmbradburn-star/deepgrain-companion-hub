@@ -217,7 +217,8 @@ describe("AssessReport production controls", () => {
 
     const deepDiveCta = await screen.findByRole("link", { name: /continue deep dive/i });
     expect(deepDiveCta).toHaveClass("w-full", "sm:w-auto", "h-12", "min-h-12");
-    expect(deepDiveCta.querySelector("span")).toHaveClass("whitespace-nowrap");
+    expect(deepDiveCta).toHaveClass("text-[10px]", "min-[360px]:text-[11px]", "tracking-[0.1em]", "px-4");
+    expect(deepDiveCta.querySelector("span")).toHaveClass("whitespace-nowrap", "gap-1.5", "min-[360px]:gap-2");
   });
 
   it("renders compact Deep Dive intro typography with mobile-safe hierarchy", async () => {
