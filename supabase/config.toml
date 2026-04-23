@@ -9,6 +9,10 @@ project_id = "lschdkhtymifmxjcbtvb"
     verify_jwt = false
   [functions.rescore-all-reports]
     verify_jwt = false
+  [functions.rescore-respondent]
+    verify_jwt = false
+  [functions.score-responses]
+    verify_jwt = false
   [functions.send-transactional-email]
     verify_jwt = false
   [functions.preview-transactional-email]
