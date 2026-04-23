@@ -21,6 +21,8 @@ import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import MyReports from "./pages/MyReports.tsx";
 import DevHeroCta from "./pages/DevHeroCta.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import { CookieBanner } from "@/components/aioi/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -47,11 +49,13 @@ const App = () => (
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/reports" element={<MyReports />} />
+          <Route path="/privacy" element={<Privacy />} />
           {import.meta.env.DEV && <Route path="/dev/hero-cta" element={<DevHeroCta />} />}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
         </PageTransition>
+        <CookieBanner />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
