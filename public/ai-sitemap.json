@@ -6,62 +6,87 @@
     "label": "Take the 3-minute AI maturity scan",
     "url": "https://aioi.deepgrain.ai/assess"
   },
-  "pages": [
+  "updatedAt": "2026-04-23",
+  "discoveryFiles": [
+    {
+      "url": "https://aioi.deepgrain.ai/llms.txt",
+      "contentType": "text/plain",
+      "description": "LLM-oriented summary of the site, crawlable entry points, and eight-pillar framework."
+    },
+    {
+      "url": "https://aioi.deepgrain.ai/sitemap.xml",
+      "contentType": "application/xml",
+      "description": "Search engine XML sitemap for public canonical URLs."
+    }
+  ],
+  "crawlableUrls": [
     {
       "url": "https://aioi.deepgrain.ai/",
-      "indexable": true,
-      "purpose": "Homepage and overview of the AI Operating Index",
+      "contentType": "text/html",
+      "pageType": "homepage",
+      "title": "AI Maturity Assessment | AI Operating Index",
+      "description": "Homepage and overview of the AI Operating Index, a free diagnostic for AI readiness and operating maturity.",
       "primaryKeywords": ["AI maturity assessment", "AI readiness assessment", "AI operating model", "AI adoption benchmark"],
       "summary": "AIOI is a free diagnostic that scores AI operating maturity across eight pillars and returns a score, tier, recommendations and benchmark context."
     },
     {
       "url": "https://aioi.deepgrain.ai/assess",
-      "indexable": true,
-      "purpose": "Assessment entry point",
+      "contentType": "text/html",
+      "pageType": "assessment-entry",
+      "title": "Free AI Readiness Assessment | AIOI",
+      "description": "Assessment landing page where users choose company, function, or individual level and start the scan.",
       "primaryKeywords": ["free AI maturity scan", "AI readiness survey", "AI enablement survey"],
       "summary": "Users choose company, function or individual level and begin the 3-minute eight-question quickscan."
     },
     {
       "url": "https://aioi.deepgrain.ai/pillars",
-      "indexable": true,
-      "purpose": "Framework explanation",
+      "contentType": "text/html",
+      "pageType": "framework-guide",
+      "title": "Eight AI Operating Model Pillars | AIOI",
+      "description": "Framework page explaining the eight operating pillars used to score AI maturity.",
       "primaryKeywords": ["AI operating model pillars", "AI governance maturity", "AI workflow maturity"],
       "summary": "Explains the eight AIOI pillars: strategy, data, tooling, workflow, skills, governance, measurement and culture."
     },
     {
       "url": "https://aioi.deepgrain.ai/ladder",
-      "indexable": true,
-      "purpose": "Maturity tier explanation",
+      "contentType": "text/html",
+      "pageType": "maturity-model",
+      "title": "AI Maturity Ladder: Dormant to AI-Native | AIOI",
+      "description": "Maturity ladder page explaining the six tiers used by the AI Operating Index.",
       "primaryKeywords": ["AI maturity ladder", "AI-Native", "AI maturity tiers"],
       "summary": "Defines the six maturity tiers from Dormant to AI-Native and how AIOI scores map to them."
     },
     {
       "url": "https://aioi.deepgrain.ai/benchmarks",
-      "indexable": true,
-      "purpose": "Benchmark cohort exploration",
+      "contentType": "text/html",
+      "pageType": "benchmark-dataset",
+      "title": "AI Adoption Benchmark Data | AIOI",
+      "description": "Benchmark page for comparing AI operating maturity across cohorts and segments.",
       "primaryKeywords": ["AI adoption benchmark", "AI transformation benchmark", "AI readiness data"],
       "summary": "Shows aggregated opted-in benchmark medians by level, function, size, sector and region, with confidence and fallback explanations."
     },
     {
       "url": "https://aioi.deepgrain.ai/privacy",
-      "indexable": true,
-      "purpose": "Privacy and compliance information",
+      "contentType": "text/html",
+      "pageType": "policy",
+      "title": "Privacy Policy | AI Operating Index",
+      "description": "Privacy and compliance page for assessment data, cookies, analytics consent, GDPR rights, retention, and processors.",
       "primaryKeywords": ["AIOI privacy", "GDPR AI assessment", "cookie consent"],
       "summary": "Explains how AIOI handles personal data, cookies, analytics consent, GDPR rights, retention and processors."
-    },
+    }
+  ],
+  "excludedRoutes": [
     {
       "url": "https://aioi.deepgrain.ai/signin",
-      "indexable": false,
-      "purpose": "Private account sign-in",
-      "primaryKeywords": [],
-      "summary": "Noindex route for secure report access."
+      "reason": "Private sign-in route marked noindex."
     },
     {
       "urlPattern": "https://aioi.deepgrain.ai/assess/r/*",
-      "indexable": false,
-      "purpose": "Private or share-link report pages",
-      "primaryKeywords": [],
-      "summary": "Noindex report routes containing user-specific AI maturity results."
+      "reason": "Private user-specific report routes marked noindex."
+    },
+    {
+      "urlPattern": "https://aioi.deepgrain.ai/assess/scan",
+      "reason": "Interactive assessment flow route marked noindex."
     }
   ],
   "framework": {
