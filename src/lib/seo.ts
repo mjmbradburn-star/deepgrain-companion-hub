@@ -1,6 +1,6 @@
 export const SITE_URL = "https://aioi.deepgrain.ai";
 export const SITE_NAME = "The AI Operating Index";
-export const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ef95d1a4-45c4-461a-bfa7-a264b6d81945";
+export const OG_IMAGE = `${SITE_URL}/og/home.png`;
 
 export type SeoRouteKey =
   | "home"
@@ -20,6 +20,8 @@ export interface SeoConfig {
   title: string;
   description: string;
   path: string;
+  image?: string;
+  imageAlt?: string;
   noindex?: boolean;
   type?: "website" | "article";
 }
@@ -29,31 +31,43 @@ export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
     title: "AI Maturity Assessment | AI Operating Index",
     description: "Take the free 3-minute AI maturity assessment from Deepgrain. Score AI readiness across eight operating pillars and compare against peer benchmarks.",
     path: "/",
+    image: `${SITE_URL}/og/home.png`,
+    imageAlt: "AI Operating Index maturity assessment share card",
   },
   assess: {
     title: "Free AI Readiness Assessment | AIOI",
     description: "Start the 3-minute AI readiness scan for companies, functions, or individuals. Get an AIOI score, maturity tier, hotspots, and benchmark context.",
     path: "/assess",
+    image: `${SITE_URL}/og/assess.png`,
+    imageAlt: "Free AI readiness scan share card",
   },
   pillars: {
     title: "Eight AI Operating Model Pillars | AIOI",
     description: "Explore the eight pillars behind the AI Operating Index: strategy, data, tooling, workflow, skills, governance, measurement, and culture.",
     path: "/pillars",
+    image: `${SITE_URL}/og/pillars.png`,
+    imageAlt: "Eight AI operating model pillars share card",
   },
   ladder: {
     title: "AI Maturity Ladder: Dormant to AI-Native | AIOI",
     description: "Understand the six AI maturity tiers used by AIOI, from Dormant and Exploring through Deployed, Integrated, Leveraged, and AI-Native.",
     path: "/ladder",
+    image: `${SITE_URL}/og/ladder.png`,
+    imageAlt: "AI maturity ladder share card",
   },
   benchmarks: {
     title: "AI Adoption Benchmark Data | AIOI",
     description: "Compare AI operating maturity by level, function, sector, region, and organisation size using AIOI benchmark cohorts and fallback scoring.",
     path: "/benchmarks",
+    image: `${SITE_URL}/og/benchmarks.png`,
+    imageAlt: "AI adoption benchmark data share card",
   },
   privacy: {
     title: "Privacy Policy | AI Operating Index",
     description: "How Deepgrain handles AIOI assessment data, report access, cookies, analytics consent, GDPR rights, retention, and processors.",
     path: "/privacy",
+    image: `${SITE_URL}/og/privacy.png`,
+    imageAlt: "AI Operating Index privacy policy share card",
   },
   signin: {
     title: "Sign in to AIOI Reports | AI Operating Index",
