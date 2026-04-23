@@ -1,0 +1,50 @@
+name: Post-deploy smoke tests
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      smoke_base_url:
+        description: Base URL to smoke test
+        required: false
+        type: string
+
+concurrency:
+  group: post-deploy-smoke-${{ github.event.deployment.id || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Production route smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    env:
+      SMOKE_BASE_URL: ${{ inputs.smoke_base_url || vars.SMOKE_BASE_URL || 'https://aioi.deepgrain.ai' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run post-deploy route smoke tests
+        run: npm run smoke:postdeploy 2>&1 | tee smoke-results.log
+
+      - name: Publish smoke test summary
+        if: always()
+        run: |
+          echo "## Post-deploy smoke tests" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Target: $SMOKE_BASE_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          cat smoke-results.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
