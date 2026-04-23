@@ -13,6 +13,8 @@ import { sendMagicLink, SyncError } from "@/lib/sync";
 import { claimReportBySlug } from "@/lib/report-claim";
 import { loadDraft } from "@/lib/assessment";
 import { seoRoutes } from "@/lib/seo";
+import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
+import { lovable } from "@/integrations/lovable";
 
 const emailSchema = z
   .string()
@@ -41,7 +43,7 @@ export default function SignIn() {
     }
   });
   const [submitting, setSubmitting] = useState(false);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sentOutcome, setSentOutcome] = useState<AuthAccessOutcome | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const [checkingSession, setCheckingSession] = useState(true);
   const [linkError, setLinkError] = useState<{ title: string; body: string } | null>(null);
@@ -115,10 +117,10 @@ export default function SignIn() {
     setSubmitting(true);
     try {
       const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
-      await sendMagicLink(parsed.data, redirectTo);
-      setSentTo(parsed.data);
+      const outcome = await sendMagicLink(parsed.data, redirectTo);
+      setSentOutcome(outcome);
       setCooldown(COOLDOWN_SECONDS);
-      toast({ title: "Check your inbox", description: "We just sent your sign-in link." });
+      toast({ title: "Check your inbox", description: authAccessCopy(outcome).toast });
     } catch (err) {
       const msg = err instanceof SyncError ? err.message : "Could not send link. Try again.";
       toast({ title: msg, variant: "destructive" });
@@ -126,6 +128,14 @@ export default function SignIn() {
       setSubmitting(false);
     }
   };
+
+  const signInWithGoogle = async () => {
+    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { prompt: "select_account" } });
+    if (result.error) toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+  };
+
+  const sentCopy = sentOutcome ? authAccessCopy(sentOutcome) : null;
 
   if (checkingSession) {
     return (
@@ -145,7 +155,7 @@ export default function SignIn() {
           <span className="italic text-brass-bright">you left off.</span>
         </h1>
         <p className="mt-6 font-display text-lg text-cream/65 max-w-md">
-          We'll email you a one-time link. No passwords, no accounts to manage.
+          We'll email the right secure link for this address. If inbox delivery stalls, Google sign-in also works.
         </p>
 
         {linkError && (
@@ -188,21 +198,39 @@ export default function SignIn() {
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</>
             ) : cooldown > 0 ? (
               <>Resend in {cooldown}s</>
-            ) : sentTo ? (
+            ) : sentOutcome ? (
               <><Mail className="h-4 w-4 mr-2" /> Resend link</>
             ) : (
-              <>Send sign-in link <ArrowRight className="h-4 w-4 ml-2" /></>
+              <>Send secure access link <ArrowRight className="h-4 w-4 ml-2" /></>
             )}
           </Button>
         </form>
 
-        {sentTo && (
+        <div className="mt-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-cream/10" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">or</span>
+          <div className="h-px flex-1 bg-cream/10" />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={signInWithGoogle}
+          className="mt-4 w-full h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
+        >
+          Continue with Google
+        </Button>
+
+        {sentOutcome && sentCopy && (
           <div className="mt-8 rounded-sm border border-brass/30 bg-brass/5 p-5">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright mb-2">
-              Link sent
+              {sentCopy.title}
             </p>
             <p className="font-display text-base text-cream/85">
-              Check <span className="text-cream">{sentTo}</span>. Open the link on this device to sign in.
+              Check <span className="text-cream">{sentOutcome.email}</span>. {sentCopy.body}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-cream/55">
+              Delivery can take up to a minute. Check spam or promotions if it is not visible.
             </p>
           </div>
         )}
