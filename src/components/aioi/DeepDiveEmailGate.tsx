@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle2, Loader2, Mail, RefreshCw } from "lucide-react
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendDeepDiveClaimLink } from "@/lib/report-claim";
@@ -129,30 +130,7 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
 
   return (
     <div className={compact ? "mt-7 space-y-4" : "mt-8 space-y-5"}>
-      <div className={compact ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
-        <Button
-          type="button"
-          onClick={() => signInWithProvider("google")}
-          className="h-12 w-full rounded-sm bg-brass px-6 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright"
-        >
-          Continue with Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => signInWithProvider("apple")}
-          className="h-12 w-full rounded-sm border-cream/20 bg-transparent px-6 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
-        >
-          Continue with Apple
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-cream/10" />
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">email backup</span>
-        <div className="h-px flex-1 bg-cream/10" />
-      </div>
-
+      <AuthAccessPanel onProvider={signInWithProvider} compact={compact}>
       <form onSubmit={submit} className={compact ? "space-y-4" : "grid gap-x-5 gap-y-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start"}>
       <div className="min-w-0">
         <label className="block">
@@ -189,6 +167,7 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
         {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : <><Mail className="h-4 w-4 mr-2" /> Send secure sign-in link <ArrowRight className="h-4 w-4 ml-2" /></>}
       </Button>
       </form>
+      </AuthAccessPanel>
     </div>
   );
 }
