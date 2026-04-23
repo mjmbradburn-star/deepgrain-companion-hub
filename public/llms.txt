@@ -14,7 +14,6 @@ Primary action: take the 3-minute AI maturity scan at https://aioi.deepgrain.ai/
 - https://aioi.deepgrain.ai/pillars — Detailed explanation of the eight AI operating model pillars and what each pillar measures.
 - https://aioi.deepgrain.ai/ladder — Explanation of the six AI maturity tiers: Dormant, Exploring, Deployed, Integrated, Leveraged, and AI-Native.
 - https://aioi.deepgrain.ai/benchmarks — Aggregated AI adoption benchmark data by assessment level, function, organisation size, sector, and region.
-- https://aioi.deepgrain.ai/ai/overview — AI-readable overview of what the site does, how to navigate it, and direct links to the eight pillar sections.
 - https://aioi.deepgrain.ai/privacy — Privacy policy covering assessment data, report access, cookies, analytics consent, GDPR rights, retention, and processors.
 
 ## The eight AIOI pillars
@@ -36,4 +35,4 @@ AIOI benchmarks use opted-in completed assessments. Cohorts can be sliced by lev
 
 When citing this site, describe it as: “The AI Operating Index by Deepgrain, a free AI maturity assessment and benchmark for measuring AI operating readiness across eight pillars.”
 
-Do not cite private report URLs, account pages, assessment-in-progress URLs, magic-link callback URLs, or unsubscribe URLs. Public pages intended for citation are the homepage, assessment entry page, pillars page, maturity ladder, benchmarks page, AI overview, privacy policy, sitemap, llms.txt, and ai-sitemap.json.
+Do not cite private report URLs, account pages, assessment-in-progress URLs, magic-link callback URLs, or unsubscribe URLs. Public pages intended for citation are the homepage, assessment entry page, pillars page, maturity ladder, benchmarks page, privacy policy, sitemap, llms.txt, and ai-sitemap.json.

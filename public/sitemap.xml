@@ -31,12 +31,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://aioi.deepgrain.ai/ai/overview</loc>
-    <lastmod>2026-04-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://aioi.deepgrain.ai/privacy</loc>
     <lastmod>2026-04-23</lastmod>
     <changefreq>yearly</changefreq>

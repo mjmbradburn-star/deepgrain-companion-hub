@@ -4,6 +4,29 @@ import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
+const navigationLinks = [
+  {
+    href: "/assess",
+    label: "Start the free AI maturity assessment",
+    detail: "Choose company, function, or individual and complete the 3-minute AIOI quickscan.",
+  },
+  {
+    href: "/pillars",
+    label: "Read the eight AI operating model pillars",
+    detail: "Understand the framework used to score strategy, data, tooling, workflow, skills, governance, measurement, and culture.",
+  },
+  {
+    href: "/ladder",
+    label: "Understand the AI maturity ladder",
+    detail: "See how AIOI maps scores from Dormant through Exploring, Deployed, Integrated, Leveraged, and AI-Native.",
+  },
+  {
+    href: "/benchmarks",
+    label: "Compare AI adoption benchmark data",
+    detail: "Review aggregated benchmark context by level, function, organisation size, sector, and region.",
+  },
+];
+
 const pillarLinks = [
   "Strategy & Mandate",
   "Data Foundations",
@@ -13,13 +36,6 @@ const pillarLinks = [
   "Governance & Risk",
   "Measurement & ROI",
   "Culture & Adoption",
-];
-
-const navigationLinks = [
-  { href: "/assess", label: "Start the scan", detail: "Choose company, function, or individual and complete the 3-minute quickscan." },
-  { href: "/pillars", label: "Read the framework", detail: "Understand the eight operating pillars behind every AIOI score." },
-  { href: "/ladder", label: "Interpret maturity", detail: "Map scores to the six tiers from Dormant to AI-Native." },
-  { href: "/benchmarks", label: "Compare benchmarks", detail: "Review aggregate cohort data by level, function, sector, region, and size." },
 ];
 
 export default function AiOverview() {
@@ -50,19 +66,22 @@ export default function AiOverview() {
               href="/assess"
               className="mt-9 inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-brass px-7 font-ui text-sm uppercase tracking-wider text-walnut transition-colors hover:bg-brass-bright"
             >
-              Take the assessment <ArrowRight className="h-4 w-4" aria-hidden />
+              Take the AI maturity assessment <ArrowRight className="h-4 w-4" aria-hidden />
             </a>
           </div>
         </section>
 
         <section className="border-b border-cream/10 bg-surface-0 py-12 sm:py-16">
-          <div className="container grid gap-6 lg:grid-cols-4">
-            {navigationLinks.map((item) => (
-              <a key={item.href} href={item.href} className="group rounded-sm border border-cream/10 bg-surface-1/50 p-5 transition-colors hover:border-brass/60 hover:bg-surface-1">
-                <span className="font-display text-2xl text-cream group-hover:text-brass-bright">{item.label}</span>
-                <span className="mt-3 block font-ui text-sm leading-relaxed text-cream/60">{item.detail}</span>
-              </a>
-            ))}
+          <div className="container">
+            <p className="eyebrow mb-5 text-cream/45">From this page</p>
+            <nav aria-label="From this page" className="grid gap-6 lg:grid-cols-4">
+              {navigationLinks.map((item) => (
+                <a key={item.href} href={item.href} className="group rounded-sm border border-cream/10 bg-surface-1/50 p-5 transition-colors hover:border-brass/60 hover:bg-surface-1">
+                  <span className="font-display text-2xl text-cream group-hover:text-brass-bright">{item.label}</span>
+                  <span className="mt-3 block font-ui text-sm leading-relaxed text-cream/60">{item.detail}</span>
+                </a>
+              ))}
+            </nav>
           </div>
         </section>
 
@@ -70,7 +89,7 @@ export default function AiOverview() {
           <div className="container grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
               <p className="eyebrow mb-5">Eight-pillar framework</p>
-              <h2 className="font-display text-4xl text-cream sm:text-5xl">The sections LLMs and people should read.</h2>
+              <h2 className="font-display text-4xl text-cream sm:text-5xl">Direct pillar section links.</h2>
               <p className="mt-5 font-display text-lg leading-relaxed text-cream/65">
                 Each pillar has a dedicated anchor on the framework page, with plain-language signals, obstacles, and maturity bookends.
               </p>
