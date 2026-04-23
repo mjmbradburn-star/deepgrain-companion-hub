@@ -336,7 +336,7 @@ function EmailScreen({
     try {
       await onSubmit({ email, consentBenchmark: true, consentMarketing });
     } catch (err) {
-      setError(err instanceof SyncError ? err.message : "Could not send your magic link.");
+      setError(err instanceof SyncError ? err.message : "Could not send your email backup link.");
     } finally {
       setSubmitting(false);
     }
@@ -430,7 +430,7 @@ function EmailScreen({
 
         {magicLinkSent && (
           <p className="text-xs text-cream/55 font-mono uppercase tracking-[0.16em]">
-            ✓ Magic link already sent to {initial?.email}. Submitting will refresh it.
+            ✓ Email backup already sent to {initial?.email}. Submitting will refresh it.
           </p>
         )}
 
