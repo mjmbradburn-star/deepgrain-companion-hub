@@ -262,7 +262,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     template_name: emailType,
     recipient_email: payload.data.email,
     status: 'pending',
-    metadata: { run_id, source: 'auth-email-hook' },
+    metadata: { run_id, source: 'auth-email-hook', auth_intent: emailType === 'magiclink' ? 'signin' : emailType === 'signup' ? 'confirmation' : emailType },
   })
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
@@ -301,7 +301,7 @@ async function handleWebhook(req: Request): Promise<Response> {
 
   await supabase.from('events').insert({
     name: 'auth_email_enqueued',
-    payload: { email_type: emailType, run_id },
+    payload: { email_type: emailType, auth_intent: emailType === 'magiclink' ? 'signin' : emailType === 'signup' ? 'confirmation' : emailType, run_id },
   })
 
   return new Response(
