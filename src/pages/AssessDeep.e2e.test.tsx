@@ -64,6 +64,8 @@ function mockReport(level: MockLevel) {
           level,
           function: level === "function" ? "sales" : null,
           is_anonymous: true,
+          is_owned: false,
+          is_owner: false,
         },
       },
       error: null,
