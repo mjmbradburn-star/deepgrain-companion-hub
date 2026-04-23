@@ -1,95 +1,119 @@
 
-## Plan to generate the one-page production E2E PDF report
+## CI workflow plan for PR regression blocking
 
-### Output
+### Goal
 
-Create a downloadable one-page PDF report for the production deploy review, saved as:
+Add a GitHub Actions workflow that runs the full production regression checks on every pull request. If any test fails, the PR check fails so it can be used as a required merge gate before production deploy.
+
+### Files to add/update
+
+1. Add:
 
 ```text
-/mnt/documents/e2e-production-deploy-summary.pdf
+.github/workflows/e2e-regression.yml
+```
+
+2. Optionally add package scripts in:
+
+```text
+package.json
+```
+
+to make the commands easier to run locally and in CI.
+
+### Workflow behavior
+
+The workflow will run on every pull request:
+
+```yaml
+on:
+  pull_request:
 ```
 
 It will include:
 
-- Frontend E2E regression suite result
-- Backend/scoring/report PDF auth-check result
-- Pass/fail counts
-- Warning/risk notes
-- Production-readiness status
-- Short plain-English summary for reviewers
+- Node setup
+- Dependency install with `npm ci`
+- Frontend E2E regression tests
+- Backend edge-function auth/security regression tests
+- Clear failure status if any suite fails
+- GitHub Actions concurrency so newer PR pushes cancel older runs
 
-### Report content
+### CI jobs
 
-Use the latest verified results from the recent regression work:
+#### 1. Frontend E2E regression job
 
-```text
-Frontend E2E regression suite
-- 8 E2E-style test files
-- 52 tests passed
-- 0 failures
-
-Backend function auth/security checks
-- score-responses
-- rescore-respondent
-- email-report-pdf
-- auth-email-status
-- report-pdfs private storage access checks
-- invalid, malformed, anon, and expired-looking token scenarios covered
-- 38 backend tests passed
-- 0 failures
-
-Overall
-- 90 automated checks passed
-- 0 failing tests reported
-```
-
-### Warnings section
-
-Include a clear warnings area:
+Runs the full browser-flow-style Vitest suite:
 
 ```text
-Warnings / follow-ups
-- The report reflects the latest completed regression run recorded in this workspace.
-- No remaining failing tests were reported.
-- Before final deploy, rerun the full suite once more if any code changes are made after this report.
+src/pages/**/*.e2e.test.tsx
 ```
 
-### Visual style
+This covers the existing assessment, sign-in/sign-up, auth callback, processing, reports, My Reports, shared reports, and Deep Dive regression flows.
 
-Use a clean, executive-friendly one-page layout:
+Command:
 
-- Deepgrain/AIOI heading
-- Large “Production deploy review” title
-- Green “Ready” status badge
-- Three summary cards:
-  - Frontend E2E
-  - Backend auth checks
-  - Overall result
-- Compact table of suites and counts
-- Footer with generation date
+```bash
+npx vitest run "src/pages/**/*.e2e.test.tsx"
+```
 
-### Implementation steps after approval
+#### 2. Backend function regression job
 
-1. Generate the PDF with a script using a reliable PDF library.
-2. Save it to `/mnt/documents/e2e-production-deploy-summary.pdf`.
-3. Convert the generated PDF page to an image for visual QA.
-4. Inspect the rendered page for:
-   - clipped text
-   - overlapping sections
-   - poor contrast
-   - missing counts
-   - broken layout
-   - blank/incorrect page
-5. Fix and regenerate if needed.
-6. Return the finished PDF as a downloadable artifact.
+Runs the Deno-based backend safety checks for scoring and report PDF paths, including invalid, malformed, anonymous, and expired-looking token scenarios.
+
+Command set:
+
+```bash
+deno test -A \
+  supabase/functions/score-responses/scoring_test.ts \
+  supabase/functions/score-responses/auth-access_test.ts \
+  supabase/functions/rescore-respondent/auth-access_test.ts \
+  supabase/functions/email-report-pdf/access-control_test.ts \
+  supabase/functions/email-report-pdf/email-handoff_test.ts
+```
+
+This job will require the workflow environment to provide:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
+```
+
+These should be stored as GitHub repository secrets or variables for the connected backend test environment.
+
+#### 3. Optional production safety checks
+
+Include these in the same workflow so the PR gate catches non-test breakage too:
+
+```bash
+npm run lint
+npm run build
+```
+
+This keeps the deploy gate stricter: tests passing is necessary, but broken lint/build also blocks merge.
+
+### Merge blocking behavior
+
+The workflow file itself makes PR checks fail when tests fail.
+
+To fully block merges in GitHub, the repository should require the workflow status checks before merging into the production branch. The required checks should be named clearly, for example:
+
+```text
+Frontend E2E regression
+Backend edge-function regression
+Build and lint
+```
+
+If branch protection is already enabled, the new checks can be selected as required status checks. If it is not enabled yet, I will add a short note in the workflow/README explaining that this final “block merge” enforcement is controlled by GitHub branch protection settings.
 
 ### Acceptance criteria
 
-The PDF is complete when:
+The CI setup is complete when:
 
-- It is exactly one page.
-- It clearly states 90 total checks passed and 0 failures.
-- It separates frontend E2E and backend function checks.
-- It includes warnings/follow-ups for production reviewers.
-- Visual QA confirms the page is readable and not clipped.
-- The final response includes the downloadable PDF artifact.
+- A new PR automatically runs the regression workflow.
+- Frontend E2E tests run on every PR.
+- Backend scoring/report PDF safety checks run on every PR.
+- Any failed test causes the PR workflow to fail.
+- Build or lint failures also fail the workflow.
+- The check names are stable and easy to mark as required in GitHub.
+- No production app behavior changes are introduced.
