@@ -68,7 +68,7 @@ export default function AuthCallback() {
   const [cooldown, setCooldown] = useState(0);
 
   const callbackContext = resolveAuthCallbackContext(params);
-  const next = callbackContext.next;
+  const next = callbackContext.next || "/reports";
   const claimSlug = callbackContext.claim;
   const consentMarketing = callbackContext.consentMarketing;
   const emailParam = callbackContext.email;
@@ -137,7 +137,7 @@ export default function AuthCallback() {
         payload: { next, claim_slug: claimSlug, auth_method: authMethod },
       });
       clearAuthCallbackContext();
-      const nextParam = next;
+      const nextParam = callbackContext.next;
       if (nextParam) {
         navigate(nextParam, { replace: true });
         return;
