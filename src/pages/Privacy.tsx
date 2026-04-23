@@ -70,14 +70,6 @@ export default function Privacy() {
           ))}
         </div>
 
-        <section className="mt-12 rounded-sm border border-cream/10 bg-surface-0 p-6">
-          <h2 className="font-ui text-sm font-semibold uppercase tracking-[0.16em] text-brass">Search and analytics links</h2>
-          <p className="mt-3 font-display text-lg text-cream/75">
-            Sitemap: <a className="text-cream underline decoration-brass underline-offset-4 hover:text-brass" href="/sitemap.xml">https://aioi.deepgrain.ai/sitemap.xml</a>
-            <br />
-            LLM discovery: <a className="text-cream underline decoration-brass underline-offset-4 hover:text-brass" href="/llms.txt">https://aioi.deepgrain.ai/llms.txt</a>
-          </p>
-        </section>
       </main>
       <SiteFooter />
     </div>

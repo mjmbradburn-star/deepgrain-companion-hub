@@ -37,12 +37,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://aioi.deepgrain.ai/llms.txt</loc>
-    <lastmod>2026-04-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
     <loc>https://aioi.deepgrain.ai/ai-sitemap.json</loc>
     <lastmod>2026-04-23</lastmod>
     <changefreq>monthly</changefreq>
