@@ -54,7 +54,7 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
   };
 
   const signInWithProvider = async (provider: "google" | "apple") => {
-    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/assess/deep/${slug}`)}&claim=${encodeURIComponent(slug)}&consent_marketing=${consentMarketing ? "1" : "0"}`;
+    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/assess/deep/${slug}`)}&claim=${encodeURIComponent(slug)}&consent_marketing=${consentMarketing ? "1" : "0"}&auth_method=${provider}`;
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri,
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
