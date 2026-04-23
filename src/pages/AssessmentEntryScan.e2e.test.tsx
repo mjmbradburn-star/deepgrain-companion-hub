@@ -45,6 +45,7 @@ function renderScan() {
 describe("assessment entry and quickscan regression flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
     localStorage.clear();
     supabaseMocks.from.mockReturnValue({ insert: vi.fn().mockResolvedValue({ error: null }) });
     supabaseMocks.invoke.mockResolvedValue({ data: { slug: "scan-report" }, error: null });
@@ -93,7 +94,7 @@ describe("assessment entry and quickscan regression flow", () => {
     });
     const serverError = new Error("500 scoring error");
     serverError.name = "FunctionsHttpError";
-    supabaseMocks.invoke.mockResolvedValueOnce({ data: null, error: serverError });
+    supabaseMocks.invoke.mockImplementationOnce(() => Promise.resolve({ data: null, error: serverError }));
 
     renderScan();
     fireEvent.click(await screen.findByRole("button", { name: /I demo regularly to my team/i }));

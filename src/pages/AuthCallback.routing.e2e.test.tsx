@@ -109,12 +109,15 @@ describe("AuthCallback routing and loop guards", () => {
   });
 
   it("times out instead of spinning forever when no session appears", async () => {
+    vi.useFakeTimers();
     supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
 
     renderCallback("/auth/callback?email=lead%40example.com");
+    await vi.advanceTimersByTimeAsync(2600);
 
-    expect(await screen.findByText(/We couldn't verify/i, {}, { timeout: 4_000 })).toBeInTheDocument();
+    expect(await screen.findByText(/We couldn't verify/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resend link|request a new link/i })).toBeInTheDocument();
+    vi.useRealTimers();
   }, 7000);
 
   it("does not duplicate draft syncing under StrictMode", async () => {

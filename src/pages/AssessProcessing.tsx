@@ -73,6 +73,7 @@ export default function AssessProcessing() {
   const [shown, setShown] = useState<string[]>([]);
   const [resending, setResending] = useState(false);
   const finalisedRef = useRef(false); // guard against StrictMode double-fire
+  const finalisePromiseRef = useRef<ReturnType<typeof finaliseAssessment> | null>(null);
   const { isReady: authReady, session } = useAuthReady();
 
   // 1. Decide what to do based on session + draft.
@@ -94,10 +95,13 @@ export default function AssessProcessing() {
     const handleSession = async (signedIn: boolean) => {
       if (cancelled || finalisedRef.current) return;
       if (signedIn) {
-        finalisedRef.current = true;
         setPhase("syncing");
         try {
-          const { slug } = await finaliseAssessment();
+          if (!finalisePromiseRef.current) {
+            finalisePromiseRef.current = finaliseAssessment();
+          }
+          const { slug } = await finalisePromiseRef.current;
+          finalisedRef.current = true;
           if (cancelled) return;
 
           // Fire-and-forget: generate the PDF server-side and email a link to it.
