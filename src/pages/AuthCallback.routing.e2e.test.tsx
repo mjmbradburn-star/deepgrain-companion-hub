@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -52,6 +52,7 @@ function renderCallback(path = "/auth/callback", strict = false) {
 describe("AuthCallback routing and loop guards", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
     sessionStorage.clear();
     localStorage.clear();
     supabaseMocks.getSession.mockResolvedValue({ data: { session: testSession } });
@@ -109,16 +110,13 @@ describe("AuthCallback routing and loop guards", () => {
   });
 
   it("times out instead of spinning forever when no session appears", async () => {
-    vi.useFakeTimers();
     supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
 
     renderCallback("/auth/callback?email=lead%40example.com");
-    await act(async () => { await vi.advanceTimersByTimeAsync(2600); });
 
-    expect(await screen.findByText(/We couldn't verify/i)).toBeInTheDocument();
+    expect(await screen.findByText(/We couldn't verify/i, {}, { timeout: 4_000 })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resend link|request a new link/i })).toBeInTheDocument();
-    vi.useRealTimers();
-  }, 7000);
+  }, 5_000);
 
   it("does not duplicate draft syncing under StrictMode", async () => {
     assessmentMocks.loadDraft.mockReturnValue({ level: "function", qualifier: { function: "sales" }, answers: { "f-p1-owner": 3 } });
