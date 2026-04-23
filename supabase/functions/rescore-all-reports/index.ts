@@ -47,6 +47,8 @@ interface OutcomeRow {
   title: string;
 }
 
+type AdminClient = ReturnType<typeof createClient>;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -130,7 +132,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function rescoreRespondent(admin: any, respondentId: string, slug: string, apply: boolean) {
+async function rescoreRespondent(admin: AdminClient, respondentId: string, slug: string, apply: boolean) {
   const { data: responses, error: responseErr } = await admin
     .from("responses")
     .select("question_id, tier")
