@@ -4,8 +4,10 @@ import { Loader2 } from "lucide-react";
 
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
+import { Seo } from "@/components/aioi/Seo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { seoRoutes } from "@/lib/seo";
 
 type Phase =
   | "validating"
@@ -90,6 +92,7 @@ export default function Unsubscribe() {
 
   return (
     <div className="min-h-screen bg-walnut text-cream flex flex-col">
+      <Seo {...seoRoutes.unsubscribe} />
       <SiteNav />
       <main className="container max-w-xl flex-1 flex flex-col justify-center py-24">
         <p className="eyebrow mb-5">Email preferences</p>
