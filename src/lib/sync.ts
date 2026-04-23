@@ -50,61 +50,33 @@ export async function ensureRespondent(
     return { respondentId: draft.respondentId, slug: draft.respondentSlug };
   }
 
-  // Re-use the most recent in-progress respondent for this (user, level) so
-  // a magic-link sign-in on the same device doesn't create duplicates.
-  const { data: existing, error: findErr } = await supabase
+  // Create a fresh respondent unless the draft already carries an explicit
+  // respondent id. Reusing "latest in-progress by level" can cross-link a
+  // returning user's separate reports.
+  const { data: created, error: insertErr } = await supabase
     .from("respondents")
+    .insert({
+      user_id: user.id,
+      level: draft.level,
+      role: draft.qualifier?.role ?? null,
+      org_size: draft.qualifier?.size ?? null,
+      pain: draft.qualifier?.pain ?? null,
+      function: draft.qualifier?.function ?? null,
+      region: draft.qualifier?.region ?? null,
+      consent_marketing: !!draft.qualifier?.consentMarketing,
+      consent_benchmark: !!draft.qualifier?.consentBenchmark,
+      started_at: draft.startedAt ?? new Date().toISOString(),
+    })
     .select("id, slug")
-    .eq("user_id", user.id)
-    .eq("level", draft.level)
-    .is("submitted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (findErr) throw new SyncError("Lookup failed", findErr);
+    .single();
+  if (insertErr || !created) throw new SyncError("Could not create respondent", insertErr);
 
-  let respondentId = existing?.id;
-  let slug = existing?.slug;
-
-  if (!respondentId) {
-    const { data: created, error: insertErr } = await supabase
-      .from("respondents")
-      .insert({
-        user_id: user.id,
-        level: draft.level,
-        role: draft.qualifier?.role ?? null,
-        org_size: draft.qualifier?.size ?? null,
-        pain: draft.qualifier?.pain ?? null,
-        function: draft.qualifier?.function ?? null,
-        region: draft.qualifier?.region ?? null,
-        consent_marketing: !!draft.qualifier?.consentMarketing,
-        consent_benchmark: !!draft.qualifier?.consentBenchmark,
-        started_at: draft.startedAt ?? new Date().toISOString(),
-      })
-      .select("id, slug")
-      .single();
-    if (insertErr || !created) throw new SyncError("Could not create respondent", insertErr);
-    respondentId = created.id;
-    slug = created.slug;
-  } else {
-    // Refresh qualifier in case the user revised it after signing in.
-    await supabase
-      .from("respondents")
-      .update({
-        role: draft.qualifier?.role ?? null,
-        org_size: draft.qualifier?.size ?? null,
-        pain: draft.qualifier?.pain ?? null,
-        function: draft.qualifier?.function ?? null,
-        region: draft.qualifier?.region ?? null,
-        consent_marketing: !!draft.qualifier?.consentMarketing,
-        consent_benchmark: !!draft.qualifier?.consentBenchmark,
-      })
-      .eq("id", respondentId);
-  }
+  const respondentId = created.id;
+  const slug = created.slug;
 
   // Persist to draft so the question screen can stream answers.
   saveDraft({ ...draft, respondentId, respondentSlug: slug });
-  return { respondentId: respondentId!, slug: slug! };
+  return { respondentId, slug };
 }
 
 /**
