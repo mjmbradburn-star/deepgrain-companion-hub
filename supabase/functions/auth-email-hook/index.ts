@@ -17,9 +17,9 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
+  signup: 'Confirm your email to continue your AI Operating Index report',
   invite: "You've been invited",
-  magiclink: 'Your login link',
+  magiclink: 'Your secure sign-in link for AI Operating Index',
   recovery: 'Reset your password',
   email_change: 'Confirm your new email',
   reauthentication: 'Your verification code',
@@ -37,7 +37,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<EmailTemplateProps>> =
 }
 
 // Configuration
-const SITE_NAME = "deepgrain-companion-hub"
+const SITE_NAME = "AI Operating Index"
 const SENDER_DOMAIN = "notify.www.deepgrain.ai"
 const ROOT_DOMAIN = "www.deepgrain.ai"
 const FROM_DOMAIN = "notify.www.deepgrain.ai" // Domain shown in From address (may be root or sender subdomain)
@@ -262,6 +262,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     template_name: emailType,
     recipient_email: payload.data.email,
     status: 'pending',
+    metadata: { run_id, source: 'auth-email-hook' },
   })
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
@@ -297,6 +298,11 @@ async function handleWebhook(req: Request): Promise<Response> {
   }
 
   console.log('Auth email enqueued', { emailType, email: payload.data.email, run_id })
+
+  await supabase.from('events').insert({
+    name: 'auth_email_enqueued',
+    payload: { email_type: emailType, run_id },
+  })
 
   return new Response(
     JSON.stringify({ success: true, queued: true }),
