@@ -167,17 +167,19 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
       {isAnonymous ? (
         <DeepDiveEmailGate slug={slug} level={level} compact={compact} />
       ) : (
-        <div className={`${compact ? "mt-7" : "mt-9"} flex flex-wrap items-center gap-x-5 gap-y-3`}>
+        <div className={`${compact ? "mt-7" : "mt-9"} flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5`}>
           <Button
             asChild
             size="lg"
-            className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] h-12 px-7"
+            className="w-full sm:w-auto rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] h-12 min-h-12 px-5 sm:px-7"
           >
             <Link to={`/assess/deep/${slug}`}>
-              Continue Deep Dive <ArrowRight className="h-4 w-4 ml-1" />
+              <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                Continue Deep Dive <ArrowRight className="h-4 w-4" />
+              </span>
             </Link>
           </Button>
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 inline-flex items-center gap-2">
+          <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.2em] leading-relaxed text-cream/40 inline-flex items-start sm:items-center gap-2">
             <Lock className="h-3 w-3" /> No new login · resumes this same report
           </p>
         </div>
