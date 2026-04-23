@@ -39,7 +39,6 @@ export default function AssessDeep() {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [answersSaved, setAnswersSaved] = useState(false);
-  const [savedAnswers, setSavedAnswers] = useState<Record<string, number>>({});
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [authGate, setAuthGate] = useState<"checking" | "needs-email" | "blocked" | "ready">("checking");
@@ -165,7 +164,6 @@ export default function AssessDeep() {
         const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
         if (insertError) throw insertError;
         setAnswersSaved(true);
-        setSavedAnswers(finalAnswers);
       }
       await scoreReport();
       void supabase.from("events").insert({
@@ -227,7 +225,6 @@ export default function AssessDeep() {
     }
     const next = { ...answers, [question.id]: tier };
     setAnswers(next);
-    setSavedAnswers(next);
     window.setTimeout(() => {
       if (step < remaining.length) setStep(step + 1);
       else void submitAll(next);
