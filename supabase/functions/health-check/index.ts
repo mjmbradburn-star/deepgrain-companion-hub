@@ -113,7 +113,11 @@ async function probeEmailDb() {
     let exists = true
     try {
       const { error } = await supabase.rpc(fn as never, {} as never)
-      if (error && (error as { code?: string }).code === 'PGRST202') exists = false
+      if (error && (error as { code?: string; message?: string }).code === 'PGRST202') {
+        // The function exists with required arguments; an empty call can still
+        // return PGRST202 because there is no zero-argument overload.
+        exists = /without parameters/i.test((error as { message?: string }).message ?? '')
+      }
     } catch {
       // Network errors are not function-existence errors.
     }
