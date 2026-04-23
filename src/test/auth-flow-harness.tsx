@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import type React from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 
 import type { Level } from "@/lib/assessment";
