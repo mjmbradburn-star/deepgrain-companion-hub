@@ -186,7 +186,7 @@ describe("Deep Dive claim and scoring flows", () => {
     renderDeep(slug);
     await completeDeepDive("company");
 
-    await screen.findByText(/Your answers are saved\. Re-scoring needs another try\./i);
+    await screen.findByText(/Your Deep Dive answers are saved\. We could not refresh the score yet\./i);
     expect(screen.getByRole("button", { name: /finish scoring/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view report while scoring retries/i })).toBeInTheDocument();
     expect(upsert).toHaveBeenCalledTimes(1);
