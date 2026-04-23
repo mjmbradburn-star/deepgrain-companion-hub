@@ -3,10 +3,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Mail } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
+import { Seo } from "@/components/aioi/Seo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { loadDraft } from "@/lib/assessment";
 import { finaliseAssessment, sendMagicLink, SyncError } from "@/lib/sync";
+import { seoRoutes } from "@/lib/seo";
 
 /**
  * Dev-only: sign in a synthetic test user so the full flow can be
@@ -184,6 +186,7 @@ export default function AssessProcessing() {
 
   return (
     <AssessChrome ariaLabel="Building your report">
+      <Seo {...seoRoutes.flow} path="/assess/processing" />
       <main className="container max-w-2xl w-full py-20 flex flex-col">
         {seedMode && (
           <div className="mb-6 inline-flex items-center gap-2 self-start rounded-sm border border-brass/40 bg-brass/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
