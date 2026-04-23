@@ -1,74 +1,85 @@
 
-## Plan to reorder the report overview for Deep Dive/email capture
+## Plan to fix DeepDiveUnlock CTA sizing on mobile
 
 ### Goal
 
-On `/assess/r/:slug`, move the Deep Dive unlock/email-capture component above the benchmark cohort card currently headed by text like:
-
-```text
-All individual-level respondents
-```
-
-This makes the next best action — claim/sign in and continue the Deep Dive — appear before the broader benchmark context.
+Make the `Continue Deep Dive` button in `DeepDiveUnlock` fit cleanly on small screens, stay easy to tap, and avoid awkward wrapping or cramped icon/text spacing.
 
 ### What will change
 
-#### 1. Reorder the Overview tab content
+#### 1. Adjust the CTA row layout for mobile
 
-In `src/pages/AssessReport.tsx`, update `OverviewTab` so the order becomes:
-
-```text
-Score + meaning + hotspots
-Eight-pillar chart
-Deep Dive unlock / email capture card
-Benchmark cohort card ("All individual-level respondents")
-Tier-aware Report CTA
-```
-
-Instead of the current order:
+In `src/components/aioi/DeepDiveUnlock.tsx`, update the authenticated CTA container so mobile uses a stacked, full-width layout:
 
 ```text
-Score + chart
-Benchmark cohort card
-Report CTA
-Deep Dive unlock / email capture card
+Mobile:
+[ Continue Deep Dive           → ]
+[ lock note below ]
+
+Tablet/desktop:
+[ Continue Deep Dive → ] [ lock note ]
 ```
 
-This keeps the user focused on completing or claiming the report before they reach the generic cohort comparison.
+This keeps the primary action visually strong on phones without squeezing the button and helper text into the same row.
 
-#### 2. Keep completed Deep Dive reports clean
+#### 2. Make the button mobile-friendly
 
-Only show the Deep Dive unlock/email capture component when `hasDeepdive` is false, as it does now.
+Update the button classes so it:
 
-For completed reports, the benchmark card will remain directly after the score/chart section.
+- is full-width on mobile
+- has a minimum touch height of at least `48px`
+- uses slightly tighter letter spacing on the smallest screens
+- keeps the icon inline without forcing text wrapping
+- returns to compact auto-width sizing on `sm` and larger screens
 
-#### 3. Tighten spacing around the moved card
-
-Adjust vertical spacing so the moved Deep Dive card feels like a natural continuation of the overview rather than a detached page block:
-
-- remove excessive bottom padding from the standalone card if needed
-- keep enough separation before the benchmark card
-- preserve the current visual style, colors, and copy
-- avoid introducing new overlays or absolute positioning
-
-#### 4. Add/adjust regression coverage
-
-Update `src/pages/AssessReport.e2e.test.tsx` to assert the visual/content order for an incomplete individual report:
+Expected class direction:
 
 ```text
-Unlock your full personal profile
-appears before
-All individual-level respondents
+w-full sm:w-auto
+h-12 min-h-12
+px-5 sm:px-7
+text-[11px] sm:text-xs
+tracking-[0.14em] sm:tracking-[0.18em]
 ```
 
-Also ensure the anonymous report test still confirms the email/sign-in gate is shown.
+#### 3. Prevent awkward text/icon wrapping
+
+Wrap the button label and arrow in an inner inline-flex span so the CTA contents stay aligned:
+
+```text
+Continue Deep Dive →
+```
+
+The button itself can be full width, but the label/icon group should remain visually centered and unbroken.
+
+#### 4. Tune the lock helper text below the button
+
+On mobile, make the “No new login · resumes this same report” note sit beneath the button with:
+
+- smaller tracking
+- comfortable line-height
+- no forced horizontal squeeze
+- centered or left-aligned consistently with the card layout
+
+On larger screens it can remain inline beside the CTA.
+
+#### 5. Add a small regression test
+
+Update `src/pages/AssessReport.e2e.test.tsx` or add a focused component test to verify the rendered `Continue Deep Dive` link includes mobile-safe classes such as:
+
+```text
+w-full sm:w-auto
+min-h-12 / h-12
+```
+
+This protects against reverting to the previous cramped inline button layout.
 
 ### Acceptance criteria
 
 The change is complete when:
 
-- On incomplete individual reports, the Deep Dive/email capture card appears above the “All individual-level respondents” benchmark card.
-- The benchmark card still renders below it.
-- Completed Deep Dive reports do not show the unlock card.
-- Existing share, PDF, resend, and report CTA controls remain unaffected.
-- A regression test protects the new ordering.
+- On mobile, `Continue Deep Dive` appears as a full-width touch-friendly button.
+- The CTA text and arrow do not wrap awkwardly.
+- The helper lock note no longer competes with the button horizontally on small screens.
+- Desktop/tablet layout remains visually similar to the current compact row.
+- Existing anonymous email-gate behavior is unchanged.
