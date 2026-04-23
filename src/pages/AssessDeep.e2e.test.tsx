@@ -200,6 +200,36 @@ describe("Deep Dive claim and scoring flows", () => {
     expect(screen.getByTestId("location")).toHaveTextContent(`/assess/deep/${slug}`);
   }, 15_000);
 
+  it("coalesces repeated scoring retries after answers have already been saved", async () => {
+    const { slug } = mockReport("company");
+    const { upsert } = mockTables(getQuickscanQuestions("company").map((question) => question.id));
+    let resolveRetry!: (value: { error: null }) => void;
+    let rescoreCalls = 0;
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { access_token: "company-token", user: { id: "company-user-id", email: "lead@example.com" } } } });
+    supabaseMocks.invoke.mockImplementation((name: string) => {
+      if (name !== "rescore-respondent") return Promise.resolve({ error: null });
+      rescoreCalls += 1;
+      if (rescoreCalls === 1) return Promise.resolve({ error: { message: "gateway rejected scoring" } });
+      return new Promise((resolve) => { resolveRetry = resolve; });
+    });
+
+    renderDeep(slug);
+    await completeDeepDive("company");
+
+    const retryButton = await screen.findByRole("button", { name: /finish scoring/i });
+    fireEvent.click(retryButton);
+    fireEvent.click(retryButton);
+
+    await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledTimes(2));
+    expect(upsert).toHaveBeenCalledTimes(1);
+
+    resolveRetry({ error: null });
+
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(`/assess/r/${slug}`));
+    expect(supabaseMocks.invoke).toHaveBeenCalledTimes(2);
+    expect(upsert).toHaveBeenCalledTimes(1);
+  }, 15_000);
+
   it("shows a save retry state when individual Deep Dive answers fail to persist", async () => {
     const { slug } = mockReport("individual");
     const saveError = { message: 'insert or update on table "responses" violates foreign key constraint "responses_question_id_fkey"' };
