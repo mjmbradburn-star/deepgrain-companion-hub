@@ -70,6 +70,9 @@ function FaqSection() {
       <div className="container max-w-5xl py-14 sm:py-20">
         <p className="eyebrow mb-5">Questions people ask</p>
         <h2 className="font-display headline-md text-cream text-balance">How the AI Operating Index works.</h2>
+        <p className="mt-5 max-w-3xl font-display text-lg leading-relaxed text-cream/70">
+          The AI Operating Index is a free AI maturity scan that measures readiness across eight operating pillars and returns a practical score, tier and benchmark context.
+        </p>
         <div className="mt-10 divide-y divide-cream/10 border-y border-cream/10">
           {faqItems.map((item) => (
             <details key={item.question} className="group py-5">
