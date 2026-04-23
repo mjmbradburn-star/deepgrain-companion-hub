@@ -15,6 +15,7 @@ import { loadDraft } from "@/lib/assessment";
 import { seoRoutes } from "@/lib/seo";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
 import { lovable } from "@/integrations/lovable";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 const emailSchema = z
   .string()
@@ -47,6 +48,7 @@ export default function SignIn() {
   const [cooldown, setCooldown] = useState(0);
   const [checkingSession, setCheckingSession] = useState(true);
   const [linkError, setLinkError] = useState<{ title: string; body: string } | null>(null);
+  const { isReady: authReady, session } = useAuthReady();
 
   // Detect error params bounced from the magic-link callback (Supabase puts
   // them in the hash, e.g. #error=access_denied&error_code=otp_expired).
@@ -86,16 +88,17 @@ export default function SignIn() {
   // If already signed in, jump straight to "next"
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (cancelled) return;
-      if (data.session) {
+    if (!authReady) return;
+    (async () => {
+      if (session) {
         if (claimSlug) await claimReportBySlug(claimSlug, consentMarketing).catch(() => null);
+        if (cancelled) return;
         navigate(next, { replace: true });
       }
       else setCheckingSession(false);
-    });
+    })();
     return () => { cancelled = true; };
-  }, [navigate, next]);
+  }, [authReady, claimSlug, consentMarketing, navigate, next, session]);
 
   // Cooldown countdown
   useEffect(() => {
@@ -130,7 +133,7 @@ export default function SignIn() {
   };
 
   const signInWithProvider = async (provider: "google" | "apple") => {
-    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}&auth_method=${provider}`;
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri,
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
