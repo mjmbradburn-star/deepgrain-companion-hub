@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Seo } from "@/components/aioi/Seo";
 import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { loadDraft } from "@/lib/assessment";
 import { seoRoutes } from "@/lib/seo";
