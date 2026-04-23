@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AuthEmailState = "new" | "unconfirmed" | "confirmed" | "invalid_email" | "unknown";
+export type AuthEmailState = "no_account" | "new" | "unconfirmed" | "confirmed" | "invalid_email" | "unknown";
 
 export type AuthAccessOutcome = {
   email: string;
