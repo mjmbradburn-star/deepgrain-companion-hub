@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, ChevronLeft, Info, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Info, Loader2, LogOut } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { OptionCard } from "@/components/aioi/OptionCard";
@@ -20,6 +20,7 @@ import { getQuickscanQuestions } from "@/lib/quickscan";
 import { supabase } from "@/integrations/supabase/client";
 import { claimReportBySlug } from "@/lib/report-claim";
 import { seoRoutes } from "@/lib/seo";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 interface RespondentLite {
   id: string;
@@ -41,8 +42,10 @@ export default function AssessDeep() {
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [authGate, setAuthGate] = useState<"checking" | "needs-email" | "blocked" | "ready">("checking");
+  const { isReady: authReady, session, user } = useAuthReady();
 
-  // Load respondent + already-answered question IDs (so we skip qs- ones).
+  // Load public respondent metadata first. Authenticated claim/response loading
+  // waits for the browser session to be fully restored below.
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
@@ -61,21 +64,29 @@ export default function AssessDeep() {
         return;
       }
       setRespondent({ ...payload.respondent, isAnonymous: payload.respondent.is_anonymous });
+    })();
+    return () => { cancelled = true; };
+  }, [slug]);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+  useEffect(() => {
+    if (!respondent || !authReady) return;
+    let cancelled = false;
+    (async () => {
+      if (!user) {
         setAuthGate("needs-email");
         return;
       }
 
-      const claim = await claimReportBySlug(payload.respondent.slug, false);
+      setAuthGate("checking");
+      setLoadErr(null);
+      const claim = await claimReportBySlug(respondent.slug, false);
+      if (cancelled) return;
       void supabase.from("events").insert({
         name: claim.ok ? "report_claimed" : "report_claim_failed",
-        payload: { slug: payload.respondent.slug, status: claim.status },
+        payload: { slug: respondent.slug, status: claim.status },
       });
       if (!claim.ok) {
         setAuthGate("blocked");
-        setLoadErr(claim.status === "already_claimed" ? "This report is already linked to another email." : "We couldn't save this report to your email.");
         return;
       }
       setAuthGate("ready");
@@ -84,18 +95,18 @@ export default function AssessDeep() {
       const { data: existing } = await supabase
         .from("responses")
         .select("question_id")
-        .eq("respondent_id", payload.respondent.id);
+        .eq("respondent_id", respondent.id);
       if (!cancelled) {
         setAnsweredIds(new Set((existing ?? []).map((r) => r.question_id)));
       }
 
       void supabase.from("events").insert({
         name: "deepdive_started",
-        payload: { slug, respondent_id: payload.respondent.id },
+        payload: { slug: respondent.slug, respondent_id: respondent.id },
       });
     })();
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [authReady, respondent, user]);
 
   const allProgressQuestions = useMemo<Question[]>(() => {
     if (!respondent) return [];
@@ -154,8 +165,7 @@ export default function AssessDeep() {
         if (insertError) throw insertError;
         setAnswersSaved(true);
       }
-      const { error: scoreError } = await supabase.functions.invoke("rescore-respondent", { body: { slug: respondent.slug } });
-      if (scoreError) throw scoreError;
+      await scoreReport();
       void supabase.from("events").insert({
         name: "deepdive_completed",
         payload: { slug: respondent.slug, respondent_id: respondent.id, answered: Object.keys(finalAnswers).length },
@@ -163,7 +173,7 @@ export default function AssessDeep() {
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
-      setSubmitErr("Your answer is saved locally. We need to reconnect this report to your email before re-scoring.");
+      setSubmitErr("Your Deep Dive answers are saved. We could not refresh the score yet.");
       void supabase.from("events").insert({
         name: "deepdive_rescore_failed",
             payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
@@ -172,13 +182,37 @@ export default function AssessDeep() {
     }
   };
 
-  const retryScoring = () => {
+  const scoreReport = async () => {
     if (!respondent) return;
+    if (!session?.access_token) {
+      setAuthGate("needs-email");
+      throw new Error("Sign-in required before scoring");
+    }
+    const { error: scoreError } = await supabase.functions.invoke("rescore-respondent", {
+      body: { slug: respondent.slug },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (scoreError) throw scoreError;
+  };
+
+  const retryScoring = async (goToReportAfter = false) => {
+    if (!respondent) return;
+    setSubmitting(true);
+    setSubmitErr(null);
     void supabase.from("events").insert({
       name: "deepdive_rescore_retried",
       payload: { slug: respondent.slug, respondent_id: respondent.id },
     });
-    void submitAll(answers);
+    try {
+      await scoreReport();
+      navigate(`/assess/r/${respondent.slug}`);
+    } catch (err) {
+      console.error("[deep] scoring retry failed", err);
+      setSubmitErr("Your Deep Dive answers are saved. We could not refresh the score yet.");
+      if (goToReportAfter) navigate(`/assess/r/${respondent.slug}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const select = (tier: number) => {
@@ -233,6 +267,27 @@ export default function AssessDeep() {
     );
   }
 
+  if (authGate === "blocked") {
+    return (
+      <AssessChrome ariaLabel="Report access problem">
+        <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
+        <main className="container max-w-xl w-full py-20 sm:py-28">
+          <p className="eyebrow mb-5">Wrong account</p>
+          <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">This report is linked<br /><span className="italic text-brass-bright">to another sign-in.</span></h1>
+          <p className="mt-6 font-display text-lg text-cream/65 max-w-md">Sign out, then continue with the Google, Apple, or email account originally used for this report.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button onClick={() => void supabase.auth.signOut().then(() => setAuthGate("needs-email"))} className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]">
+              <LogOut className="mr-2 h-4 w-4" /> Use another account
+            </Button>
+            <Button variant="outline" onClick={() => navigate(`/assess/r/${respondent.slug}`)} className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]">
+              Back to report
+            </Button>
+          </div>
+        </main>
+      </AssessChrome>
+    );
+  }
+
   if (authGate === "checking" || submitting || submitErr || remaining.length === 0) {
     return (
       <AssessChrome ariaLabel="Re-scoring">
@@ -253,10 +308,18 @@ export default function AssessDeep() {
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <Button
                   size="sm"
-                  onClick={retryScoring}
+                  onClick={() => void retryScoring()}
                   className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                 >
-                  Retry scoring
+                  Finish scoring
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void retryScoring(true)}
+                  className="rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-xs tracking-wider uppercase"
+                >
+                  View report while scoring retries
                 </Button>
                 <Button
                   size="sm"

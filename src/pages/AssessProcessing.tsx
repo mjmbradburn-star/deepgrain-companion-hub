@@ -11,6 +11,7 @@ import { finaliseAssessment, sendMagicLink, SyncError } from "@/lib/sync";
 import { seoRoutes } from "@/lib/seo";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
 import { lovable } from "@/integrations/lovable";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 /**
  * Dev-only: sign in a synthetic test user so the full flow can be
@@ -70,6 +71,7 @@ export default function AssessProcessing() {
   const [shown, setShown] = useState<string[]>([]);
   const [resending, setResending] = useState(false);
   const finalisedRef = useRef(false); // guard against StrictMode double-fire
+  const { isReady: authReady, session } = useAuthReady();
 
   // 1. Decide what to do based on session + draft.
   useEffect(() => {
@@ -85,6 +87,7 @@ export default function AssessProcessing() {
     }
 
     let cancelled = false;
+    if (!authReady) return;
 
     const handleSession = async (signedIn: boolean) => {
       if (cancelled || finalisedRef.current) return;
@@ -148,18 +151,12 @@ export default function AssessProcessing() {
       }
     };
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      void handleSession(!!session);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      void handleSession(!!data.session);
-    });
+    void handleSession(!!session);
 
     return () => {
       cancelled = true;
-      sub.subscription.unsubscribe();
     };
-  }, [navigate, seedMode]);
+  }, [authReady, navigate, seedMode, session]);
 
   // 2. Animate the "build log" while syncing.
   useEffect(() => {
