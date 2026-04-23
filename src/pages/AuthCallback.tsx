@@ -200,6 +200,7 @@ export default function AuthCallback() {
       : `/signin?next=${encodeURIComponent(next)}${claimParams}`;
     return (
       <AssessChrome ariaLabel="Sign-in problem">
+        <Seo {...seoRoutes.flow} path="/auth/callback" />
         <main className="container max-w-xl w-full py-20 sm:py-28">
           <p className="eyebrow mb-5">{copy.eyebrow}</p>
           <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
@@ -276,6 +277,7 @@ export default function AuthCallback() {
 
   return (
     <AssessChrome ariaLabel="Signing you in">
+      <Seo {...seoRoutes.flow} path="/auth/callback" />
       <main className="container max-w-2xl w-full py-24">
         <p className="eyebrow mb-5">Signing you in</p>
         <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
