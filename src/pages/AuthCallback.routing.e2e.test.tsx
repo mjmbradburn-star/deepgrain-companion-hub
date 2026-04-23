@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -113,7 +113,7 @@ describe("AuthCallback routing and loop guards", () => {
     supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
 
     renderCallback("/auth/callback?email=lead%40example.com");
-    await vi.advanceTimersByTimeAsync(2600);
+    await act(async () => { await vi.advanceTimersByTimeAsync(2600); });
 
     expect(await screen.findByText(/We couldn't verify/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resend link|request a new link/i })).toBeInTheDocument();

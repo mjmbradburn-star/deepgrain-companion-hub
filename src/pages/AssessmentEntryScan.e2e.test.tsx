@@ -94,7 +94,8 @@ describe("assessment entry and quickscan regression flow", () => {
     });
     const serverError = new Error("500 scoring error");
     serverError.name = "FunctionsHttpError";
-    supabaseMocks.invoke.mockImplementationOnce(() => Promise.resolve({ data: null, error: serverError }));
+    supabaseMocks.invoke.mockReset();
+    supabaseMocks.invoke.mockResolvedValue({ data: null, error: serverError });
 
     renderScan();
     fireEvent.click(await screen.findByRole("button", { name: /I demo regularly to my team/i }));

@@ -98,7 +98,7 @@ describe("AssessProcessing auth and finalise flow", () => {
 
     renderProcessing();
 
-    expect(await screen.findByText(/Could not save answers/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Something went wrong saving your answers/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /start over/i })).toBeInTheDocument();
   });
