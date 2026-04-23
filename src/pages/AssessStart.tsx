@@ -14,6 +14,7 @@ import { FUNCTIONS, LEVELS, REGIONS, loadDraft, saveDraft, type BusinessFunction
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { supabase } from "@/integrations/supabase/client";
 import { seoRoutes } from "@/lib/seo";
+import { lovable } from "@/integrations/lovable";
 
 const ROLE_OPTIONS = [
   "Founder / CEO",
@@ -255,6 +256,14 @@ export default function AssessStart() {
               }
               navigate("/assess/q/1");
             }}
+            onOAuth={async (values, provider) => {
+              update(values);
+              const result = await lovable.auth.signInWithOAuth(provider, {
+                redirect_uri: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/assess/q/1")}`,
+                extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
+              });
+              if (result.error) throw new SyncError(`${provider === "google" ? "Google" : "Apple"} sign-in failed`, result.error);
+            }}
           />
         )}
 
@@ -300,16 +309,19 @@ function EmailScreen({
   initial,
   magicLinkSent,
   onSubmit,
+  onOAuth,
 }: {
   initial?: { email?: string; consentBenchmark?: boolean; consentMarketing?: boolean };
   magicLinkSent?: boolean;
   onSubmit: (v: { email: string; consentBenchmark: boolean; consentMarketing: boolean }) => Promise<void> | void;
+  onOAuth: (v: { consentBenchmark: boolean; consentMarketing: boolean }, provider: "google" | "apple") => Promise<void> | void;
 }) {
   const [email, setEmail] = useState(initial?.email ?? "");
   const [consentBenchmark, setBench] = useState(!!initial?.consentBenchmark);
   const [consentMarketing, setMkt] = useState(!!initial?.consentMarketing);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [oauthProvider, setOauthProvider] = useState<"google" | "apple" | null>(null);
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -324,34 +336,33 @@ function EmailScreen({
     try {
       await onSubmit({ email, consentBenchmark: true, consentMarketing });
     } catch (err) {
-      setError(err instanceof SyncError ? err.message : "Could not send your magic link.");
+      setError(err instanceof SyncError ? err.message : "Could not send your email backup link.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setError(null);
+    if (!consentBenchmark) {
+      setError("Required to receive your report");
+      return;
+    }
+    setOauthProvider(provider);
+    try {
+      await onOAuth({ consentBenchmark: true, consentMarketing }, provider);
+    } catch (err) {
+      setError(err instanceof SyncError ? err.message : `${provider === "google" ? "Google" : "Apple"} sign-in failed.`);
+      setOauthProvider(null);
     }
   };
 
   return (
     <Step
       heading={<>Where should the <span className="italic text-brass-bright">report land?</span></>}
-      sub="One email. We'll send a magic link right now so you can sign in while you answer. Your results page is waiting on the other side."
+      sub="Use Google or Apple for the cleanest handoff into your report. Email remains available as a backup."
     >
-      <form onSubmit={handle} className="space-y-6 max-w-lg">
-        <div>
-          <Label htmlFor="email" className="text-cream/70 font-ui text-xs uppercase tracking-[0.16em]">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
-            maxLength={255}
-            className="mt-2 h-12 bg-surface-1/60 border-cream/15 text-cream placeholder:text-cream/30 font-display text-lg focus-visible:ring-brass"
-          />
-        </div>
-
+      <div className="space-y-6 max-w-lg">
         <div className="space-y-4 pt-2">
           <Consent
             id="consent-benchmark"
@@ -368,13 +379,58 @@ function EmailScreen({
           />
         </div>
 
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => handleOAuth("google")}
+            disabled={!!oauthProvider}
+            className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase disabled:opacity-60"
+          >
+            {oauthProvider === "google" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting…</> : "Continue with Google"}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => handleOAuth("apple")}
+            disabled={!!oauthProvider}
+            className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-sm tracking-wider uppercase disabled:opacity-60"
+          >
+            {oauthProvider === "apple" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting…</> : "Continue with Apple"}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-cream/10" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">email backup</span>
+          <div className="h-px flex-1 bg-cream/10" />
+        </div>
+
+        <form onSubmit={handle} className="space-y-6">
+          <div>
+            <Label htmlFor="email" className="text-cream/70 font-ui text-xs uppercase tracking-[0.16em]">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              maxLength={255}
+              className="mt-2 h-12 bg-surface-1/60 border-cream/15 text-cream placeholder:text-cream/30 font-display text-lg focus-visible:ring-brass"
+            />
+          </div>
+
         {error && (
           <p role="alert" className="text-sm text-pillar-7 font-ui">{error}</p>
         )}
 
         {magicLinkSent && (
           <p className="text-xs text-cream/55 font-mono uppercase tracking-[0.16em]">
-            ✓ Magic link already sent to {initial?.email}. Submitting will refresh it.
+            ✓ Email backup already sent to {initial?.email}. Submitting will refresh it.
           </p>
         )}
 
@@ -391,7 +447,8 @@ function EmailScreen({
             ~18 min · sign in while you answer
           </span>
         </div>
-      </form>
+        </form>
+      </div>
     </Step>
   );
 }

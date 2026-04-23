@@ -211,10 +211,13 @@ export default function AuthCallback() {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleProvider = async (provider: "google" | "apple") => {
     const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { prompt: "select_account" } });
-    if (result.error) toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri,
+      extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
+    });
+    if (result.error) toast({ title: `${provider === "google" ? "Google" : "Apple"} sign-in failed`, description: result.error.message, variant: "destructive" });
   };
 
   if (status === "error") {
@@ -242,11 +245,27 @@ export default function AuthCallback() {
           )}
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3">
+            <Button
+              type="button"
+              onClick={() => handleProvider("google")}
+              className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+            >
+              Continue with Google
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handleProvider("apple")}
+              variant="outline"
+              className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
+            >
+              Continue with Apple
+            </Button>
             {knownEmail ? (
               <Button
                 onClick={handleResend}
                 disabled={resending || cooldown > 0}
-                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+                variant="outline"
+                className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
               >
                 {resending ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</>
@@ -261,7 +280,8 @@ export default function AuthCallback() {
             ) : (
               <Button
                 asChild
-                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+                variant="outline"
+                className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
               >
                 <Link to={retryHref}>
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -269,14 +289,6 @@ export default function AuthCallback() {
                 </Link>
               </Button>
             )}
-            <Button
-              type="button"
-              onClick={handleGoogle}
-              variant="outline"
-              className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
-            >
-              Continue with Google
-            </Button>
             <Button
               asChild
               variant="outline"

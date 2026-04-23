@@ -129,10 +129,13 @@ export default function SignIn() {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithProvider = async (provider: "google" | "apple") => {
     const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { prompt: "select_account" } });
-    if (result.error) toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri,
+      extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
+    });
+    if (result.error) toast({ title: `${provider === "google" ? "Google" : "Apple"} sign-in failed`, description: result.error.message, variant: "destructive" });
   };
 
   const sentCopy = sentOutcome ? authAccessCopy(sentOutcome) : null;
@@ -155,7 +158,7 @@ export default function SignIn() {
           <span className="italic text-brass-bright">you left off.</span>
         </h1>
         <p className="mt-6 font-display text-lg text-cream/65 max-w-md">
-          We'll email the right secure link for this address. If inbox delivery stalls, Google sign-in also works.
+          Use Google or Apple for the most reliable access. Email links are here as a backup.
         </p>
 
         {linkError && (
@@ -172,7 +175,31 @@ export default function SignIn() {
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="mt-10 space-y-4">
+        <div className="mt-10 grid gap-3">
+          <Button
+            type="button"
+            onClick={() => signInWithProvider("google")}
+            className="w-full h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+          >
+            Continue with Google
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => signInWithProvider("apple")}
+            className="w-full h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
+          >
+            Continue with Apple
+          </Button>
+        </div>
+
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-cream/10" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">email backup</span>
+          <div className="h-px flex-1 bg-cream/10" />
+        </div>
+
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <label className="block">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/50">
               Email
@@ -205,21 +232,6 @@ export default function SignIn() {
             )}
           </Button>
         </form>
-
-        <div className="mt-4 flex items-center gap-3">
-          <div className="h-px flex-1 bg-cream/10" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">or</span>
-          <div className="h-px flex-1 bg-cream/10" />
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={signInWithGoogle}
-          className="mt-4 w-full h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
-        >
-          Continue with Google
-        </Button>
 
         {sentOutcome && sentCopy && (
           <div className="mt-8 rounded-sm border border-brass/30 bg-brass/5 p-5">

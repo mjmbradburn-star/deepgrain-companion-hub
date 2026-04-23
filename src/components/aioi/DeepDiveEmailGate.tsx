@@ -53,10 +53,13 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithProvider = async (provider: "google" | "apple") => {
     const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/assess/deep/${slug}`)}&claim=${encodeURIComponent(slug)}&consent_marketing=${consentMarketing ? "1" : "0"}`;
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { prompt: "select_account" } });
-    if (result.error) toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri,
+      extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
+    });
+    if (result.error) toast({ title: `${provider === "google" ? "Google" : "Apple"} sign-in failed`, description: result.error.message, variant: "destructive" });
   };
 
   if (sentOutcome) {
@@ -107,20 +110,50 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
         <Button
           type="button"
           variant="outline"
-          onClick={signInWithGoogle}
+          onClick={() => signInWithProvider("google")}
           className="mt-3 h-11 w-full rounded-sm border-cream/20 bg-transparent px-5 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
         >
           Continue with Google
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => signInWithProvider("apple")}
+          className="mt-3 h-11 w-full rounded-sm border-cream/20 bg-transparent px-5 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
+        >
+          Continue with Apple
         </Button>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className={compact ? "mt-7 space-y-4" : "mt-8 grid gap-x-5 gap-y-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start"}
-    >
+    <div className={compact ? "mt-7 space-y-4" : "mt-8 space-y-5"}>
+      <div className={compact ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
+        <Button
+          type="button"
+          onClick={() => signInWithProvider("google")}
+          className="h-12 w-full rounded-sm bg-brass px-6 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright"
+        >
+          Continue with Google
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => signInWithProvider("apple")}
+          className="h-12 w-full rounded-sm border-cream/20 bg-transparent px-6 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream"
+        >
+          Continue with Apple
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-cream/10" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">email backup</span>
+        <div className="h-px flex-1 bg-cream/10" />
+      </div>
+
+      <form onSubmit={submit} className={compact ? "space-y-4" : "grid gap-x-5 gap-y-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start"}>
       <div className="min-w-0">
         <label className="block">
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/50">Email</span>
@@ -145,7 +178,7 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
           Send me occasional AI operating-model notes from Deepgrain.
         </label>
         <p className="mt-3 text-sm leading-relaxed text-cream/45">
-          We will send a secure sign-in link. If this is your first time, the email may ask you to confirm your address first.
+          If Google or Apple is not convenient, we can send a secure email link. First-time users may need to confirm their address first.
         </p>
       </div>
       <Button
@@ -155,14 +188,7 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
       >
         {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : <><Mail className="h-4 w-4 mr-2" /> Send secure sign-in link <ArrowRight className="h-4 w-4 ml-2" /></>}
       </Button>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={signInWithGoogle}
-        className={`h-12 w-full rounded-sm border-cream/20 bg-transparent px-6 font-ui text-xs uppercase tracking-[0.18em] text-cream hover:bg-cream/5 hover:text-cream ${compact ? "" : "lg:col-start-2 lg:w-auto"}`}
-      >
-        Continue with Google
-      </Button>
-    </form>
+      </form>
+    </div>
   );
 }
