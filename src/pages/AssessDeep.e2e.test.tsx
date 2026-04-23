@@ -131,13 +131,16 @@ describe("Deep Dive anonymous claim flow", () => {
     await sendClaimLink(slug);
     firstRender.unmount();
 
-    supabaseMocks.getSession.mockResolvedValue({ data: { session: { user: { id: `${level}-user-id`, email: "lead@example.com" } } } });
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { access_token: `${level}-token`, user: { id: `${level}-user-id`, email: "lead@example.com" } } } });
     renderDeep(slug);
 
     await completeDeepDive(level);
 
     const expectedQuestions = getDeepDiveQuestions(level, level === "function" ? "sales" : undefined);
-    await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledWith("rescore-respondent", { body: { slug } }));
+    await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledWith("rescore-respondent", {
+      body: { slug },
+      headers: { Authorization: `Bearer ${level}-token` },
+    }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(`/assess/r/${slug}`));
     expect(insertedResponses).toHaveLength(expectedQuestions.length);
     expect(insertedResponses.map((row) => row.question_id)).toEqual(expectedQuestions.map((question) => question.id));
