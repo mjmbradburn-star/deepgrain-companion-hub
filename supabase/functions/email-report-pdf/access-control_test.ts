@@ -38,6 +38,25 @@ const BUCKET = 'report-pdfs'
 // in the project yet.
 const PROBE_OBJECT = 'rls-probe-slug/aioi-report.pdf'
 
+function fakeExpiredJwt() {
+  const encode = (value: unknown) => btoa(JSON.stringify(value)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+  return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: 'expired-user', role: 'authenticated', exp: 1 })}.not-a-real-signature`
+}
+
+async function assertSafeUnauthorized(res: Response, context: string) {
+  const bodyText = await res.text()
+  let body: { error?: string } = {}
+  try {
+    body = JSON.parse(bodyText)
+  } catch {
+    throw new Error(`${context} must return a JSON body; got ${bodyText}`)
+  }
+
+  assertEquals(res.status, 401, `${context} must return 401; got ${res.status}.`)
+  assertEquals(body.error, 'Unauthorized', `${context} must return a safe generic error.`)
+  assertEquals(res.headers.get('access-control-allow-origin'), '*', `${context} must include CORS headers.`)
+}
+
 // ── 1. Anon createSignedUrl must be denied ──────────────────────────────
 //
 // We hit the Storage REST endpoint directly (instead of the supabase-js
@@ -181,5 +200,25 @@ Deno.test(
       401,
       `Anon-as-Bearer must be rejected with 401; got ${res.status}.`,
     )
+  },
+)
+
+Deno.test(
+  'email-report-pdf: expired-looking Bearer token returns a safe auth state',
+  async () => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/email-report-pdf`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${fakeExpiredJwt()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        slug: 'doesnt-matter',
+        email: 'nobody@example.com',
+      }),
+    })
+
+    await assertSafeUnauthorized(res, 'Expired email-report-pdf token')
   },
 )
