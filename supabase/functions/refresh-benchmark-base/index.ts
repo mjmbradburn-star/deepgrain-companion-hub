@@ -21,6 +21,14 @@ const ORG_SIZE_BY_FILTER: Record<string, string[]> = {
 
 type Level = typeof LEVELS[number];
 
+type BenchmarkRespondentRow = {
+  id: string;
+  function: string | null;
+  sector: string | null;
+  region: string | null;
+  org_size: string | null;
+};
+
 const BodySchema = z.object({
   level: z.enum(LEVELS).default("function"),
   function: z.enum(["All", ...FUNCTIONS]).default("All"),
@@ -89,7 +97,7 @@ Deno.serve(async (req) => {
       .select("id, function, sector, region, org_size");
     if (insertErr || !respondents?.length) return json({ error: insertErr?.message ?? "Could not seed respondents" }, 500);
 
-    const reportRows = respondents.map((respondent: any, index: number) => syntheticReport(respondent.id, level, respondent, index));
+    const reportRows = (respondents as BenchmarkRespondentRow[]).map((respondent, index) => syntheticReport(respondent.id, level, respondent, index));
     const { error: reportErr } = await admin.from("reports").insert(reportRows);
     if (reportErr) return json({ error: reportErr.message }, 500);
 
@@ -126,7 +134,7 @@ function buildDimensions(filters: { fn: string; sector: string; region: string; 
   return rows;
 }
 
-function syntheticReport(respondentId: string, level: Level, respondent: any, index: number) {
+function syntheticReport(respondentId: string, level: Level, respondent: BenchmarkRespondentRow, index: number) {
   const levelBase = level === "company" ? 55 : level === "function" ? 59 : 62;
   const functionLift = String(respondent.function ?? "").length % 9;
   const sectorLift = String(respondent.sector ?? "").length % 7;
