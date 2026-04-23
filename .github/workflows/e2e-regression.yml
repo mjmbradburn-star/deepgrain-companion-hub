@@ -50,7 +50,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run frontend E2E regression suite
+      - name: Run frontend E2E regression suite with flaky detection
         run: npm run test:e2e
 
   backend-edge-regression:
