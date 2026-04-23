@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
@@ -12,6 +12,7 @@ import { seoRoutes } from "@/lib/seo";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
 import { lovable } from "@/integrations/lovable";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 
 /**
  * Dev-only: sign in a synthetic test user so the full flow can be
@@ -219,26 +220,8 @@ export default function AssessProcessing() {
             <p className="mt-8 max-w-xl font-display text-lg text-cream/65 leading-relaxed">
               Your answers are saved on this device. Sign in to attach them to your report, or use the email backup sent to <span className="text-brass-bright">{emailSentTo}</span>.
             </p>
-            <div className="mt-10 grid gap-3 sm:grid-cols-2 max-w-xl">
-              <Button
-                onClick={() => signInWithProvider("google")}
-                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
-              >
-                Continue with Google
-              </Button>
-              <Button
-                onClick={() => signInWithProvider("apple")}
-                variant="outline"
-                className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
-              >
-                Continue with Apple
-              </Button>
-            </div>
-            <div className="mt-10 inline-flex items-center gap-3 rounded-md border border-cream/10 bg-surface-1/60 px-4 py-3 max-w-fit">
-              <Mail className="h-4 w-4 text-brass-bright" />
-              <span className="font-mono text-xs uppercase tracking-[0.2em] text-cream/60">
-                Email backup is still available
-              </span>
+            <div className="mt-10 max-w-xl">
+              <AuthAccessPanel onProvider={signInWithProvider} />
             </div>
             <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-cream/30">
               Didn't arrive? <button onClick={resendLink} disabled={resending} className="underline underline-offset-4 hover:text-cream disabled:opacity-50">{resending ? "Sending…" : "Resend"}</button>

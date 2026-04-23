@@ -6,6 +6,7 @@ import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
+import { AuthAccessPanel } from "@/components/aioi/AuthAccessPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -379,34 +380,7 @@ function EmailScreen({
           />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button
-            type="button"
-            size="lg"
-            onClick={() => handleOAuth("google")}
-            disabled={!!oauthProvider}
-            className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-sm tracking-wider uppercase disabled:opacity-60"
-          >
-            {oauthProvider === "google" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting…</> : "Continue with Google"}
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            onClick={() => handleOAuth("apple")}
-            disabled={!!oauthProvider}
-            className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-sm tracking-wider uppercase disabled:opacity-60"
-          >
-            {oauthProvider === "apple" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting…</> : "Continue with Apple"}
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-cream/10" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">email backup</span>
-          <div className="h-px flex-1 bg-cream/10" />
-        </div>
-
+        <AuthAccessPanel onProvider={handleOAuth} providerLoading={oauthProvider} disabled={!!oauthProvider}>
         <form onSubmit={handle} className="space-y-6">
           <div>
             <Label htmlFor="email" className="text-cream/70 font-ui text-xs uppercase tracking-[0.16em]">Email</Label>
@@ -448,6 +422,7 @@ function EmailScreen({
           </span>
         </div>
         </form>
+        </AuthAccessPanel>
       </div>
     </Step>
   );
