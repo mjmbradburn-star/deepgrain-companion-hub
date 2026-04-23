@@ -12,5 +12,17 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /reports
+Disallow: /signin
+Disallow: /auth/callback
+Disallow: /unsubscribe
+Disallow: /assess/scan
+Disallow: /assess/start
+Disallow: /assess/q/
+Disallow: /assess/processing
+Disallow: /assess/deep/
+Disallow: /assess/r/
 
 Sitemap: https://aioi.deepgrain.ai/sitemap.xml
+LLM-Content: https://aioi.deepgrain.ai/llms.txt
+AI-Sitemap: https://aioi.deepgrain.ai/ai-sitemap.json
