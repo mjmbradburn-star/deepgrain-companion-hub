@@ -52,7 +52,10 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
   }
 
   return (
-    <form onSubmit={submit} className={compact ? "mt-7 space-y-4" : "mt-8 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start"}>
+    <form
+      onSubmit={submit}
+      className={compact ? "mt-7 space-y-4" : "mt-8 grid gap-x-5 gap-y-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start"}
+    >
       <div className="min-w-0">
         <label className="block">
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/50">Email</span>
@@ -77,7 +80,11 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
           Send me occasional AI operating-model notes from Deepgrain.
         </label>
       </div>
-      <Button type="submit" disabled={sending || !email} className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.18em] px-6">
+      <Button
+        type="submit"
+        disabled={sending || !email}
+        className={`h-12 w-full rounded-sm bg-brass px-6 font-ui text-xs uppercase tracking-[0.18em] text-walnut hover:bg-brass-bright ${compact ? "" : "lg:mt-[22px] lg:w-auto"}`}
+      >
         {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending</> : <><Mail className="h-4 w-4 mr-2" /> Email me a secure link <ArrowRight className="h-4 w-4 ml-2" /></>}
       </Button>
     </form>
