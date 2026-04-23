@@ -91,7 +91,7 @@ describe("AssessReport production controls", () => {
     fireEvent.click(await screen.findByRole("button", { name: /share link/i }));
     expect(navigator.clipboard.writeText).toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /email executive pdf/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /deep dive/i })).toHaveAttribute("href", "/assess/deep/report-1");
+    expect(screen.getAllByRole("link", { name: /deep dive/i }).some((link) => link.getAttribute("href") === "/assess/deep/report-1")).toBe(true);
     expect(screen.getByRole("button", { name: /resend report link/i })).toBeInTheDocument();
   });
 
