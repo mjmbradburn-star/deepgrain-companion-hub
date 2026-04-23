@@ -186,7 +186,7 @@ describe("Deep Dive claim and scoring flows", () => {
     renderDeep(slug);
     await completeDeepDive("company");
 
-    await screen.findByText(/Your answers are saved\. Re-scoring needs another try\./i);
+    await screen.findByText(/Your Deep Dive answers are saved\. We could not refresh the score yet\./i);
     expect(screen.getByRole("button", { name: /finish scoring/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view report while scoring retries/i })).toBeInTheDocument();
     expect(upsert).toHaveBeenCalledTimes(1);
@@ -198,5 +198,31 @@ describe("Deep Dive claim and scoring flows", () => {
     expect(upsert).toHaveBeenCalledTimes(1);
     expect(insertedResponses).toEqual(savedRows);
     expect(screen.getByTestId("location")).toHaveTextContent(`/assess/deep/${slug}`);
+  }, 15_000);
+
+  it("shows a save retry state when individual Deep Dive answers fail to persist", async () => {
+    const { slug } = mockReport("individual");
+    const saveError = { message: 'insert or update on table "responses" violates foreign key constraint "responses_question_id_fkey"' };
+    const upsert = vi.fn().mockResolvedValue({ error: saveError });
+    supabaseMocks.from.mockImplementation((table: string) => {
+      if (table === "responses") {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn().mockResolvedValue({ data: getQuickscanQuestions("individual").map((question) => ({ question_id: question.id })), error: null }),
+          })),
+          upsert,
+        };
+      }
+      return { insert: vi.fn().mockResolvedValue({ error: null }) };
+    });
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: { access_token: "individual-token", user: { id: "individual-user-id", email: "lead@example.com" } } } });
+
+    renderDeep(slug);
+    await completeDeepDive("individual");
+
+    await screen.findByText(/We couldn't save your Deep Dive answers yet\. Try again\./i);
+    expect(screen.getByRole("button", { name: /try saving again/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /view report while scoring retries/i })).not.toBeInTheDocument();
+    expect(supabaseMocks.invoke).not.toHaveBeenCalledWith("rescore-respondent", expect.anything());
   }, 15_000);
 });
