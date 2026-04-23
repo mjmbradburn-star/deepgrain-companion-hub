@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, ChevronLeft, Info, Loader2, LogOut } from "lucide-react";
 
@@ -51,6 +51,10 @@ export default function AssessDeep() {
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [authGate, setAuthGate] = useState<"checking" | "needs-email" | "blocked" | "ready">("checking");
   const { isReady: authReady, session, user } = useAuthReady();
+  const answersSavedRef = useRef(false);
+  const scoringCompleteRef = useRef(false);
+  const submitInFlightRef = useRef<Promise<void> | null>(null);
+  const navigatedRef = useRef(false);
 
   // Load public respondent metadata first. Authenticated claim/response loading
   // waits for the browser session to be fully restored below.
@@ -164,28 +168,38 @@ export default function AssessDeep() {
     return () => window.clearTimeout(t);
   }, [navigate, remaining.length, respondent, submitErr, submitting]);
 
-  const submitAll = async (finalAnswers: Record<string, number>) => {
-    if (!respondent) return;
+  const submitDeepDive = (finalAnswers: Record<string, number>, goToReportAfterScoreFailure = false) => {
+    if (!respondent) return Promise.resolve();
+    if (submitInFlightRef.current) return submitInFlightRef.current;
+
     setSubmitting(true);
     setSubmitErr(null);
     setSubmitErrKind(null);
-    let saved = answersSaved;
-    try {
+    const run = (async () => {
+      let saved = answersSavedRef.current || answersSaved;
       const rows = Object.entries(finalAnswers).map(([question_id, tier]) => ({ respondent_id: respondent.id, question_id, tier }));
       if (rows.length > 0 && !saved) {
         const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
         if (insertError) throw insertError;
+        answersSavedRef.current = true;
         setAnswersSaved(true);
         saved = true;
       }
-      await scoreReport();
+      if (!scoringCompleteRef.current) {
+        await scoreReport();
+        scoringCompleteRef.current = true;
+      }
       void supabase.from("events").insert({
         name: "deepdive_completed",
         payload: { slug: respondent.slug, respondent_id: respondent.id, answered: Object.keys(finalAnswers).length },
       });
-      navigate(`/assess/r/${respondent.slug}`);
-    } catch (err) {
+      if (!navigatedRef.current) {
+        navigatedRef.current = true;
+        navigate(`/assess/r/${respondent.slug}`);
+      }
+    })().catch((err) => {
       console.error("[deep] submit failed", err);
+      const saved = answersSavedRef.current || answersSaved;
       const failedAt = saved ? "score" : "save";
       setSubmitErrKind(failedAt);
       setSubmitErr(failedAt === "score" ? SCORE_RETRY_MESSAGE : SAVE_RETRY_MESSAGE);
@@ -199,7 +213,20 @@ export default function AssessDeep() {
         },
       });
       setSubmitting(false);
-    }
+      if (goToReportAfterScoreFailure && failedAt === "score" && !navigatedRef.current) {
+        navigatedRef.current = true;
+        navigate(`/assess/r/${respondent.slug}`);
+      }
+    }).finally(() => {
+      submitInFlightRef.current = null;
+    });
+
+    submitInFlightRef.current = run;
+    return run;
+  };
+
+  const submitAll = async (finalAnswers: Record<string, number>) => {
+    await submitDeepDive(finalAnswers);
   };
 
   const scoreReport = async () => {
@@ -217,37 +244,15 @@ export default function AssessDeep() {
 
   const retryScoring = async (goToReportAfter = false) => {
     if (!respondent) return;
-    setSubmitting(true);
-    setSubmitErr(null);
-    setSubmitErrKind(null);
-    let saved = answersSaved;
     void supabase.from("events").insert({
       name: submitErrKind === "save" ? "deepdive_save_retried" : "deepdive_rescore_retried",
       payload: { slug: respondent.slug, respondent_id: respondent.id },
     });
-    try {
-      if (!saved) {
-        const rows = Object.entries(answers).map(([question_id, tier]) => ({ respondent_id: respondent.id, question_id, tier }));
-        const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
-        if (insertError) throw insertError;
-        setAnswersSaved(true);
-        saved = true;
-      }
-      await scoreReport();
-      navigate(`/assess/r/${respondent.slug}`);
-    } catch (err) {
-      const failedAt = saved ? "score" : "save";
-      console.error(failedAt === "score" ? "[deep] scoring retry failed" : "[deep] save retry failed", err);
-      setSubmitErrKind(failedAt);
-      setSubmitErr(failedAt === "score" ? SCORE_RETRY_MESSAGE : SAVE_RETRY_MESSAGE);
-      if (goToReportAfter && failedAt === "score") navigate(`/assess/r/${respondent.slug}`);
-    } finally {
-      setSubmitting(false);
-    }
+    await submitDeepDive(answers, goToReportAfter);
   };
 
   const select = (tier: number) => {
-    if (!question) return;
+    if (!question || submitting || submitInFlightRef.current) return;
     if (Object.keys(answers).length === 0) {
       void supabase.from("events").insert({
         name: "deepdive_first_question_answered",
