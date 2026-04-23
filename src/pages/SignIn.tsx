@@ -6,11 +6,13 @@ import { ArrowRight, Loader2, Mail } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Seo } from "@/components/aioi/Seo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { claimReportBySlug } from "@/lib/report-claim";
 import { loadDraft } from "@/lib/assessment";
+import { seoRoutes } from "@/lib/seo";
 
 const emailSchema = z
   .string()
@@ -135,6 +137,7 @@ export default function SignIn() {
 
   return (
     <AssessChrome ariaLabel="Sign in">
+      <Seo {...seoRoutes.signin} />
       <main className="container max-w-xl w-full py-20 sm:py-28">
         <p className="eyebrow mb-5">Sign in</p>
         <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
