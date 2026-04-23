@@ -9,7 +9,7 @@ import { DeepDiveEmailGate } from "@/components/aioi/DeepDiveEmailGate";
  *
  * Two visual styles:
  *  - "card"    → standalone block placed at the end of the Overview tab.
- *  - "overlay" → blurred-content cover for the locked Plan tab.
+ *  - "inline"  → compact normal-flow panel for the locked Plan tab.
  *
  * Both share the same payoff list so the user sees *exactly* what changes
  * after completing the remaining Deep Dive questions: more confident score,
@@ -66,7 +66,7 @@ const UNLOCKS_BY_LEVEL: Record<string, Unlock[]> = {
 interface Props {
   slug: string;
   level?: "company" | "function" | "individual" | string;
-  variant?: "card" | "overlay";
+  variant?: "card" | "overlay" | "inline";
   isAnonymous?: boolean;
 }
 
@@ -105,6 +105,10 @@ export function DeepDiveUnlock({ slug, level = "function", variant = "card", isA
         </div>
       </div>
     );
+  }
+
+  if (variant === "inline") {
+    return <UnlockBody slug={slug} level={level} copy={copy} compact isAnonymous={isAnonymous} />;
   }
 
   return (
