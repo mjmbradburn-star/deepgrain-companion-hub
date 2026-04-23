@@ -32,6 +32,11 @@ interface RespondentLite {
   isOwner: boolean;
 }
 
+type SubmitErrorKind = "save" | "score";
+
+const SAVE_RETRY_MESSAGE = "We couldn't save your Deep Dive answers yet. Try again.";
+const SCORE_RETRY_MESSAGE = "Your Deep Dive answers are saved. We could not refresh the score yet.";
+
 export default function AssessDeep() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -42,6 +47,7 @@ export default function AssessDeep() {
   const [submitting, setSubmitting] = useState(false);
   const [answersSaved, setAnswersSaved] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
+  const [submitErrKind, setSubmitErrKind] = useState<SubmitErrorKind | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [authGate, setAuthGate] = useState<"checking" | "needs-email" | "blocked" | "ready">("checking");
   const { isReady: authReady, session, user } = useAuthReady();
@@ -162,16 +168,15 @@ export default function AssessDeep() {
     if (!respondent) return;
     setSubmitting(true);
     setSubmitErr(null);
+    setSubmitErrKind(null);
     try {
-      const rows = Object.entries(finalAnswers).map(([question_id, tier]) => ({
-        respondent_id: respondent.id,
-        question_id,
-        tier,
-      }));
-      if (rows.length > 0 && !answersSaved) {
+      let saved = answersSaved;
+      const rows = Object.entries(finalAnswers).map(([question_id, tier]) => ({ respondent_id: respondent.id, question_id, tier }));
+      if (rows.length > 0 && !saved) {
         const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
         if (insertError) throw insertError;
         setAnswersSaved(true);
+        saved = true;
       }
       await scoreReport();
       void supabase.from("events").insert({
@@ -181,10 +186,17 @@ export default function AssessDeep() {
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
-      setSubmitErr("Your Deep Dive answers are saved. We could not refresh the score yet.");
+      const failedAt = answersSaved ? "score" : "save";
+      setSubmitErrKind(failedAt);
+      setSubmitErr(failedAt === "score" ? SCORE_RETRY_MESSAGE : SAVE_RETRY_MESSAGE);
       void supabase.from("events").insert({
         name: "deepdive_rescore_failed",
-            payload: { slug: respondent.slug, respondent_id: respondent.id, message: err instanceof Error ? err.message : String(err) },
+        payload: {
+          slug: respondent.slug,
+          respondent_id: respondent.id,
+          failed_at: failedAt,
+          message: err instanceof Error ? err.message : String(err),
+        },
       });
       setSubmitting(false);
     }
@@ -207,17 +219,28 @@ export default function AssessDeep() {
     if (!respondent) return;
     setSubmitting(true);
     setSubmitErr(null);
+    setSubmitErrKind(null);
     void supabase.from("events").insert({
-      name: "deepdive_rescore_retried",
+      name: submitErrKind === "save" ? "deepdive_save_retried" : "deepdive_rescore_retried",
       payload: { slug: respondent.slug, respondent_id: respondent.id },
     });
     try {
+      let saved = answersSaved;
+      if (!saved) {
+        const rows = Object.entries(answers).map(([question_id, tier]) => ({ respondent_id: respondent.id, question_id, tier }));
+        const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
+        if (insertError) throw insertError;
+        setAnswersSaved(true);
+        saved = true;
+      }
       await scoreReport();
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
-      console.error("[deep] scoring retry failed", err);
-      setSubmitErr("Your Deep Dive answers are saved. We could not refresh the score yet.");
-      if (goToReportAfter) navigate(`/assess/r/${respondent.slug}`);
+      const failedAt = answersSaved ? "score" : "save";
+      console.error(failedAt === "score" ? "[deep] scoring retry failed" : "[deep] save retry failed", err);
+      setSubmitErrKind(failedAt);
+      setSubmitErr(failedAt === "score" ? SCORE_RETRY_MESSAGE : SAVE_RETRY_MESSAGE);
+      if (goToReportAfter && failedAt === "score") navigate(`/assess/r/${respondent.slug}`);
     } finally {
       setSubmitting(false);
     }
@@ -307,7 +330,7 @@ export default function AssessDeep() {
               {authGate === "checking"
                 ? "Saving this report to your email…"
                 : submitErr
-                ? "Your answers are saved. Re-scoring needs another try."
+                ? submitErr
                 : remaining.length === 0
                 ? "Your full report is already complete. Taking you back now…"
                 : "Re-scoring with the full picture…"}
@@ -319,16 +342,18 @@ export default function AssessDeep() {
                   onClick={() => void retryScoring()}
                   className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                 >
-                  Finish scoring
+                  {submitErrKind === "save" ? "Try saving again" : "Finish scoring"}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void retryScoring(true)}
-                  className="rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-xs tracking-wider uppercase"
-                >
-                  View report while scoring retries
-                </Button>
+                {submitErrKind === "score" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void retryScoring(true)}
+                    className="rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 font-ui text-xs tracking-wider uppercase"
+                  >
+                    View report while scoring retries
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
