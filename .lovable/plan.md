@@ -1,163 +1,174 @@
 
-## Make sign-in and report access reliable instead of “email-only fragile”
+## Fix the two Deep Dive flow failures quickly
 
-### What is happening now
+### Problems to address
 
-The current issue is broader than spacing or one broken email send:
+1. **OAuth handoff from the report is not explicit enough**
+   - After “Continue with Google”, the user should see clear in-app confirmation that sign-in succeeded.
+   - The flow should then go straight to `/assess/deep/:slug`, not leave the user wondering whether sign-in worked.
 
-- The sender domain is verified.
-- Recent auth emails are reaching the backend email log as `sent`, so the queue is no longer the main blocker.
-- The affected auth events are still showing up as `user_confirmation_requested` rather than a true magic-link sign-in flow.
-- The app currently always calls `signInWithOtp(..., shouldCreateUser: true)`, so one form is trying to handle:
-  - first-time account creation
-  - unconfirmed users
-  - returning sign-in
-- That means the UI says “magic link”, but the backend may actually send a confirmation email instead.
-- Both `/signin` and the Deep Dive claim gate depend too heavily on one email step, so when delivery is delayed, filtered, or mismatched, the user hits a dead end.
+2. **Deep Dive completion can fall into a retry loop**
+   - The answers may be saved, but re-scoring fails.
+   - The current screen only offers “Retry scoring” or “Back to report”, which can trap the user in the same state.
+   - This is likely to affect individual, function, and company reports because they share the same Deep Dive completion path.
 
-### What to build
+## Implementation plan
 
-### 1. Split account states instead of pretending every email request is the same
+### 1. Make OAuth redirects report-aware and visible
 
-Add a small backend auth-status check for an email address that returns only the minimum safe state needed by the UI:
+Update the Google/Apple sign-in URLs from the Deep Dive gate so they preserve:
 
-- no account yet
-- account exists but email not confirmed
-- confirmed account exists
+- report slug
+- intended destination: `/assess/deep/:slug`
+- claim intent
+- provider/method, e.g. `auth_method=google`
 
-Then change the flows so they behave honestly:
+Then update `AuthCallback` so that when OAuth succeeds it shows a short confirmation state such as:
 
-- **confirmed account** → send a sign-in link
-- **unconfirmed account** → resend confirmation with explicit wording
-- **new email** → create access flow with explicit “confirm your email first” messaging
+- “Signed in with Google.”
+- “Saving this report to your account.”
+- “Taking you to the Deep Dive.”
 
-This removes the current ambiguity where the app promises a magic link but may trigger confirmation instead.
+After claiming the report, it should immediately route to:
 
-### 2. Make the UI copy state-aware across both entry points
+```text
+/assess/deep/:slug
+```
 
-Update both:
+### 2. Add an auth-ready guard before report claim / Deep Dive loading
 
-- `src/pages/SignIn.tsx`
-- `src/components/aioi/DeepDiveEmailGate.tsx`
+Add a small auth readiness hook or helper so authenticated work does not run until the session is fully restored.
 
-So the after-submit state reflects the actual backend outcome:
+Use it in:
 
-- “We sent a sign-in link”
-- “We sent a confirmation email”
-- “This address already has an account but still needs confirmation”
+- `AuthCallback`
+- `AssessDeep`
+- `AssessProcessing`
+- `MyReports` if needed
 
-Also show:
+This prevents authenticated calls from firing while the browser has returned from OAuth but the session is not yet available to the client.
 
-- exact email address used
-- up to 1 minute delivery expectation
-- spam/promotions hint
-- resend after cooldown
-- change email
-- a clear explanation of what happens after clicking
+The important rule:
 
-### 3. Add a non-email fallback so the flow is not blocked by inbox delivery
+```text
+Do not claim reports, load private responses, or invoke scoring until auth is ready and user/session exists.
+```
 
-Add Google sign-in as a parallel recovery path on:
+### 3. Harden the Deep Dive page after OAuth
 
-- `/signin`
-- the Deep Dive save/claim gate
-- expired/invalid callback error states
+Update `AssessDeep` so the flow becomes:
 
-That gives users a way through even when inbox delivery is slow, filtered, or confusing.
+```text
+Load public report by slug
+↓
+Wait for auth readiness
+↓
+If signed out: show OAuth-first gate
+↓
+If signed in: claim report
+↓
+Load existing answers
+↓
+Show remaining Deep Dive questions
+```
 
-### 4. Stop making the Deep Dive feel like a dead end
+If the claim succeeds, do not show the email gate again.
 
-Keep the report experience usable while authentication is unresolved:
+If the claim fails because the report belongs to another account, show a clear “wrong account” recovery state with:
 
-- preserve the current report slug at every step
-- keep “Back to report” available
-- keep “Try another email” and “Resend link”
-- if the user cannot authenticate immediately, do not strand them on a blank waiting state
+- sign out / use another account
+- back to report
+- contact/support-style instruction if needed
 
-For the assessment-specific flow, move the UX framing from “you must do email now” to “save this report to continue later”.
+### 4. Fix the re-scoring failure loop
 
-### 5. Harden callback and resend behavior
+Update the Deep Dive completion logic so it separates three phases:
 
-Refine:
+1. **Save new answers**
+2. **Re-score report**
+3. **Route back to updated report**
 
-- `src/pages/AuthCallback.tsx`
-- `src/lib/sync.ts`
-- `src/lib/report-claim.ts`
+If answers save but scoring fails:
 
-So callback handling distinguishes:
+- do not imply the answers are only “saved locally”
+- do not create an endless “retry scoring” loop
+- show a clearer state:
 
-- expired link
-- invalid/used link
-- unconfirmed-account state
-- claim succeeded but answer sync failed
-- sign-in succeeded but report ownership could not be attached
+```text
+Your Deep Dive answers are saved.
+We could not refresh the score yet.
+```
 
-Then make resend actions preserve:
+Primary action:
 
-- `next`
-- `claim`
-- consent flags
-- known email
+```text
+Finish scoring
+```
 
-### 6. Improve backend observability around auth delivery and conversion
+Secondary action:
 
-Extend diagnostics so future failures are obvious:
+```text
+View report while scoring is retried
+```
 
-- log requested auth intent vs actual email type sent
-- track resend clicks
-- track callback success/failure by reason
-- surface recent auth email backlog and failure counts in health-check
-- flag “signup confirmations sent from sign-in surface” as a first-class signal
+The retry should only re-run scoring if answers are already saved, not re-submit the same responses unnecessarily.
 
-### 7. Validate with the real scenarios that matter
+### 5. Fix backend function configuration for scoring auth
 
-Test these end-to-end paths:
+The `rescore-respondent` function validates the user token inside the function, but the project config currently does not list it under function-specific auth settings.
 
-1. brand-new email
-2. existing confirmed user
-3. existing unconfirmed user
-4. expired link resend
-5. Deep Dive claim flow from a public report
-6. `/signin?next=/reports`
-7. Google fallback path
-8. “sent in backend, not visible to user” messaging path
+Add function config entries for scoring functions that perform in-code auth validation:
 
-## Technical details
+```toml
+[functions.rescore-respondent]
+verify_jwt = false
 
-### Frontend files to update
-- `src/pages/SignIn.tsx`
-- `src/components/aioi/DeepDiveEmailGate.tsx`
+[functions.score-responses]
+verify_jwt = false
+```
+
+This avoids the gateway rejecting valid sessions before the function’s own ownership check runs.
+
+### 6. Pass the current session token explicitly when re-scoring
+
+Before invoking `rescore-respondent`, get the current session and pass its access token in the function request headers.
+
+If no session is available:
+
+- route back through sign-in with the report slug preserved
+- do not show “retry scoring” as if it were a scoring problem
+
+### 7. Add tests for all three report levels
+
+Add/extend regression tests for:
+
+- individual report OAuth claim → lands on Deep Dive
+- function report OAuth claim → lands on Deep Dive
+- company report OAuth claim → lands on Deep Dive
+- Deep Dive answer save succeeds but scoring fails → no endless loop
+- retry after saved answers invokes scoring only
+- unauthenticated Deep Dive access shows OAuth-first gate
+- signed-in Deep Dive access does not show the gate again
+
+### Files to update
+
 - `src/pages/AuthCallback.tsx`
 - `src/pages/AssessDeep.tsx`
 - `src/pages/AssessProcessing.tsx`
-- `src/lib/sync.ts`
-- `src/lib/report-claim.ts`
+- `src/components/aioi/DeepDiveEmailGate.tsx`
+- `src/pages/SignIn.tsx` if shared OAuth redirect handling needs alignment
+- `src/hooks/use-auth-ready.ts` or equivalent new auth readiness helper
+- `supabase/config.toml`
+- `src/pages/AssessDeep.e2e.test.tsx`
+- `src/pages/AuthCallback.email-backup.test.tsx`
 
-### Backend work
-- Add a small backend function to resolve auth state for an email without exposing private user data
-- Update auth email handling/copy so subject + body clearly match:
-  - sign-in link
-  - confirm email
-- Extend health diagnostics for auth-email outcome visibility
+### Expected outcome
 
-### Optional but recommended structural improvement
-If we want the deepest reliability fix after the auth cleanup, add a dedicated “continue your report” app-email path for report recovery, separate from account authentication. That would let report continuation be resilient even when auth email semantics are confusing.
+After the fix:
 
-## Implementation order
-
-1. Backend auth-state lookup
-2. State-aware copy + CTA updates
-3. Google sign-in fallback
-4. Callback/resend hardening
-5. Deep Dive no-dead-end recovery UX
-6. Diagnostics and end-to-end validation
-
-## Expected outcome
-
-After this work:
-
-- users will no longer be told they got a “magic link” when the system actually sent a confirmation email
-- email delivery issues will no longer fully block report recovery
-- returning users will have a reliable sign-in path
-- first-time users will understand they are confirming access, not “mysteriously not getting a magic link”
-- support/debugging will be much faster because the app will expose the real auth state instead of masking it
+- clicking Google/Apple from the report clearly confirms sign-in
+- the user is routed straight into the correct Deep Dive
+- Deep Dive completion no longer gets stuck on the retry screen
+- saved answers are preserved
+- scoring retries are safe and specific
+- individual, function, and company Deep Dive flows behave consistently
