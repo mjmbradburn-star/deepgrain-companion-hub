@@ -124,31 +124,31 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
   const unlocks = UNLOCKS_BY_LEVEL[level] ?? UNLOCKS;
   return (
     <div>
-      <div className="flex items-center gap-3 mb-5">
-        <span className="inline-flex items-center justify-center h-8 w-8 rounded-sm border border-brass/40 bg-brass/10 text-brass-bright">
+      <div className={`${compact ? "mb-4" : "mb-5"} flex items-center gap-3`}>
+        <span className={`${compact ? "h-7 w-7" : "h-8 w-8"} inline-flex items-center justify-center rounded-sm border border-brass/40 bg-brass/10 text-brass-bright`}>
           <Sparkles className="h-3.5 w-3.5" />
         </span>
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright/85">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-brass-bright/85">
           {copy.eyebrow}
         </p>
       </div>
 
       <h2
         className={`font-display text-cream leading-[1.05] tracking-tight text-balance ${
-          compact ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"
+          compact ? "text-2xl sm:text-4xl" : "text-4xl sm:text-5xl"
         }`}
       >
         {copy.headline}
       </h2>
 
-      <p className={`mt-5 font-display text-cream/65 max-w-2xl ${compact ? "text-base" : "text-lg"}`}>
+      <p className={`${compact ? "mt-3 text-sm sm:text-base" : "mt-5 text-lg"} font-display text-cream/65 max-w-2xl`}>
         {copy.detail}
       </p>
-      <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright/75">
+      <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] sm:tracking-[0.2em] text-brass-bright/75">
         {DEPTH_COPY[level] ?? DEPTH_COPY.function}
       </p>
 
-      <ul className={`mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 ${compact ? "" : "lg:grid-cols-2"}`}>
+      <ul className={`${compact ? "mt-6 gap-y-4" : "mt-8 gap-y-5"} grid grid-cols-1 sm:grid-cols-2 gap-x-8 ${compact ? "" : "lg:grid-cols-2"}`}>
         {unlocks.map((u) => (
           <li key={u.title} className="flex gap-3 items-start">
             <span
@@ -156,7 +156,7 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
               aria-hidden
             />
             <div className="min-w-0">
-              <p className="font-display text-base text-cream leading-snug">{u.title}</p>
+              <p className={`${compact ? "text-sm sm:text-base" : "text-base"} font-display text-cream leading-snug`}>{u.title}</p>
               <p className="mt-1 text-sm text-cream/60 leading-snug">{u.detail}</p>
               {u.confidence && <ConfidenceBar from={u.confidence.from} to={u.confidence.to} />}
             </div>
@@ -167,7 +167,7 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
       {isAnonymous ? (
         <DeepDiveEmailGate slug={slug} level={level} compact={compact} />
       ) : (
-        <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <div className={`${compact ? "mt-7" : "mt-9"} flex flex-wrap items-center gap-x-5 gap-y-3`}>
           <Button
             asChild
             size="lg"
