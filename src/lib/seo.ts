@@ -112,8 +112,10 @@ export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
     name: SITE_NAME,
     url: SITE_URL,
+    inLanguage: "en-GB",
     publisher: { "@type": "Organization", name: "Deepgrain" },
     potentialAction: {
       "@type": "Action",
@@ -127,11 +129,19 @@ export function applicationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
+    "@id": `${SITE_URL}/#ai-maturity-scan`,
     name: SITE_NAME,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: SITE_URL,
     description: seoRoutes.home.description,
+    isAccessibleForFree: true,
+    keywords: ["AI maturity assessment", "AI readiness assessment", "AI adoption benchmark", "AI operating model", "AI governance maturity"],
+    audience: [
+      { "@type": "BusinessAudience", audienceType: "Companies" },
+      { "@type": "BusinessAudience", audienceType: "Functions" },
+      { "@type": "Audience", audienceType: "Individuals" },
+    ],
     offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
     publisher: { "@type": "Organization", name: "Deepgrain" },
   };
@@ -175,12 +185,22 @@ export const faqItems = [
     question: "Who is Deepgrain?",
     answer: "Deepgrain is the studio behind the AI Operating Index, building diagnostic and operating tools for AI enablement and transformation.",
   },
+  {
+    question: "What does the AIOI score include?",
+    answer: "The AIOI score includes a weighted readout across eight pillars, a maturity tier, weakest-pillar hotspots, recommended next actions, and peer benchmark context where available.",
+  },
+  {
+    question: "Is AIOI for companies or individuals?",
+    answer: "AIOI can be taken at company, function, or individual level, so the same framework can describe a whole organisation, a single team, or a personal operating model.",
+  },
 ];
 
 export function faqJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "@id": `${SITE_URL}/#faq`,
+    url: canonicalUrl("/"),
     mainEntity: faqItems.map((item) => ({
       "@type": "Question",
       name: item.question,
