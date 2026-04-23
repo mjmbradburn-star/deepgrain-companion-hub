@@ -7,6 +7,7 @@ import { OptionCard } from "@/components/aioi/OptionCard";
 import { PillarChip } from "@/components/aioi/PillarChip";
 import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { DeepDiveEmailGate } from "@/components/aioi/DeepDiveEmailGate";
+import { Seo } from "@/components/aioi/Seo";
 import { Button } from "@/components/ui/button";
 import {
   PILLAR_NAMES,
@@ -18,6 +19,7 @@ import {
 import { getQuickscanQuestions } from "@/lib/quickscan";
 import { supabase } from "@/integrations/supabase/client";
 import { claimReportBySlug } from "@/lib/report-claim";
+import { seoRoutes } from "@/lib/seo";
 
 interface RespondentLite {
   id: string;
@@ -198,6 +200,7 @@ export default function AssessDeep() {
   if (loadErr) {
     return (
       <AssessChrome ariaLabel="Deep dive">
+        <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
         <main className="container py-24 text-center">
           <p className="font-display text-2xl text-cream/80">{loadErr}</p>
         </main>
@@ -208,6 +211,7 @@ export default function AssessDeep() {
   if (!respondent) {
     return (
       <AssessChrome ariaLabel="Loading">
+        <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
         <main className="container flex-1 flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-brass" />
         </main>
@@ -218,6 +222,7 @@ export default function AssessDeep() {
   if (authGate === "needs-email") {
     return (
       <AssessChrome ariaLabel="Save report">
+        <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
         <main className="container max-w-2xl w-full py-20 sm:py-28">
           <p className="eyebrow mb-5">Save report</p>
           <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">Save this report and<br /><span className="italic text-brass-bright">unlock the Deep Dive.</span></h1>

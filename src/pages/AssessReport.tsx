@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
+import { Seo } from "@/components/aioi/Seo";
 import { FounderBio } from "@/components/aioi/FounderBio";
 import { PillarBarChart } from "@/components/aioi/PillarBarChart";
 import { PillarChartVariantToggle, usePillarChartVariant } from "@/components/aioi/PillarChartVariantToggle";
@@ -34,6 +35,8 @@ import { BenchmarkSliceCard } from "@/components/aioi/BenchmarkSliceCard";
 import { DeepDiveUnlock } from "@/components/aioi/DeepDiveUnlock";
 import { ReportCta } from "@/components/aioi/ReportCta";
 import { sendMagicLink, SyncError } from "@/lib/sync";
+import { seoRoutes } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 // ─── Types coming back from the report row ────────────────────────────────
 interface PillarTierEntry {
@@ -163,10 +166,7 @@ export default function AssessReport() {
       if (cancelled) return;
 
       // Telemetry — fire-and-forget
-      void supabase.from("events").insert({
-        name: "report_viewed",
-        payload: { slug, has_deepdive: payload.has_deepdive },
-      });
+      trackEvent("report_viewed", { slug, has_deepdive: payload.has_deepdive });
 
       setData({
         respondent: payload.respondent,
@@ -212,6 +212,7 @@ function ReportView({ data }: { data: ReportData }) {
 
   return (
     <div className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.report} path={`/assess/r/${respondent.slug}`} />
       <SiteNav />
 
       <TabsPrimitive.Root defaultValue="overview" className="w-full">
