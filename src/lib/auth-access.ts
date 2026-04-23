@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { SyncError } from "./sync";
 
 export type AuthEmailState = "new" | "unconfirmed" | "confirmed" | "invalid_email" | "unknown";
 
@@ -37,7 +36,7 @@ export async function sendAccessLink(email: string, redirectTo: string): Promise
     },
   });
 
-  if (error) throw new SyncError(error.message, error);
+  if (error) throw error;
 
   const emailType = state === "confirmed" ? "signin" : "confirmation";
   void supabase.from("events").insert({
