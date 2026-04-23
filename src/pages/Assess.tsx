@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
+import { Seo } from "@/components/aioi/Seo";
 import { LEVELS, type Level, loadDraft, saveDraft } from "@/lib/assessment";
+import { trackEvent } from "@/lib/analytics";
 import { loadScan, saveScan } from "@/lib/quickscan";
+import { applicationJsonLd, breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
 const ORDER: Level[] = ["company", "function", "individual"];
 
@@ -13,6 +16,7 @@ export default function Assess() {
   const navigate = useNavigate();
 
   const choose = (level: Level) => {
+    trackEvent("assessment_level_selected", { level }, { optional: true });
     // Keep both stores in sync so legacy resume + new scan work side-by-side.
     const draft = loadDraft();
     saveDraft({ ...draft, level, startedAt: draft.startedAt ?? new Date().toISOString() });
@@ -23,6 +27,7 @@ export default function Assess() {
 
   return (
     <AssessChrome back={{ to: "/", label: "Home" }} ariaLabel="Choose assessment level">
+      <Seo {...seoRoutes.assess} jsonLd={[applicationJsonLd(), breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Assessment", path: "/assess" }])]} />
       <main className="container py-16 sm:py-24 w-full">
         <div className="max-w-3xl mb-14 animate-fade-up">
           <p className="eyebrow mb-5">Step 01 · Choose your level · 3-minute scan</p>
@@ -31,7 +36,7 @@ export default function Assess() {
             <span className="italic text-brass-bright">measuring?</span>
           </h1>
           <p className="mt-6 font-display text-xl text-cream/65 max-w-xl">
-            Pick the lens. Eight questions, one per pillar. Score on screen in three minutes. The deeper write-up unlocks after.
+            Pick the lens for your free AI maturity assessment. Eight questions, one per pillar. Score on screen in three minutes; email is only needed if you save the report or unlock the Deep Dive.
           </p>
         </div>
 
