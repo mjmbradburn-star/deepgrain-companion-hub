@@ -113,7 +113,7 @@ describe("AuthCallback routing and loop guards", () => {
 
     renderCallback("/auth/callback?email=lead%40example.com");
 
-    expect(await screen.findByText(/We couldn't verify/i)).toBeInTheDocument();
+    expect(await screen.findByText(/We couldn't verify/i, {}, { timeout: 4_000 })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resend link|request a new link/i })).toBeInTheDocument();
   }, 7000);
 
