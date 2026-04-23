@@ -82,7 +82,6 @@ describe("AssessProcessing auth and finalise flow", () => {
   });
 
   it("finalises once for signed-in users, even under StrictMode", async () => {
-    vi.useFakeTimers();
     authReadyMock.mockReturnValue({ isReady: true, session: testSession, user: testSession.user });
 
     renderProcessing(true);
@@ -91,7 +90,6 @@ describe("AssessProcessing auth and finalise flow", () => {
     await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledWith("email-report-pdf", {
       body: { slug: "report-1", email: "lead@example.com" },
     }));
-    vi.useRealTimers();
   });
 
   it("offers retry and start-over recovery when finalise fails", async () => {

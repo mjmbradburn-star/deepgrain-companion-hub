@@ -109,16 +109,13 @@ describe("AuthCallback routing and loop guards", () => {
   });
 
   it("times out instead of spinning forever when no session appears", async () => {
-    vi.useFakeTimers();
     supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
 
     renderCallback("/auth/callback?email=lead%40example.com");
-    await act(async () => { vi.advanceTimersByTime(2600); });
 
     expect(await screen.findByText(/We couldn't verify/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resend link|request a new link/i })).toBeInTheDocument();
-    vi.useRealTimers();
-  });
+  }, 7000);
 
   it("does not duplicate draft syncing under StrictMode", async () => {
     assessmentMocks.loadDraft.mockReturnValue({ level: "function", qualifier: { function: "sales" }, answers: { "f-p1-owner": 3 } });

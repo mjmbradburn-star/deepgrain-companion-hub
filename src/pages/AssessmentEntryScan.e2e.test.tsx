@@ -69,7 +69,6 @@ describe("assessment entry and quickscan regression flow", () => {
   });
 
   it("prevents double-submit races on the final quickscan answer", async () => {
-    vi.useFakeTimers();
     const questions = getQuickscanQuestions("function");
     saveScan({
       level: "function",
@@ -79,17 +78,14 @@ describe("assessment entry and quickscan regression flow", () => {
     renderScan();
     fireEvent.click(await screen.findByRole("button", { name: /quietly, in case it looks like cheating/i }));
     fireEvent.click(screen.getByRole("button", { name: /quietly, in case it looks like cheating/i }));
-    await act(async () => { vi.advanceTimersByTime(260); });
 
     await waitFor(() => expect(supabaseMocks.invoke).toHaveBeenCalledTimes(1));
     expect(supabaseMocks.invoke).toHaveBeenCalledWith("submit-quickscan", expect.objectContaining({
       body: expect.objectContaining({ level: "function" }),
     }));
-    vi.useRealTimers();
   });
 
   it("shows safe retry and review actions when quickscan scoring fails", async () => {
-    vi.useFakeTimers();
     const questions = getQuickscanQuestions("individual");
     saveScan({
       level: "individual",
@@ -101,12 +97,10 @@ describe("assessment entry and quickscan regression flow", () => {
 
     renderScan();
     fireEvent.click(await screen.findByRole("button", { name: /not using it for a task/i }));
-    await act(async () => { vi.advanceTimersByTime(260); });
 
     expect(await screen.findByText(/Our scoring service hiccupped/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /review answers/i }));
     expect(await screen.findByText(/How do you share what you learn from AI/i)).toBeInTheDocument();
-    vi.useRealTimers();
   });
 });

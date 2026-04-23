@@ -7,6 +7,8 @@ import { deferred, reportPayload } from "@/test/auth-flow-harness";
 
 const supabaseMocks = vi.hoisted(() => ({
   getSession: vi.fn(),
+  onAuthStateChange: vi.fn(),
+  signOut: vi.fn(),
   rpc: vi.fn(),
   invoke: vi.fn(),
   from: vi.fn(),
@@ -21,7 +23,7 @@ const toastMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    auth: { getSession: supabaseMocks.getSession },
+    auth: { getSession: supabaseMocks.getSession, onAuthStateChange: supabaseMocks.onAuthStateChange, signOut: supabaseMocks.signOut },
     rpc: supabaseMocks.rpc,
     functions: { invoke: supabaseMocks.invoke },
     from: supabaseMocks.from,
@@ -54,6 +56,7 @@ describe("AssessReport production controls", () => {
     vi.clearAllMocks();
     Object.assign(navigator, { clipboard: { writeText: vi.fn() } });
     supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
+    supabaseMocks.onAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
     supabaseMocks.from.mockReturnValue({ insert: vi.fn().mockResolvedValue({ error: null }) });
     supabaseMocks.invoke.mockResolvedValue({ data: { ok: true, pdfUrl: "https://example.com/report.pdf" }, error: null });
     syncMocks.sendMagicLink.mockResolvedValue({ email: "lead@example.com", state: "confirmed", emailType: "magic_link" });
