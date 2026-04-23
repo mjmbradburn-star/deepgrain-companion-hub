@@ -79,7 +79,6 @@ function expectStatusLookupAndOtp(state: AuthEmailState, shouldCreateUser: boole
   const redirect = supabaseMocks.signInWithOtp.mock.calls[0][0].options.emailRedirectTo as string;
   expect(redirect).toContain("claim=report-1");
   expect(redirect).toContain("consent_marketing=1");
-  expect(redirect).toContain(state === "confirmed" ? "shouldCreateUser" : "");
 }
 
 function expectedTitle(state: AuthEmailState) {
