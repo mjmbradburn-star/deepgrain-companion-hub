@@ -11,6 +11,7 @@ import { ensureRespondent, flushAnswers, sendMagicLink, SyncError } from "@/lib/
 import { claimReportBySlug } from "@/lib/report-claim";
 import { seoRoutes } from "@/lib/seo";
 import { lovable } from "@/integrations/lovable";
+import { authAccessCopy } from "@/lib/auth-access";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -62,6 +63,7 @@ export default function AuthCallback() {
   const next = params.get("next") || "/reports";
   const claimSlug = params.get("claim");
   const consentMarketing = params.get("consent_marketing") === "1";
+  const emailParam = params.get("email");
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +81,7 @@ export default function AuthCallback() {
       setErrorKind(linkError.kind);
       setErrorDetail(linkError.description ?? null);
       try {
-        const draftEmail = loadDraft().qualifier?.email;
+        const draftEmail = emailParam || loadDraft().qualifier?.email;
         if (draftEmail) setKnownEmail(draftEmail);
       } catch {
         /* no-op */
@@ -158,7 +160,7 @@ export default function AuthCallback() {
           setStatus("error");
           setErrorKind("invalid");
           try {
-            const draftEmail = loadDraft().qualifier?.email;
+            const draftEmail = emailParam || loadDraft().qualifier?.email;
             if (draftEmail) setKnownEmail(draftEmail);
           } catch {
             /* no-op */
@@ -193,14 +195,14 @@ export default function AuthCallback() {
     setResending(true);
     try {
       const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
-      await sendMagicLink(knownEmail, redirectTo);
+      const outcome = await sendMagicLink(knownEmail, redirectTo);
       void supabase.from("events").insert({
         name: "auth_callback_resend_clicked",
         payload: { next, claim_slug: claimSlug },
       });
       setResentTo(knownEmail);
       setCooldown(30);
-      toast({ title: "Check your inbox", description: "We just sent a fresh sign-in link." });
+      toast({ title: "Check your inbox", description: authAccessCopy(outcome).toast });
     } catch (err) {
       const msg = err instanceof SyncError ? err.message : "Could not send link. Try again.";
       toast({ title: msg, variant: "destructive" });
