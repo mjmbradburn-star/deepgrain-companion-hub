@@ -14,6 +14,7 @@ import AssessReport from "./pages/AssessReport.tsx";
 import AssessScan from "./pages/AssessScan.tsx";
 import AssessDeep from "./pages/AssessDeep.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
+import AiOverview from "./pages/AiOverview.tsx";
 import Pillars from "./pages/Pillars.tsx";
 import Ladder from "./pages/Ladder.tsx";
 import Benchmarks from "./pages/Benchmarks.tsx";
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/assess/processing" element={<AssessProcessing />} />
           <Route path="/assess/r/:slug" element={<AssessReport />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/ai/overview" element={<AiOverview />} />
           <Route path="/pillars" element={<Pillars />} />
           <Route path="/ladder" element={<Ladder />} />
           <Route path="/benchmarks" element={<Benchmarks />} />
