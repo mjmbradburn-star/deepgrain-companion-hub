@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { sendMagicLink, SyncError } from "./sync";
+import { buildAuthCallbackUrl } from "./auth-callback-url";
 
 export type ClaimStatus = "claimed" | "already_owned" | "already_claimed" | "not_found" | "unauthorized" | "invalid_slug";
 
@@ -28,7 +29,7 @@ export async function claimReportBySlug(slug: string, consentMarketing = false):
 
 export async function sendDeepDiveClaimLink(email: string, slug: string, consentMarketing = false) {
   const next = `/assess/deep/${slug}`;
-  const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}&claim=${encodeURIComponent(slug)}&consent_marketing=${consentMarketing ? "1" : "0"}`;
+  const redirectTo = buildAuthCallbackUrl({ next, claim: slug, consentMarketing });
   void supabase.from("events").insert({
     name: "deepdive_email_link_requested",
     payload: { slug, consent_marketing: consentMarketing },

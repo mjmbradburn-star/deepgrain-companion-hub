@@ -12,6 +12,7 @@ import { sendDeepDiveClaimLink } from "@/lib/report-claim";
 import { SyncError } from "@/lib/sync";
 import { authAccessCopy, type AuthAccessOutcome } from "@/lib/auth-access";
 import { lovable } from "@/integrations/lovable";
+import { buildAuthCallbackUrl, persistAuthCallbackContext } from "@/lib/auth-callback-url";
 
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address").max(254, "Email is too long");
 
@@ -55,7 +56,9 @@ export function DeepDiveEmailGate({ slug, level = "function", compact = false }:
   };
 
   const signInWithProvider = async (provider: "google" | "apple") => {
-    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/assess/deep/${slug}`)}&claim=${encodeURIComponent(slug)}&consent_marketing=${consentMarketing ? "1" : "0"}&auth_method=${provider}`;
+    const context = { next: `/assess/deep/${slug}`, claim: slug, consentMarketing, authMethod: provider };
+    persistAuthCallbackContext(context);
+    const redirect_uri = buildAuthCallbackUrl(context);
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri,
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
