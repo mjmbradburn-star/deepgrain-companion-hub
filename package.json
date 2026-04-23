@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "vitest run \"src/pages/**/*.e2e.test.tsx\"",
+    "test:edge": "deno test -A supabase/functions/score-responses/scoring_test.ts supabase/functions/score-responses/auth-access_test.ts supabase/functions/rescore-respondent/auth-access_test.ts supabase/functions/email-report-pdf/access-control_test.ts supabase/functions/email-report-pdf/email-handoff_test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
