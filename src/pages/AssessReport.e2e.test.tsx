@@ -219,4 +219,24 @@ describe("AssessReport production controls", () => {
     expect(deepDiveCta).toHaveClass("w-full", "sm:w-auto", "h-12", "min-h-12");
     expect(deepDiveCta.querySelector("span")).toHaveClass("whitespace-nowrap");
   });
+
+  it("renders compact Deep Dive intro typography with mobile-safe hierarchy", async () => {
+    supabaseMocks.rpc.mockImplementation((name: string) => {
+      if (name === "get_report_by_slug") return Promise.resolve({ data: reportPayload({ level: "individual", isAnonymous: true, hasDeepdive: false }), error: null });
+      if (name === "get_outcomes_for_report") return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data: null, error: null });
+    });
+
+    renderReport();
+
+    const headline = await screen.findByText(/Unlock your full personal profile/i);
+    const eyebrow = screen.getByText(/Deep Dive · completes this report/i);
+    const detail = screen.getByText(/You'll see your personal operating profile/i);
+    const depthNote = screen.getByText(/Answer 1 additional question/i);
+
+    expect(headline).toHaveClass("text-[1.6rem]", "sm:text-4xl", "leading-[1.02]", "sm:leading-[1.05]");
+    expect(eyebrow).toHaveClass("text-[9px]", "sm:text-[10px]", "tracking-[0.14em]", "leading-snug");
+    expect(detail).toHaveClass("mt-2.5", "text-[15px]", "leading-relaxed");
+    expect(depthNote).toHaveClass("mt-2.5", "text-[9px]", "tracking-[0.13em]", "leading-snug");
+  });
 });

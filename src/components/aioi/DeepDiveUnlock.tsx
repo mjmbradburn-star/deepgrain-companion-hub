@@ -124,27 +124,27 @@ function UnlockBody({ slug, level, copy, compact = false, isAnonymous = false }:
   const unlocks = UNLOCKS_BY_LEVEL[level] ?? UNLOCKS;
   return (
     <div>
-      <div className={`${compact ? "mb-4" : "mb-5"} flex items-center gap-3`}>
-        <span className={`${compact ? "h-7 w-7" : "h-8 w-8"} inline-flex items-center justify-center rounded-sm border border-brass/40 bg-brass/10 text-brass-bright`}>
+      <div className={`${compact ? "mb-3.5 sm:mb-4" : "mb-5"} flex items-center gap-3`}>
+        <span className={`${compact ? "h-6 w-6 sm:h-7 sm:w-7" : "h-8 w-8"} inline-flex items-center justify-center rounded-sm border border-brass/40 bg-brass/10 text-brass-bright`}>
           <Sparkles className="h-3.5 w-3.5" />
         </span>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-brass-bright/85">
+        <p className={`${compact ? "text-[9px] sm:text-[10px] tracking-[0.14em] sm:tracking-[0.2em] leading-snug" : "text-[10px] tracking-[0.18em] sm:tracking-[0.22em]"} font-mono uppercase text-brass-bright/85`}>
           {copy.eyebrow}
         </p>
       </div>
 
       <h2
-        className={`font-display text-cream leading-[1.05] tracking-tight text-balance ${
-          compact ? "text-2xl sm:text-4xl" : "text-4xl sm:text-5xl"
+        className={`font-display text-cream text-balance ${
+          compact ? "text-[1.6rem] sm:text-4xl leading-[1.02] sm:leading-[1.05] tracking-[-0.02em]" : "text-4xl sm:text-5xl leading-[1.05] tracking-tight"
         }`}
       >
         {copy.headline}
       </h2>
 
-      <p className={`${compact ? "mt-3 text-sm sm:text-base" : "mt-5 text-lg"} font-display text-cream/65 max-w-2xl`}>
+      <p className={`${compact ? "mt-2.5 sm:mt-3 text-[15px] sm:text-base leading-relaxed" : "mt-5 text-lg"} font-display text-cream/65 max-w-2xl`}>
         {copy.detail}
       </p>
-      <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] sm:tracking-[0.2em] text-brass-bright/75">
+      <p className={`${compact ? "mt-2.5 sm:mt-3 text-[9px] sm:text-[10px] tracking-[0.13em] sm:tracking-[0.2em] leading-snug" : "mt-3 text-[10px] tracking-[0.16em] sm:tracking-[0.2em]"} font-mono uppercase text-brass-bright/75`}>
         {DEPTH_COPY[level] ?? DEPTH_COPY.function}
       </p>
 
