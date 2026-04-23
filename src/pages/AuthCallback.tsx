@@ -70,6 +70,7 @@ export default function AuthCallback() {
   const claimSlug = params.get("claim");
   const consentMarketing = params.get("consent_marketing") === "1";
   const emailParam = params.get("email");
+  const authMethod = params.get("auth_method");
 
   useEffect(() => {
     let cancelled = false;
@@ -81,7 +82,7 @@ export default function AuthCallback() {
     if (linkError) {
       void supabase.from("events").insert({
         name: "auth_callback_failed",
-        payload: { kind: linkError.kind, next, claim_slug: claimSlug },
+        payload: { kind: linkError.kind, next, claim_slug: claimSlug, auth_method: authMethod },
       });
       setStatus("error");
       setErrorKind(linkError.kind);
@@ -131,7 +132,7 @@ export default function AuthCallback() {
       if (cancelled) return;
       void supabase.from("events").insert({
         name: "auth_callback_succeeded",
-        payload: { next, claim_slug: claimSlug },
+        payload: { next, claim_slug: claimSlug, auth_method: authMethod },
       });
       const nextParam = params.get("next");
       if (nextParam) {
@@ -218,7 +219,7 @@ export default function AuthCallback() {
   };
 
   const handleProvider = async (provider: "google" | "apple") => {
-    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}&auth_method=${provider}`;
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri,
       extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
@@ -354,10 +355,10 @@ export default function AuthCallback() {
     <AssessChrome ariaLabel="Signing you in">
       <Seo {...seoRoutes.flow} path="/auth/callback" />
       <main className="container max-w-2xl w-full py-24">
-        <p className="eyebrow mb-5">Signing you in</p>
+          <p className="eyebrow mb-5">{authMethod ? `Signed in with ${authMethod}` : "Signing you in"}</p>
         <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight tracking-tight">
-          One moment.<br />
-          <span className="italic text-brass-bright">Resuming your assessment.</span>
+          {claimSlug ? "Saving this report." : "One moment."}<br />
+          <span className="italic text-brass-bright">{claimSlug ? "Taking you to the Deep Dive." : "Resuming your assessment."}</span>
         </h1>
       </main>
     </AssessChrome>
