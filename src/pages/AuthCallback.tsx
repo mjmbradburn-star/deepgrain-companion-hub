@@ -10,6 +10,7 @@ import { loadDraft, getQuestions } from "@/lib/assessment";
 import { ensureRespondent, flushAnswers, sendMagicLink, SyncError } from "@/lib/sync";
 import { claimReportBySlug } from "@/lib/report-claim";
 import { seoRoutes } from "@/lib/seo";
+import { lovable } from "@/integrations/lovable";
 
 /**
  * Handles the magic-link redirect target. When the session resolves we:
@@ -208,6 +209,12 @@ export default function AuthCallback() {
     }
   };
 
+  const handleGoogle = async () => {
+    const redirect_uri = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { prompt: "select_account" } });
+    if (result.error) toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+  };
+
   if (status === "error") {
     const copy = errorCopy(errorKind);
     const claimParams = claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : "";
@@ -260,6 +267,14 @@ export default function AuthCallback() {
                 </Link>
               </Button>
             )}
+            <Button
+              type="button"
+              onClick={handleGoogle}
+              variant="outline"
+              className="h-12 rounded-sm border-cream/20 bg-transparent text-cream hover:bg-cream/5 hover:text-cream font-ui text-xs uppercase tracking-[0.2em]"
+            >
+              Continue with Google
+            </Button>
             <Button
               asChild
               variant="outline"
