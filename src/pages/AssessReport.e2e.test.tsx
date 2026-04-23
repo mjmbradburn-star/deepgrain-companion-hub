@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AssessReport from "./AssessReport";
 import { deferred, reportPayload } from "@/test/auth-flow-harness";
+import { fetchBestSlice } from "@/lib/benchmarks";
 
 const supabaseMocks = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -36,7 +37,7 @@ vi.mock("@/lib/benchmarks", async () => {
   return {
     ...actual,
     fetchBestSlice: vi.fn().mockResolvedValue(null),
-    pillarsFromRow: vi.fn().mockReturnValue(null),
+    pillarsFromRow: vi.fn().mockReturnValue({}),
   };
 });
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: toastMock }) }));
@@ -155,6 +156,40 @@ describe("AssessReport production controls", () => {
       "owner@example.com",
       expect.stringContaining("/auth/callback?next=%2Fassess%2Fdeep%2Fshared-lock&claim=shared-lock"),
     ));
+  });
+
+  it("places the individual Deep Dive capture before the benchmark cohort card", async () => {
+    vi.mocked(fetchBestSlice).mockResolvedValueOnce({
+      label: "All individual-level respondents",
+      specificity: 1,
+      matchType: "broad",
+      row: {
+        id: "benchmark-individual",
+        level: "individual",
+        function: null,
+        region: null,
+        sector: null,
+        size_band: null,
+        median_score: 58,
+        pillar_medians: {},
+        sample_size: 128,
+        refreshed_at: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    supabaseMocks.rpc.mockImplementation((name: string) => {
+      if (name === "get_report_by_slug") return Promise.resolve({ data: reportPayload({ level: "individual", isAnonymous: true, hasDeepdive: false }), error: null });
+      if (name === "get_outcomes_for_report") return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data: null, error: null });
+    });
+
+    renderReport();
+
+    const unlock = await screen.findByText(/Unlock your full personal profile/i);
+    const benchmark = await screen.findByText(/All individual-level respondents/i);
+
+    expect(unlock.compareDocumentPosition(benchmark) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /send secure sign-in link/i })).toBeInTheDocument();
   });
 
   it("shows unlocked shared report CTAs when Deep Dive is already complete", async () => {

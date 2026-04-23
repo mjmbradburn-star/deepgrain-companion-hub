@@ -435,10 +435,15 @@ function OverviewTab({
         </div>
       </div>
 
-      {/* Cohort delta card — full width below the score + chart.
-          Spacing scale: 12 (mobile) / 16 (desktop) keeps the same rhythm
-          as the gap between the two columns above. */}
-      <div className="mt-12 lg:mt-16">
+      {!hasDeepdive && (
+        <div className="mt-10 lg:mt-12">
+          <DeepDiveUnlock slug={slug} level={level} variant="inline" isAnonymous={isAnonymous} />
+        </div>
+      )}
+
+      {/* Cohort delta card — full width below the completion prompt.
+          Spacing keeps the benchmark close while making Deep Dive the next action. */}
+      <div className="mt-10 lg:mt-12">
         <BenchmarkSliceCard
           values={pillarValues}
           userScore={report.aioi_score}
@@ -447,7 +452,6 @@ function OverviewTab({
       </div>
     </section>
     <ReportCta tier={report.overall_tier} />
-    {!hasDeepdive && <DeepDiveUnlock slug={slug} level={level} variant="card" isAnonymous={isAnonymous} />}
     </>
   );
 }
