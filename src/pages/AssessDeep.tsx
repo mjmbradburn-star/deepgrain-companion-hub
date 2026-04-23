@@ -236,6 +236,7 @@ export default function AssessDeep() {
   if (authGate === "checking" || submitting || submitErr || remaining.length === 0) {
     return (
       <AssessChrome ariaLabel="Re-scoring">
+        <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center">
             {!submitErr && <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />}
@@ -282,6 +283,7 @@ export default function AssessDeep() {
       back={{ to: `/assess/r/${respondent.slug}`, label: "Report" }}
       ariaLabel={`Deep dive question ${answeredProgressCount + step} of ${totalProgressCount}`}
     >
+      <Seo {...seoRoutes.flow} path={slug ? `/assess/deep/${slug}` : "/assess/deep"} />
       <main className="w-full flex flex-col">
         <div className="container pt-6">
           <ProgressBar
