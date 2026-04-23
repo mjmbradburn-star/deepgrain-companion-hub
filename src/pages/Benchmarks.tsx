@@ -11,6 +11,9 @@ import { loadScan } from "@/lib/quickscan";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, RefreshCw } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { Seo } from "@/components/aioi/Seo";
+import { trackEvent } from "@/lib/analytics";
+import { benchmarkDatasetJsonLd, breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
 type Row = Database["public"]["Tables"]["benchmarks_materialised"]["Row"] & {
@@ -507,11 +510,12 @@ export default function Benchmarks() {
     );
   };
 
-  const setLevel = (v: Level) => updateParams({ level: v === "function" ? null : v });
-  const setFn = (v: FunctionSlice) => updateParams({ fn: v === "All" ? null : v });
-  const setSize = (v: SizeBand) => updateParams({ size: v === "All" ? null : v });
-  const setSector = (v: Sector) => updateParams({ sector: v === "All" ? null : v });
-  const setRegion = (v: Region) => updateParams({ region: v === "All" ? null : v });
+  const trackFilterChange = (filter: string, value: string) => trackEvent("benchmark_filter_changed", { filter, value }, { optional: true });
+  const setLevel = (v: Level) => { trackFilterChange("level", v); updateParams({ level: v === "function" ? null : v }); };
+  const setFn = (v: FunctionSlice) => { trackFilterChange("function", v); updateParams({ fn: v === "All" ? null : v }); };
+  const setSize = (v: SizeBand) => { trackFilterChange("size", v); updateParams({ size: v === "All" ? null : v }); };
+  const setSector = (v: Sector) => { trackFilterChange("sector", v); updateParams({ sector: v === "All" ? null : v }); };
+  const setRegion = (v: Region) => { trackFilterChange("region", v); updateParams({ region: v === "All" ? null : v }); };
   const setCompareOpen = (open: boolean | ((v: boolean) => boolean)) => {
     const next = typeof open === "function" ? open(compareOpen) : open;
     updateParams({ compare: next ? "1" : null });
@@ -651,6 +655,7 @@ export default function Benchmarks() {
 
   return (
     <main className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.benchmarks} jsonLd={[benchmarkDatasetJsonLd(), breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Benchmarks", path: "/benchmarks" }])]} />
       <SiteNav />
 
       <section className="pt-24 sm:pt-32 pb-10 sm:pb-12 border-b border-cream/10">
@@ -667,6 +672,9 @@ export default function Benchmarks() {
           <p className="mt-5 sm:mt-6 max-w-2xl font-display text-base sm:text-lg text-cream/70 leading-[1.5] text-pretty motion-safe:animate-fade-up-soft [animation-delay:480ms]">
             Live medians from every assessment that opted in. Slice by level, function,
             organisation size, sector, and region. Then compare functions side by side.
+          </p>
+          <p className="mt-4 max-w-2xl font-display text-base text-cream/65 leading-relaxed motion-safe:animate-fade-up-soft [animation-delay:560ms]">
+            The benchmark is an AI adoption and AI readiness dataset. When your exact cohort is too thin, AIOI keeps the selected level fixed and falls back to the closest available slice by function, sector, region and size.
           </p>
         </div>
       </section>
