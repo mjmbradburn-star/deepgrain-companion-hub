@@ -169,8 +169,8 @@ export default function AssessDeep() {
     setSubmitting(true);
     setSubmitErr(null);
     setSubmitErrKind(null);
+    let saved = answersSaved;
     try {
-      let saved = answersSaved;
       const rows = Object.entries(finalAnswers).map(([question_id, tier]) => ({ respondent_id: respondent.id, question_id, tier }));
       if (rows.length > 0 && !saved) {
         const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
@@ -186,7 +186,7 @@ export default function AssessDeep() {
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
       console.error("[deep] submit failed", err);
-      const failedAt = answersSaved ? "score" : "save";
+      const failedAt = saved ? "score" : "save";
       setSubmitErrKind(failedAt);
       setSubmitErr(failedAt === "score" ? SCORE_RETRY_MESSAGE : SAVE_RETRY_MESSAGE);
       void supabase.from("events").insert({
@@ -220,12 +220,12 @@ export default function AssessDeep() {
     setSubmitting(true);
     setSubmitErr(null);
     setSubmitErrKind(null);
+    let saved = answersSaved;
     void supabase.from("events").insert({
       name: submitErrKind === "save" ? "deepdive_save_retried" : "deepdive_rescore_retried",
       payload: { slug: respondent.slug, respondent_id: respondent.id },
     });
     try {
-      let saved = answersSaved;
       if (!saved) {
         const rows = Object.entries(answers).map(([question_id, tier]) => ({ respondent_id: respondent.id, question_id, tier }));
         const { error: insertError } = await supabase.from("responses").upsert(rows, { onConflict: "respondent_id,question_id" });
@@ -236,7 +236,7 @@ export default function AssessDeep() {
       await scoreReport();
       navigate(`/assess/r/${respondent.slug}`);
     } catch (err) {
-      const failedAt = answersSaved ? "score" : "save";
+      const failedAt = saved ? "score" : "save";
       console.error(failedAt === "score" ? "[deep] scoring retry failed" : "[deep] save retry failed", err);
       setSubmitErrKind(failedAt);
       setSubmitErr(failedAt === "score" ? SCORE_RETRY_MESSAGE : SAVE_RETRY_MESSAGE);
