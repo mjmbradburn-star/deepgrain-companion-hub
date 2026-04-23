@@ -23,7 +23,7 @@ import { authAccessCopy } from "@/lib/auth-access";
  * a friendly state with a "Request a new link" CTA.
  */
 
-type LinkErrorKind = "expired" | "invalid" | "access_denied" | "sync" | "generic";
+type LinkErrorKind = "expired" | "invalid" | "used" | "unconfirmed" | "access_denied" | "sync" | "generic";
 
 function parseHashParams(hash: string): URLSearchParams {
   return new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
@@ -38,6 +38,12 @@ function detectLinkError(search: URLSearchParams, hash: URLSearchParams): {
   const desc = hash.get("error_description") || search.get("error_description") || undefined;
   if (!error && !code) return null;
   const description = desc?.replace(/\+/g, " ");
+  if (/not confirmed|unconfirmed|confirm your email|email.*confirm/i.test(description ?? "")) {
+    return { kind: "unconfirmed", description };
+  }
+  if (/already been used|used/i.test(description ?? "")) {
+    return { kind: "used", description };
+  }
   if (code === "otp_expired" || /expired/i.test(description ?? "")) {
     return { kind: "expired", description };
   }
@@ -194,7 +200,7 @@ export default function AuthCallback() {
     if (!knownEmail || resending || cooldown > 0) return;
     setResending(true);
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}${claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : ""}`;
       const outcome = await sendMagicLink(knownEmail, redirectTo);
       void supabase.from("events").insert({
         name: "auth_callback_resend_clicked",
@@ -222,6 +228,7 @@ export default function AuthCallback() {
 
   if (status === "error") {
     const copy = errorCopy(errorKind);
+    const reportHref = claimSlug ? `/assess/r/${claimSlug}` : null;
     const claimParams = claimSlug ? `&claim=${encodeURIComponent(claimSlug)}&consent_marketing=${consentMarketing ? "1" : "0"}` : "";
     const retryHref = knownEmail
       ? `/signin?next=${encodeURIComponent(next)}&email=${encodeURIComponent(knownEmail)}${claimParams}`
@@ -244,11 +251,34 @@ export default function AuthCallback() {
             </p>
           )}
 
+          {reportHref && (
+            <div className="mt-8 rounded-sm border border-brass/30 bg-brass/5 p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright mb-2">
+                Next action
+              </p>
+              <p className="font-display text-base text-cream/85">
+                Your report is still available. Return to it, then continue with Google or Apple, or resend the email backup from the report gate.
+              </p>
+            </div>
+          )}
+
           <div className="mt-10 flex flex-col sm:flex-row gap-3">
+            {reportHref && (
+              <Button
+                asChild
+                className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+              >
+                <Link to={reportHref}>
+                  Back to report
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            )}
             <Button
               type="button"
               onClick={() => handleProvider("google")}
-              className="h-12 rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs uppercase tracking-[0.2em]"
+              className={`${reportHref ? "" : "bg-brass text-walnut hover:bg-brass-bright"} h-12 rounded-sm font-ui text-xs uppercase tracking-[0.2em]`}
+              variant={reportHref ? "outline" : "default"}
             >
               Continue with Google
             </Button>
@@ -313,7 +343,7 @@ export default function AuthCallback() {
           )}
 
           <p className="mt-12 font-mono text-[11px] text-cream/40">
-            Tip: open the link on the same device and browser where you requested it, and within 1 hour.
+            Tip: email links are single-use and time-limited. If one fails, use Google or Apple, or request a fresh email backup.
           </p>
         </main>
       </AssessChrome>
@@ -354,6 +384,20 @@ function errorCopy(kind: LinkErrorKind): {
         title: "We couldn't verify",
         titleAccent: "that link.",
         body: "It may have already been used, or it was opened in a different browser. Request a new link to continue.",
+      };
+    case "used":
+      return {
+        eyebrow: "Link already used",
+        title: "That link was",
+        titleAccent: "already used.",
+        body: "Email links only work once. Return to your report and continue with Google or Apple, or request a fresh email backup.",
+      };
+    case "unconfirmed":
+      return {
+        eyebrow: "Email not confirmed",
+        title: "Confirm your",
+        titleAccent: "email first.",
+        body: "This account exists, but the email address still needs confirmation before sign-in can finish. Use Google or Apple, or request a fresh confirmation email.",
       };
     case "access_denied":
       return {
