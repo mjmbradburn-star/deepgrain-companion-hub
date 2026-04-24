@@ -82,8 +82,8 @@ export function Hero() {
             </span>
           </span>
           <span className="block overflow-hidden">
-            <span className="block italic font-normal text-brass motion-safe:animate-slide-up-mask [animation-delay:340ms]">
-              AI debt.
+            <span className="block italic font-normal text-brass motion-safe:animate-slide-up-mask [animation-delay:340ms] text-left mb-0 pb-[30px]">
+              AI Capability
             </span>
           </span>
         </h1>
