@@ -58,8 +58,9 @@ export default function AdminPlaybookLayout({ children }: { children?: ReactNode
                   {item.label}
                 </NavLink>
               ))}
-              <div className="ml-2 border-l pl-2">
+              <div className="ml-2 flex items-center gap-2 border-l pl-2">
                 <BackfillMoveCopyButton />
+                <BackfillReportsButton />
               </div>
             </nav>
           </div>
