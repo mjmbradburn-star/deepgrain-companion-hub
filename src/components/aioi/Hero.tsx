@@ -91,13 +91,11 @@ export function Hero() {
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container sm:px-8 lg:px-12 relative z-10 mt-auto pt-10 sm:pt-0 pb-10 sm:pb-28 grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-8 items-end px-[45px] text-left">
+      <div className="container sm:px-8 lg:px-12 relative z-10 mt-auto pt-8 sm:pt-0 pb-8 sm:pb-24 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-end px-[45px] text-left">
         <p className="md:col-span-6 md:col-start-7 font-display sm:text-2xl text-cream/80 leading-[1.45] sm:leading-[1.35] text-pretty motion-safe:animate-fade-up-soft [animation-delay:680ms]">
           For companies, functions and individuals.
           <br />
-          <br />
           Three minutes.
-          <br />
           <br />
           Eight pillars, one question each, from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
         </p>
