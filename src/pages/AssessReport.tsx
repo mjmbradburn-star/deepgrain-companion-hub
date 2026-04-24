@@ -34,6 +34,8 @@ import { fetchBestSlice, pillarsFromRow, type MatchedSlice } from "@/lib/benchma
 import { BenchmarkSliceCard } from "@/components/aioi/BenchmarkSliceCard";
 import { DeepDiveUnlock } from "@/components/aioi/DeepDiveUnlock";
 import { ReportCta } from "@/components/aioi/ReportCta";
+import { HotspotCard } from "@/components/aioi/HotspotCard";
+import { MoveCard, type RecommendationMove } from "@/components/aioi/MoveCard";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { seoRoutes } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
