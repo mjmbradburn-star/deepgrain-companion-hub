@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PillarChip, type PillarIndex } from "./PillarChip";
 import { TierBadge, type Tier } from "./TierBadge";
@@ -14,6 +16,14 @@ interface HotspotCardProps {
   moveWhy?: string;
   moveEffort?: number | null;
   moveImpact?: number | null;
+  /**
+   * The selection-engine Move ID for this pillar. When set, the card becomes
+   * a navigable Link to the corresponding Move on the Plan tab
+   * (`?tab=plan#move-<moveId>`). Sourced from `move_ids` / `recommendations.moves`.
+   */
+  moveId?: string | null;
+  /** Required when `moveId` is set: the report slug used to build the URL. */
+  reportSlug?: string;
   className?: string;
 }
 
@@ -27,16 +37,18 @@ export function HotspotCard({
   moveWhy,
   moveEffort,
   moveImpact,
+  moveId,
+  reportSlug,
   className,
 }: HotspotCardProps) {
-  return (
-    <article
-      className={cn(
-        "rounded-lg border border-cream/10 bg-surface-1/70 backdrop-blur-sm p-6",
-        "motion-lift motion-tap hover:border-brass/40",
-        className,
-      )}
-    >
+  const linkable = !!moveId && !!reportSlug;
+  // Anchor format: stable contract — MoveCard renders <article id="move-<id>"/>.
+  const href = linkable
+    ? `/assess/r/${reportSlug}?tab=plan#move-${moveId}`
+    : undefined;
+
+  const body = (
+    <>
       <div className="flex items-center justify-between gap-3 mb-4">
         <PillarChip index={pillar} label={pillarLabel} />
         <TierBadge tier={tier} />
@@ -47,7 +59,17 @@ export function HotspotCard({
         <>
           <div className="my-4 hairline h-px" />
           <div className="space-y-2">
-            <p className="eyebrow text-brass-bright/85">Move</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="eyebrow text-brass-bright/85">Move</p>
+              {linkable && (
+                <span
+                  aria-hidden
+                  className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 transition-colors group-hover:text-brass-bright"
+                >
+                  View move <ArrowUpRight className="h-3 w-3" />
+                </span>
+              )}
+            </div>
             {moveTitle && (
               <p className="font-display text-base text-cream leading-snug">{moveTitle}</p>
             )}
@@ -63,6 +85,33 @@ export function HotspotCard({
           </div>
         </>
       )}
+    </>
+  );
+
+  const baseClasses = cn(
+    "group block rounded-lg border border-cream/10 bg-surface-1/70 backdrop-blur-sm p-6",
+    "motion-lift motion-tap hover:border-brass/40",
+    linkable && "focus:outline-none focus-visible:ring-2 focus-visible:ring-brass/60",
+    className,
+  );
+
+  if (linkable && href) {
+    return (
+      <Link
+        to={href}
+        data-testid="hotspot-card"
+        data-move-id={moveId}
+        aria-label={`View move for ${pillarLabel}: ${moveTitle ?? "details"}`}
+        className={baseClasses}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <article data-testid="hotspot-card" className={baseClasses}>
+      {body}
     </article>
   );
 }
