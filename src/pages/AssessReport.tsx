@@ -186,9 +186,51 @@ export function MovesTab({
   const lockedCount = hasDeepdive ? 0 : Math.max(0, moves.length - VISIBLE_PRE_DEEPDIVE);
   const usedFallback = recommendations.used_fallback === true;
 
-  const [sort, setSort] = useState<MoveSortKey>("default");
-  const [tierFilter, setTierFilter] = useState<MoveTierFilter>("all");
-  const [pillarFilter, setPillarFilter] = useState<MovePillarFilter>("all");
+  // Persist sort + filters in the URL so they survive navigating away and
+  // back (and are shareable). Defaults are omitted from the querystring so
+  // the URL stays clean for the common case.
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const SORT_KEYS: readonly MoveSortKey[] = ["default", "effort_asc", "effort_desc", "impact_desc", "impact_asc"];
+  const TIER_KEYS: readonly MoveTierFilter[] = ["all", "low", "mid", "high"];
+
+  const sortParam = searchParams.get("sort");
+  const sort: MoveSortKey = (SORT_KEYS as readonly string[]).includes(sortParam ?? "")
+    ? (sortParam as MoveSortKey)
+    : "default";
+
+  const tierParam = searchParams.get("band");
+  const tierFilter: MoveTierFilter = (TIER_KEYS as readonly string[]).includes(tierParam ?? "")
+    ? (tierParam as MoveTierFilter)
+    : "all";
+
+  const pillarParam = searchParams.get("pillar");
+  const pillarParsed = pillarParam ? Number.parseInt(pillarParam, 10) : NaN;
+  const pillarFilter: MovePillarFilter =
+    Number.isFinite(pillarParsed) && pillarParsed >= 1 && pillarParsed <= 8
+      ? (pillarParsed as number)
+      : "all";
+
+  // Helper: update one query param, dropping it when it equals the default.
+  const updateParam = (key: string, value: string | null, defaultValue: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value === null || value === defaultValue) next.delete(key);
+    else next.set(key, value);
+    setSearchParams(next, { replace: true });
+  };
+
+  const setSort = (s: MoveSortKey) => updateParam("sort", s, "default");
+  const setTierFilter = (t: MoveTierFilter) => updateParam("band", t, "all");
+  const setPillarFilter = (p: MovePillarFilter) =>
+    updateParam("pillar", p === "all" ? null : String(p), "all");
+  const resetFilters = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("sort");
+    next.delete("band");
+    next.delete("pillar");
+    setSearchParams(next, { replace: true });
+  };
+
 
   // Pillars actually represented in the visible Move set — drives chip options.
   const availablePillars = useMemo(() => {
