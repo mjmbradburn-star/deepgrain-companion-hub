@@ -93,11 +93,9 @@ export function Hero() {
       {/* Standfirst + CTA */}
       <div className="container sm:px-8 lg:px-12 relative z-10 mt-auto pt-8 sm:pt-0 pb-8 sm:pb-24 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-end px-[45px] text-left">
         <p className="md:col-span-6 md:col-start-7 font-display sm:text-2xl text-cream/80 leading-[1.45] sm:leading-[1.35] text-pretty motion-safe:animate-fade-up-soft [animation-delay:680ms]">
-          For companies, functions and individuals.
-          <br />
-          Three minutes.
-          <br />
-          Eight pillars, one question each, from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
+          <span className="block">For companies, functions and individuals.</span>
+          <span className="block">Three minutes.</span>
+          <span className="block">Eight pillars, one question each, from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.</span>
         </p>
 
         <div className="md:col-span-6 md:col-start-7 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 motion-safe:animate-fade-up-soft [animation-delay:820ms]">
