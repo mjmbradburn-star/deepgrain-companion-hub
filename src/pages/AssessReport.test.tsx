@@ -49,7 +49,7 @@ vi.mock("@/lib/analytics", () => ({
 }));
 
 
-import {
+import AssessReport, {
   MovesTab,
   OverviewTab,
   type Recommendations,
