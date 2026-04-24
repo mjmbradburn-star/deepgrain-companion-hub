@@ -62,7 +62,7 @@ Wired into `score-responses` after the report upsert. Old `plan` field stays unt
 
 ---
 
-## Phase C — Report UI rewiring
+## Phase C — Report UI rewiring ✅ COMPLETE
 
 Update `AssessReport.tsx` to render the new `recommendations` payload when present, falling back to legacy `plan` only if absent.
 

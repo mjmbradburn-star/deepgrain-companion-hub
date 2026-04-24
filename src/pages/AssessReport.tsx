@@ -34,6 +34,8 @@ import { fetchBestSlice, pillarsFromRow, type MatchedSlice } from "@/lib/benchma
 import { BenchmarkSliceCard } from "@/components/aioi/BenchmarkSliceCard";
 import { DeepDiveUnlock } from "@/components/aioi/DeepDiveUnlock";
 import { ReportCta } from "@/components/aioi/ReportCta";
+import { HotspotCard } from "@/components/aioi/HotspotCard";
+import { MoveCard, type RecommendationMove } from "@/components/aioi/MoveCard";
 import { sendMagicLink, SyncError } from "@/lib/sync";
 import { seoRoutes } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
@@ -67,6 +69,15 @@ interface OutcomeRow {
   impact: number | null;
   time_to_value: string | null;
 }
+interface Recommendations {
+  headline_diagnosis: string;
+  personalised_intro: string;
+  closing_cta: string;
+  moves: RecommendationMove[];
+  generated_at?: string;
+  voice_model?: string;
+  used_fallback?: boolean;
+}
 interface ReportData {
   respondent: {
     id: string;
@@ -87,6 +98,9 @@ interface ReportData {
     hotspots: Hotspot[];
     diagnosis: string | null;
     plan: PlanMonth[];
+    recommendations: Recommendations | null;
+    recommendations_generated_at: string | null;
+    move_ids: string[] | null;
     generated_at: string | null;
     cap_flags?: Array<{ code: string; label: string }>;
     benchmark_excluded?: boolean;
@@ -114,6 +128,112 @@ function narrativeReadout(report: NonNullable<ReportData["report"]>, hasDeepdive
     confidence: confidenceCopy(hasDeepdive, capCount),
   };
 }
+
+/** Short pillar-aware blurb for the HotspotCard headline. */
+function tierBlurb(tierLabel: Tier, pillarName: string): string {
+  switch (tierLabel) {
+    case "Dormant": return `${pillarName} is pre-AI. Foundations come before tooling.`;
+    case "Exploring": return `${pillarName} has activity but no operating shape yet.`;
+    case "Deployed": return `${pillarName} ships, but it does not yet compound.`;
+    case "Integrated": return `${pillarName} is part of the flow. Now make it consistent.`;
+    case "Leveraged": return `${pillarName} drives outcomes. Defend the gains.`;
+    case "AI-Native": return `${pillarName} is the substrate. Keep raising the floor.`;
+    default: return `${pillarName} needs sequencing before scale.`;
+  }
+}
+
+// ─── Moves (new — backed by the Voice Wrapper recommendations) ────────────
+function MovesTab({
+  recommendations,
+  tier,
+  slug,
+  level,
+  hasDeepdive,
+  isAnonymous,
+}: {
+  recommendations: Recommendations;
+  tier: Tier;
+  slug: string;
+  level: string;
+  hasDeepdive: boolean;
+  isAnonymous: boolean;
+}) {
+  const moves = recommendations.moves;
+  // When the user hasn't done the deep dive, show the first three Moves in the
+  // clear and lock the rest behind a normal-flow upsell.
+  const VISIBLE_PRE_DEEPDIVE = 3;
+  const visibleMoves = hasDeepdive ? moves : moves.slice(0, VISIBLE_PRE_DEEPDIVE);
+  const lockedCount = hasDeepdive ? 0 : Math.max(0, moves.length - VISIBLE_PRE_DEEPDIVE);
+  const usedFallback = recommendations.used_fallback === true;
+
+  return (
+    <section className="container max-w-6xl py-10 sm:py-20">
+      <div className="max-w-3xl mb-12">
+        <p className="eyebrow mb-5">Your moves</p>
+        <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
+          The shortest path<br />
+          <span className="italic text-brass-bright">from here.</span>
+        </h2>
+        <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl leading-relaxed">
+          {recommendations.personalised_intro}
+        </p>
+        {usedFallback && (
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">
+            Generated from your scored profile · personalised wrapper unavailable
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {visibleMoves.map((move, i) => (
+          <MoveCard key={move.move_id} move={move} index={i} />
+        ))}
+      </div>
+
+      {lockedCount > 0 && (
+        <LockedMovesContinuation
+          lockedCount={lockedCount}
+          slug={slug}
+          level={level}
+          isAnonymous={isAnonymous}
+        />
+      )}
+
+      {recommendations.closing_cta && (
+        <div className="mt-12 sm:mt-16 rounded-md border border-brass/30 bg-brass/8 px-6 sm:px-8 py-6 sm:py-7">
+          <p className="eyebrow text-brass-bright/85 mb-2">Where to start</p>
+          <p className="font-display text-xl sm:text-2xl text-cream leading-snug text-balance">
+            {recommendations.closing_cta}
+          </p>
+        </div>
+      )}
+
+      <ReportCta tier={tier} />
+    </section>
+  );
+}
+
+function LockedMovesContinuation({
+  lockedCount, slug, level, isAnonymous,
+}: { lockedCount: number; slug: string; level: string; isAnonymous: boolean }) {
+  return (
+    <div className="mt-12 border-t border-cream/10 pt-8 sm:pt-10">
+      <div className="rounded-lg border border-brass/30 bg-surface-1/55 p-5 sm:p-8 lg:p-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-brass/35 bg-brass/10 text-brass-bright">
+            <Lock className="h-4 w-4" />
+          </span>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
+            {lockedCount} more move{lockedCount === 1 ? "" : "s"} locked until Deep Dive
+          </p>
+        </div>
+        <DeepDiveUnlock slug={slug} level={level} variant="inline" isAnonymous={isAnonymous} />
+      </div>
+    </div>
+  );
+}
+
+
 
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
@@ -265,7 +385,7 @@ function ReportView({ data }: { data: ReportData }) {
             <TabsPrimitive.List className="mt-10 -mb-px flex flex-wrap items-end gap-x-8 gap-y-2 border-b border-cream/10">
               {[
                 { value: "overview", label: "Overview" },
-                { value: "plan", label: "Plan" },
+                { value: "plan", label: "Moves" },
                 { value: "report", label: "Report" },
                 { value: "methodology", label: "Methodology" },
                 { value: "invite", label: "Invite" },
@@ -298,7 +418,25 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={needsEmailGate} />
+          {report.recommendations && report.recommendations.moves.length > 0 ? (
+            <MovesTab
+              recommendations={report.recommendations}
+              tier={report.overall_tier}
+              slug={respondent.slug}
+              level={respondent.level}
+              hasDeepdive={data.hasDeepdive}
+              isAnonymous={needsEmailGate}
+            />
+          ) : (
+            <PlanTab
+              plan={report.plan}
+              outcomes={outcomes}
+              slug={respondent.slug}
+              level={respondent.level}
+              hasDeepdive={data.hasDeepdive}
+              isAnonymous={needsEmailGate}
+            />
+          )}
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
@@ -340,6 +478,18 @@ function OverviewTab({
 }) {
   const [chartVariant, setChartVariant] = usePillarChartVariant();
   const readout = narrativeReadout(report, hasDeepdive);
+  const recs = report.recommendations;
+  const headline = recs?.headline_diagnosis ?? report.diagnosis;
+  // Index the first selected Move per pillar so HotspotCards can show
+  // the most relevant Move snippet inline.
+  const movesByPillar = useMemo(() => {
+    const map = new Map<number, RecommendationMove>();
+    if (!recs) return map;
+    for (const m of recs.moves) {
+      if (!map.has(m.snapshot.pillar)) map.set(m.snapshot.pillar, m);
+    }
+    return map;
+  }, [recs]);
   return (
     <>
     <section className="container max-w-6xl py-8 sm:py-20">
@@ -378,30 +528,35 @@ function OverviewTab({
             </div>
           )}
 
-          {report.diagnosis && (
+          {headline && (
             <blockquote className="mt-10 border-l-2 border-brass/60 pl-6">
               <p className="font-display italic text-2xl sm:text-3xl text-cream/90 leading-snug text-balance">
-                "{report.diagnosis}"
+                "{headline}"
               </p>
             </blockquote>
           )}
 
           {/* Hotspots */}
           {report.hotspots.length > 0 && (
-            <div className="mt-12 space-y-3">
+            <div className="mt-12 space-y-4">
               <p className="eyebrow text-cream/45">Three pillars to watch</p>
-              <ul className="space-y-2">
-                {report.hotspots.map((h) => (
-                  <li key={h.pillar} className="flex items-center justify-between gap-4 border-b border-cream/10 py-3">
-                    <div className="flex items-center gap-3">
-                      <PillarChip index={h.pillar as 1|2|3|4|5|6|7|8} label={h.name} />
-                    </div>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/55 tabular-nums">
-                      Tier {h.tier} · {h.tierLabel}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="grid grid-cols-1 gap-4">
+                {report.hotspots.map((h) => {
+                  const move = movesByPillar.get(h.pillar);
+                  return (
+                    <HotspotCard
+                      key={h.pillar}
+                      pillar={h.pillar as 1|2|3|4|5|6|7|8}
+                      pillarLabel={h.name}
+                      tier={h.tierLabel}
+                      diagnosis={`Tier ${h.tier}. ${tierBlurb(h.tierLabel, h.name)}`}
+                      moveTitle={move?.snapshot.title}
+                      moveWhy={move?.personalised_why_matters || move?.snapshot.why_matters || undefined}
+                      moveEffort={move?.snapshot.effort ?? null}
+                    />
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -451,6 +606,16 @@ function OverviewTab({
         />
       </div>
     </section>
+    {recs?.closing_cta && (
+      <section className="container max-w-4xl pb-2 sm:pb-4">
+        <div className="rounded-md border border-brass/30 bg-brass/8 px-5 sm:px-7 py-5 sm:py-6">
+          <p className="eyebrow text-brass-bright/85 mb-2">Where to start</p>
+          <p className="font-display text-xl sm:text-2xl text-cream leading-snug text-balance">
+            {recs.closing_cta}
+          </p>
+        </div>
+      </section>
+    )}
     <ReportCta tier={report.overall_tier} />
     </>
   );
