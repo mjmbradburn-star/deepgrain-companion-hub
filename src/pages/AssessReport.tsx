@@ -169,10 +169,10 @@ export function MovesTab({
   return (
     <section className="container max-w-6xl py-10 sm:py-20">
       <div className="max-w-3xl mb-12">
-        <p className="eyebrow mb-5">Your moves</p>
-        <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
-          The shortest path<br />
-          <span className="italic text-brass-bright">from here.</span>
+        <p className="eyebrow mb-5">Your moves · ranked for impact</p>
+        <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight text-balance">
+          {moves.length} move{moves.length === 1 ? "" : "s"} to take next,<br />
+          <span className="italic text-brass-bright">in the right order.</span>
         </h2>
         <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl leading-relaxed">
           {recommendations.personalised_intro}
@@ -200,12 +200,16 @@ export function MovesTab({
       )}
 
       {recommendations.closing_cta && (
-        <div className="mt-12 sm:mt-16 rounded-md border border-brass/30 bg-brass/8 px-6 sm:px-8 py-6 sm:py-7">
-          <p className="eyebrow text-brass-bright/85 mb-2">Where to start</p>
-          <p className="font-display text-xl sm:text-2xl text-cream leading-snug text-balance">
+        <aside
+          aria-label="Where to start"
+          className="mt-12 sm:mt-16 relative overflow-hidden rounded-md border border-brass/35 bg-gradient-to-br from-brass/12 via-brass/5 to-transparent px-6 sm:px-10 py-7 sm:py-9"
+        >
+          <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-brass-bright" />
+          <p className="eyebrow text-brass-bright mb-3">Start here · this week</p>
+          <p className="font-display text-2xl sm:text-3xl text-cream leading-snug tracking-tight text-balance">
             {recommendations.closing_cta}
           </p>
-        </div>
+        </aside>
       )}
 
       <ReportCta tier={tier} />
