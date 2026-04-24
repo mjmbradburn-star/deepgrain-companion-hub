@@ -20,6 +20,7 @@ function move(overrides: Partial<Move>): Move {
     what_to_do: "do x",
     how_to_know: "you used it",
     effort: 1,
+    impact: 2,
     tags: null,
     cta_type: null,
     cta_url: null,
