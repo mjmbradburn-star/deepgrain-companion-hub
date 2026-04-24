@@ -24,6 +24,12 @@ import MyReports from "./pages/MyReports.tsx";
 import DevHeroCta from "./pages/DevHeroCta.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import DeployReview from "./pages/DeployReview.tsx";
+import AdminPlaybookLayout from "./pages/admin/AdminPlaybookLayout.tsx";
+import MovesListPage from "./pages/admin/MovesListPage.tsx";
+import MoveEditorPage from "./pages/admin/MoveEditorPage.tsx";
+import CoveragePage from "./pages/admin/CoveragePage.tsx";
+import StalePage from "./pages/admin/StalePage.tsx";
+import TestReportPage from "./pages/admin/TestReportPage.tsx";
 import { CookieBanner } from "@/components/aioi/CookieBanner";
 
 const queryClient = new QueryClient();
@@ -54,6 +60,14 @@ const App = () => (
           <Route path="/reports" element={<MyReports />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/deploy-review" element={<DeployReview />} />
+          <Route path="/admin/playbook" element={<AdminPlaybookLayout />}>
+            <Route index element={<MovesListPage />} />
+            <Route path="coverage" element={<CoveragePage />} />
+            <Route path="stale" element={<StalePage />} />
+            <Route path="test" element={<TestReportPage />} />
+            <Route path="new" element={<MoveEditorPage />} />
+            <Route path=":id" element={<MoveEditorPage />} />
+          </Route>
           {import.meta.env.DEV && <Route path="/dev/hero-cta" element={<DevHeroCta />} />}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
