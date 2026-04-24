@@ -102,7 +102,7 @@ export function Hero() {
           Eight pillars, one question each, from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.
         </p>
 
-        <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 motion-safe:animate-fade-up-soft [animation-delay:820ms]">
+        <div className="md:col-span-6 md:col-start-7 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 motion-safe:animate-fade-up-soft [animation-delay:820ms]">
           <Button
             asChild
             size="lg"
