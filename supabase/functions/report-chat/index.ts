@@ -461,7 +461,8 @@ Deno.serve(async (req) => {
       } finally {
         controller.close();
         if (assistantText.trim().length > 0) {
-          const audit = auditAssistantResponse(assistantText, allowedMoveTitles);
+          const cleaned = sanitise(assistantText);
+          const audit = auditAssistantResponse(cleaned, allowedMoveTitles);
           if (audit.invented_move_titles.length > 0) {
             console.warn("report-chat grounding warning", {
               respondent_id: respondentId,
@@ -471,7 +472,7 @@ Deno.serve(async (req) => {
           await service.from("report_chat_messages").insert({
             respondent_id: respondentId,
             role: "assistant",
-            content: assistantText,
+            content: cleaned,
           });
         }
       }
