@@ -500,6 +500,16 @@ function OverviewTab({
         />
       </div>
     </section>
+    {recs?.closing_cta && (
+      <section className="container max-w-4xl pb-2 sm:pb-4">
+        <div className="rounded-md border border-brass/30 bg-brass/8 px-5 sm:px-7 py-5 sm:py-6">
+          <p className="eyebrow text-brass-bright/85 mb-2">Where to start</p>
+          <p className="font-display text-xl sm:text-2xl text-cream leading-snug text-balance">
+            {recs.closing_cta}
+          </p>
+        </div>
+      </section>
+    )}
     <ReportCta tier={report.overall_tier} />
     </>
   );
