@@ -1,97 +1,95 @@
-# Report Assistant — "Ask your report" AI chat
 
-## What we're building
+# Make the advice practical, and the voice yours
 
-A chat assistant that lives **on the report page** (not the assessment), grounded in the user's actual results. It answers questions like:
+The grounding work is done. The chat now only talks about the user's report. The next gap is the **shape and tone** of what it says. Today the assistant tends to give framing ("you should think about governance"). What you want is **what to put in the calendar on Monday morning**, in your voice.
 
-- "Which Move should I do first this quarter?"
-- "Why is governance my weakest pillar?"
-- "Translate this Move into a one-page brief for my CFO."
-- "Build me a 30-day plan from my top three Moves."
+This plan does two things:
 
-It is a **report companion**, not a generic chatbot. It only ever talks about *this respondent's* report.
+1. Force every chat reply into a concrete "do this tomorrow" shape.
+2. Lock the voice. One shared style guide, applied to chat output and to Move-copy generation, with a server-side sanitiser that strips em-dashes and AI tells before the user sees them.
 
-## Where it lives
+## 1. Practicality contract for every reply
 
-A pinned **"Ask your report"** panel inside `AssessReport.tsx`, anchored bottom-right as a floating launcher that opens a side sheet (Sheet component, already in shadcn). Visible only when:
+Edit the system prompt in `supabase/functions/report-chat/index.ts` so that, unless the user explicitly asks for something else (a one-pager, a brief, a sequence), the model must answer in this shape:
 
-1. The respondent's report has loaded successfully, AND
-2. `recommendations.moves.length > 0` (no moves = nothing to ground on).
+```
+The Move:        '<exact Move title from the allow-list>'
+Why now:         one sentence tied to their hotspot or tier
+Do this week:    3-5 bullets, each starts with a verb, names who does it,
+                 names the artefact produced (doc, channel, meeting, policy)
+First 30 mins:   the very first thing to open or write tomorrow morning
+You'll know
+it landed when:  a behaviour or artefact, not a metric
+Watch out for:   the most common way this fails in a company their size
+```
 
-The launcher uses the existing `Sparkles` / `MessageSquare` icon and copy: **"Ask your report"** with a subtle pulse on first arrival.
+Rules baked into the prompt:
 
-Also surfaced as a **secondary CTA inside each MoveCard**: a small "Discuss this Move" link that opens the sheet pre-seeded with `"Help me put '<Move title>' into practice."`
+- Every action must name a **role** (you, your COO, the team lead, an AI champion) and a **deliverable** (a one-page policy, a Slack channel, a 30-minute standup, a shared prompt library, a tagged folder in Drive).
+- No "consider", "explore", "think about", "look into", "develop a strategy", "foster a culture". If the model would write that, it must instead write the specific thing to do.
+- Never invent vendor names. If a tool is needed, say "your existing chat tool" or "whatever you use for docs".
+- Cap the answer at ~180 words unless the user asked for an artefact (brief, plan, email).
+- For "How do I handle X?" questions (policy breaches, shadow tool use, scepticism, exec resistance) the assistant answers in the same shape but with a "Say this:" block containing a short script the user can paste or read aloud.
 
-Not rendered on the locked pre-deepdive teaser (gated behind `hasDeepdive` for full Q&A; pre-deepdive users get 3 free turns then a soft paywall pointing to deep-dive unlock — keeps the Voice Wrapper economics intact).
+## 2. Shared voice guide, used in two places
 
-## Why on the report (not the assessment)
+Create `supabase/functions/_shared/aioi-voice.ts` exporting:
 
-The assessment is deliberately fast (3 minutes, 8 questions). Adding a chatbot mid-flow would inflate completion time and contaminate the scoring signal. After the report renders the user has *something to talk about* — their scores, hotspots, and ranked Moves — which is exactly what the LLM needs as grounding context.
+- `VOICE_GUIDE` (string) — the canonical voice rules. Covers: British English, no em-dashes, second person, no banned words, no rhetorical questions, no "in today's fast-paced world" openings, no "I hope this helps" closings, no emoji, contractions allowed, dry and direct.
+- `BANNED_PATTERNS` (RegExp[]) — superset of what `backfill-move-copy` already has, plus: "navigate", "landscape", "robust", "comprehensive", "dive in", "let's", "feel free", "I'd be happy to", "as an AI", "ensure that", "it's important to note", "in order to", "going forward", "at the end of the day".
+- `sanitise(text)` — same function shape as the one in `backfill-move-copy`, with the em-dash → comma replacement, contractions kept, double spaces collapsed.
+- `BANNED_OPENERS` (RegExp[]) — strips assistant openings like "Great question", "Certainly", "Of course", "Sure", "Absolutely".
 
-## Grounding: what the assistant knows
+Then:
 
-Every chat call sends the respondent's report state as the system context (server-side, never trusted from client). The edge function loads:
+- `backfill-move-copy/index.ts` imports `VOICE_GUIDE`, `BANNED_PATTERNS`, `sanitise` from the shared module instead of redefining its own. One source of truth.
+- `report-chat/index.ts` imports the same things and uses `VOICE_GUIDE` inside the system prompt's VOICE block, so the chat and the Move copy speak in the same voice.
 
-- `respondents` row: lens, function, size_band, pillar_tiers, overall score, tier
-- `recommendations` JSON: headline_diagnosis, personalised_intro, the ranked `moves[]` (id, title, pillar, why_matters, what_to_do, how_to_know, effort, impact)
-- Top hotspots and matched benchmark slice
+## 3. Strip the AI tells before the user sees them
 
-The system prompt enforces:
+The chat streams. We can't sanitise mid-stream cleanly without breaking SSE framing, so do it in two places:
 
-- British English, AIOI voice (reuses the same banned-word list from `backfill-move-copy`)
-- Refuses off-topic requests ("I can only help with your AI Operating Index report")
-- Always cites Move titles when recommending action
-- No hallucinated scores — if asked about something not in the report, say so
+1. **In the system prompt**: hard rule at the top, with examples of bad → good rewrites. Cheapest fix, catches most cases.
+2. **On persistence**: when we save the assistant's final message to `report_chat_messages`, run `sanitise()` on it. The DB copy (which is what the user sees on reload, and what gets exported to the action plan PDF) is always clean. The transient streamed version in the browser may briefly show an em-dash before it gets replaced by the persisted version on the next render.
 
-## Conversation persistence
+Add a small post-stream step in the edge function: collect the streamed deltas server-side as they pass through, then on `[DONE]` write the sanitised full text to the DB. (We already proxy the upstream stream; we'll wrap it in a `TransformStream` that tees the content into a buffer.)
 
-Chats are saved per respondent so users returning via magic link see prior conversations. New table `report_chat_messages` (respondent_id, role, content, created_at) with RLS: respondent can read/write their own via the existing report token; admins can read all.
+Optional polish: when the sheet finishes streaming, the client refetches the last persisted message from `report_chat_messages` and replaces the in-memory copy. One extra read, no UI rewrite needed.
 
-Conversation history is included on every call (per AI chatbot best practices). Cap history at the last 30 messages to bound token cost; older messages are summarised into a single system note.
+## 4. Tighter starter prompts
 
-## Streaming
+Replace the current generic suggested prompts in `src/components/aioi/ReportChatSheet.tsx` with prompts that pull on the practicality contract:
 
-SSE streaming via the standard Lovable AI Gateway pattern: tokens render progressively in the sheet using `react-markdown` so formatted answers (lists, bold, tables) display correctly. AbortController wired to a "stop" button.
+- "What should I do tomorrow morning on '<their #1 Move title>'?"
+- "We don't have an AI policy yet. What's the smallest one that works?"
+- "Someone on my team is using ChatGPT for client work without telling me. How do I handle it?"
+- "Give me a 30-minute agenda for the Monday standup that opens up '<their weakest pillar>'."
 
-## Rate limiting / cost guardrails
+These are pre-rendered server-side via the existing grounding bundle (the sheet already has access to `recommendations.moves[0]` and `hotspots[0]` from props). Falls back to generic strings if those aren't loaded.
 
-- Free tier (no deep-dive): 3 turns per respondent, then a CTA to unlock deep-dive
-- Deep-dive unlocked: 50 turns per respondent, then soft cap with a "you've explored this report deeply — want a 1:1?" CTA
-- 429/402 from the gateway surfaced as toast copy: "Too many requests, try again in a moment" / "AI quota reached for this report"
+## 5. What I'm NOT touching
 
-## Model choice
-
-Default `google/gemini-3-flash-preview` — fast, cheap, multimodal-capable, plenty strong for grounded Q&A on a ~2KB report. We can A/B against `google/gemini-2.5-pro` later if users start asking heavy reasoning questions ("rebuild my org chart for an AI-native operating model").
+- The Moves data itself. The advice quality starts in the playbook copy, but rewriting Moves is a separate piece of work and would need your editorial pass. This change makes the assistant **render** the Moves into action-shaped advice, which is the highest-leverage move right now.
+- Quotas, RLS, injection rules. All untouched.
+- The "Discuss this Move" entry point. Already there, will benefit automatically.
 
 ## Technical change list
 
-**New files**
-- `supabase/functions/report-chat/index.ts` — streaming SSE handler. Loads respondent context server-side, builds the system prompt, forwards to Lovable AI Gateway, streams back. Validates respondent token + turn quota.
-- `src/components/aioi/ReportChatSheet.tsx` — Sheet UI, message list with `react-markdown`, input, streaming reducer, abort controller.
-- `src/components/aioi/ReportChatLauncher.tsx` — floating button + first-arrival pulse + unread indicator.
+**New**
+- `supabase/functions/_shared/aioi-voice.ts` — shared voice guide, banned patterns, sanitise, banned openers.
 
-**Migration**
-- Create `report_chat_messages` table (id, respondent_id FK, role enum: user|assistant, content text, created_at) with RLS policies (respondent-owned read/write via existing token mechanism, admins via `has_role`).
-- Index on `(respondent_id, created_at)`.
+**Edited**
+- `supabase/functions/report-chat/index.ts` — import shared voice; rewrite system prompt with the practicality contract and the answer shape; tee the upstream stream; sanitise + persist final assistant text on `[DONE]`.
+- `supabase/functions/backfill-move-copy/index.ts` — drop the local copies, import from `_shared/aioi-voice.ts`. No behaviour change.
+- `src/components/aioi/ReportChatSheet.tsx` — derive the suggested prompts from props (top Move title, top hotspot pillar name); fall back to generics.
+- `src/pages/AssessReport.tsx` — pass `topMoveTitle` and `topHotspotName` into `ReportChatLauncher` → `ReportChatSheet` so the prompts can be specific.
 
-**Edits**
-- `src/pages/AssessReport.tsx` — mount `<ReportChatLauncher>` and `<ReportChatSheet>` once recommendations load; pass `respondentId`, `hasDeepdive`, and a callback to seed prompts.
-- `src/components/aioi/MoveCard.tsx` — add the "Discuss this Move" link that emits a custom event the sheet listens for.
-- `package.json` — add `react-markdown` (~25KB gz) if not already present.
+## Order of execution
 
-## What I'm explicitly NOT building
+1. Create the shared voice module.
+2. Refactor `backfill-move-copy` to use it (no functional change, just deduplication).
+3. Update `report-chat`: new system prompt, stream tee, sanitise-on-persist.
+4. Update the sheet's starter prompts and the launcher props.
+5. Eyeball it on a real report: ask "what do I do tomorrow on Move X" and confirm the reply has the contract sections, no em-dashes, no "delve".
 
-- A general-purpose chatbot or homepage assistant — too broad, low signal, high cost
-- Voice/audio input — out of scope for v1
-- Image generation — assistant is text-only; the report already has charts
-- Automatic email of chat transcripts — easy to add later if users ask
-
-## Order of execution if approved
-
-1. Migration: `report_chat_messages` table + RLS
-2. Edge function `report-chat` with streaming + grounding + quota
-3. UI: `ReportChatSheet` and `ReportChatLauncher`
-4. Wire into `AssessReport.tsx` and `MoveCard.tsx`
-5. QA: spot-check on a real report; verify the assistant refuses off-topic prompts and cites Move titles correctly
-
-Approve and I'll ship steps 1–4 in one batch and then do step 5.
+Approve and I'll ship 1-4 in one go and do the manual check in 5.

@@ -9,6 +9,7 @@
 // to actually write.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sanitise } from "../_shared/aioi-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -314,39 +315,8 @@ Now call publish_move_copy and write only the missing fields listed in the schem
   return out;
 }
 
-const BANNED_PATTERNS: RegExp[] = [
-  /\bunlock(ing|ed|s)?\b/gi,
-  /\bleverag(e|ed|es|ing)\b/gi,
-  /\bdelve(s|d|ing)?\b/gi,
-  /\bsynerg(y|ies|istic)\b/gi,
-  /\bjourney(s)?\b/gi,
-  /\bexciting\b/gi,
-  /\bgame[- ]chang(er|ing|ed)\b/gi,
-  /\brevolution(ary|ise|ize)?\b/gi,
-  /\bseamless(ly)?\b/gi,
-  /\bcutting[- ]edge\b/gi,
-  /—/g,
-];
-
-function sanitise(input: string): string {
-  let out = String(input ?? "").trim();
-  for (const re of BANNED_PATTERNS) {
-    out = out.replace(re, (match) => {
-      const lower = match.toLowerCase();
-      if (lower === "—") return ", ";
-      if (lower.includes("unlock")) return "open up";
-      if (lower.includes("leverag")) return "use";
-      if (lower.includes("delve")) return "look at";
-      if (lower.includes("synerg")) return "fit";
-      if (lower.includes("journey")) return "path";
-      if (lower.includes("exciting")) return "useful";
-      if (lower.includes("seamless")) return "clean";
-      if (lower.includes("cutting-edge") || lower.includes("cutting edge")) return "current";
-      return "";
-    });
-  }
-  return out.replace(/\s{2,}/g, " ").trim();
-}
+// Voice sanitisation lives in _shared/aioi-voice.ts so the chat assistant
+// and the Move-copy backfill stay in lockstep.
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
