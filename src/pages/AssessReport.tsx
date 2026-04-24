@@ -920,6 +920,8 @@ export function OverviewTab({
                       moveWhy={move?.personalised_why_matters || move?.snapshot.why_matters || undefined}
                       moveEffort={move?.snapshot.effort ?? null}
                       moveImpact={move?.snapshot.impact ?? null}
+                      moveId={move?.move_id ?? null}
+                      reportSlug={slug}
                     />
                   );
                 })}
