@@ -212,6 +212,14 @@ Deno.serve(async (req) => {
     .order("created_at", { ascending: true })
     .limit(HISTORY_CAP);
 
+  // 5b. Pull current Next Actions so the assistant can reference them.
+  const { data: nextActions } = await service
+    .from("next_actions")
+    .select("title, due_date, completed_at, move_id")
+    .eq("respondent_id", respondentId)
+    .order("sort_order", { ascending: true })
+    .limit(50);
+
   // 6. Persist the user message immediately so it survives stream failures.
   await service.from("report_chat_messages").insert({
     respondent_id: respondentId,
