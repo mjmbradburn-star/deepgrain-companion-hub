@@ -279,7 +279,7 @@ function ReportView({ data }: { data: ReportData }) {
             <TabsPrimitive.List className="mt-10 -mb-px flex flex-wrap items-end gap-x-8 gap-y-2 border-b border-cream/10">
               {[
                 { value: "overview", label: "Overview" },
-                { value: "plan", label: "Plan" },
+                { value: "plan", label: "Moves" },
                 { value: "report", label: "Report" },
                 { value: "methodology", label: "Methodology" },
                 { value: "invite", label: "Invite" },
