@@ -58,8 +58,6 @@ const OFFTOPIC_PATTERNS: RegExp[] = [
   /\b(write|generate|give\s+me)\s+(python|javascript|typescript|sql|bash|shell)\s+code\b/i,
   /\bsolve\s+this\s+(equation|problem|puzzle)\b/i,
   /\brecipe\s+for\b/i,
-  /\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules)\b/i,
-  /\bsystem\s+prompt\b/i,
 ];
 
 const GENERIC_REDIRECT =
