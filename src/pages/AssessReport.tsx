@@ -301,7 +301,15 @@ export function MovesTab({
         )}
       </div>
 
-      <MovesControls
+      {actionPlanInput && (
+        <div className="-mt-4 mb-10 flex flex-wrap items-center gap-3">
+          <DownloadActionPlanButton input={actionPlanInput} />
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-cream/45">
+            PDF · your moves, hotspots, saved actions and chat suggestions
+          </span>
+        </div>
+      )}
+
         sort={sort}
         onSortChange={setSort}
         tierFilter={tierFilter}
