@@ -42,6 +42,7 @@ import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 import { AdminRegenerateButton } from "@/components/admin/AdminRegenerateButton";
 import { ReportChatLauncher } from "@/components/aioi/ReportChatLauncher";
+import { DownloadActionPlanButton } from "@/components/aioi/DownloadActionPlanButton";
 
 // ─── Types coming back from the report row ────────────────────────────────
 export interface PillarTierEntry {
@@ -170,6 +171,7 @@ export function MovesTab({
   level,
   hasDeepdive,
   isAnonymous,
+  actionPlanInput,
 }: {
   recommendations: Recommendations;
   tier: Tier;
@@ -177,6 +179,7 @@ export function MovesTab({
   level: string;
   hasDeepdive: boolean;
   isAnonymous: boolean;
+  actionPlanInput?: import("@/lib/actionPlanPdf").ActionPlanInput;
 }) {
   const moves = recommendations.moves;
   // When the user hasn't done the deep dive, show the first three Moves in the
@@ -297,6 +300,15 @@ export function MovesTab({
           </p>
         )}
       </div>
+
+      {actionPlanInput && (
+        <div className="-mt-4 mb-10 flex flex-wrap items-center gap-3">
+          <DownloadActionPlanButton input={actionPlanInput} />
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-cream/45">
+            PDF · your moves, hotspots, saved actions and chat suggestions
+          </span>
+        </div>
+      )}
 
       <MovesControls
         sort={sort}
@@ -820,6 +832,26 @@ function ReportView({ data }: { data: ReportData }) {
                   level={respondent.level}
                   hasDeepdive={data.hasDeepdive}
                   isAnonymous={needsEmailGate}
+                  actionPlanInput={
+                    respondent.is_owner
+                      ? {
+                          respondent: {
+                            id: respondent.id,
+                            slug: respondent.slug,
+                            level: respondent.level,
+                            function: respondent.function,
+                            org_size: respondent.org_size,
+                          },
+                          report: {
+                            aioi_score: report.aioi_score,
+                            overall_tier: report.overall_tier,
+                            pillar_tiers: report.pillar_tiers,
+                            hotspots: report.hotspots,
+                            recommendations: recs!,
+                          },
+                        }
+                      : undefined
+                  }
                 />
               );
             }
