@@ -241,8 +241,17 @@ Deno.serve(async (req) => {
     recommendations: ((report?.recommendations as any) ?? null),
   });
 
+  // Build a compact Next Actions note so the assistant can reason about
+  // what's already on the user's plate without bloating the system prompt.
+  const actionsNote = (nextActions ?? []).length === 0
+    ? "The user has not added any Next Actions yet. You can suggest using the Next Actions module on the report page to turn a Move into a checklist."
+    : `The user's current Next Actions (most recent first):\n${(nextActions ?? [])
+        .map((a) => `  - [${a.completed_at ? "x" : " "}] ${a.title}${a.due_date ? ` (due ${a.due_date})` : ""}`)
+        .join("\n")}\nWhen relevant, refer to specific items by name and suggest re-prioritising or adding new ones.`;
+
   const messages = [
     { role: "system", content: systemPrompt },
+    { role: "system", content: actionsNote },
     ...((history ?? []).map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))),
     { role: "user", content: message },
   ];
