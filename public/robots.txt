@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /admin/
-Disallow: /deploy-review
 Disallow: /reports
 Disallow: /signin
 Disallow: /auth/callback

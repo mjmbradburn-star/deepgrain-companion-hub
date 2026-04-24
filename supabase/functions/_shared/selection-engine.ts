@@ -183,10 +183,16 @@ export function selectMoves(
     }
   }
 
-  // 3. Forced-rank pick for organisational lens — the lowest pillar with the
-  // highest blocking weight, picked from the existing selection (not a new fetch).
+  // 3. Forced-rank pick for organisational lens — pick the lowest-tier pillar
+  // across the *top 4* weakest pillars (broader pool than the hotspot trio so a
+  // true blocker outside the top 3 can still surface), preferring blocking
+  // weight as the tie-breaker. Per spec §6 `pick_unblocking_move`.
   if (profile.lens === "organisational" && selected.length > 0) {
-    const blocker = [...selected].sort((a, b) => {
+    const broadHotspots = topHotspotsForSelection(profile.pillar_tiers, 4);
+    const broadPillars = new Set(broadHotspots.map((h) => h.pillar));
+    const candidatesForRank = selected.filter((m) => broadPillars.has(m.pillar));
+    const pool = candidatesForRank.length > 0 ? candidatesForRank : selected;
+    const blocker = [...pool].sort((a, b) => {
       const ta = profile.pillar_tiers[a.pillar] ?? 5;
       const tb = profile.pillar_tiers[b.pillar] ?? 5;
       if (ta !== tb) return ta - tb;
