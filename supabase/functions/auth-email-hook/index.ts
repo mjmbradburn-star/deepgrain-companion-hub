@@ -122,7 +122,7 @@ async function handlePreview(req: Request): Promise<Response> {
   }
 
   const sampleData = SAMPLE_DATA[type] || {}
-  const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
+  const html = await renderAsync(React.createElement(EmailTemplate as React.ComponentType<any>, sampleData as any))
 
   return new Response(html, {
     status: 200,
