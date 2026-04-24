@@ -8,6 +8,10 @@ export interface ReportChatLauncherProps {
   hasDeepdive: boolean;
   /** Hidden when there are no Moves to ground the chat on. */
   enabled: boolean;
+  /** Title of the user's #1 ranked Move, used to seed the suggested prompts. */
+  topMoveTitle?: string;
+  /** Name of the user's weakest pillar, used to seed the suggested prompts. */
+  topHotspotName?: string;
 }
 
 /**
@@ -19,7 +23,7 @@ export interface ReportChatLauncherProps {
  *     detail: { prompt: "Help me put 'Set a 90-day mandate' into practice." }
  *   }))
  */
-export function ReportChatLauncher({ respondentId, hasDeepdive, enabled }: ReportChatLauncherProps) {
+export function ReportChatLauncher({ respondentId, hasDeepdive, enabled, topMoveTitle, topHotspotName }: ReportChatLauncherProps) {
   const [open, setOpen] = useState(false);
   const [seedPrompt, setSeedPrompt] = useState<string | undefined>();
 
