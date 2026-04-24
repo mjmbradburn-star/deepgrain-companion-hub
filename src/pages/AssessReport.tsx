@@ -143,6 +143,24 @@ function tierBlurb(tierLabel: Tier, pillarName: string): string {
 }
 
 // ─── Moves (new — backed by the Voice Wrapper recommendations) ────────────
+type MoveSortKey = "default" | "effort_asc" | "effort_desc" | "impact_desc" | "impact_asc";
+type MoveTierFilter = "all" | "low" | "mid" | "high";
+type MovePillarFilter = "all" | number;
+
+const SORT_OPTIONS: ReadonlyArray<{ value: MoveSortKey; label: string }> = [
+  { value: "default", label: "Recommended order" },
+  { value: "impact_desc", label: "Impact · high → low" },
+  { value: "impact_asc", label: "Impact · low → high" },
+  { value: "effort_asc", label: "Effort · low → high" },
+  { value: "effort_desc", label: "Effort · high → low" },
+];
+
+const TIER_BAND_FILTER_LABEL: Record<Exclude<MoveTierFilter, "all">, string> = {
+  low: "Foundation",
+  mid: "Build",
+  high: "Sharpen",
+};
+
 export function MovesTab({
   recommendations,
   tier,
@@ -160,11 +178,63 @@ export function MovesTab({
 }) {
   const moves = recommendations.moves;
   // When the user hasn't done the deep dive, show the first three Moves in the
-  // clear and lock the rest behind a normal-flow upsell.
+  // clear and lock the rest behind a normal-flow upsell. We always lock based
+  // on the *recommended* order, then apply user filters/sorts to the visible
+  // portion so locking behaviour can't be gamed by re-sorting.
   const VISIBLE_PRE_DEEPDIVE = 3;
-  const visibleMoves = hasDeepdive ? moves : moves.slice(0, VISIBLE_PRE_DEEPDIVE);
+  const baseVisible = hasDeepdive ? moves : moves.slice(0, VISIBLE_PRE_DEEPDIVE);
   const lockedCount = hasDeepdive ? 0 : Math.max(0, moves.length - VISIBLE_PRE_DEEPDIVE);
   const usedFallback = recommendations.used_fallback === true;
+
+  const [sort, setSort] = useState<MoveSortKey>("default");
+  const [tierFilter, setTierFilter] = useState<MoveTierFilter>("all");
+  const [pillarFilter, setPillarFilter] = useState<MovePillarFilter>("all");
+
+  // Pillars actually represented in the visible Move set — drives chip options.
+  const availablePillars = useMemo(() => {
+    const set = new Set<number>();
+    for (const m of baseVisible) set.add(m.snapshot.pillar);
+    return Array.from(set).sort((a, b) => a - b);
+  }, [baseVisible]);
+
+  // Tier bands actually present — hide chips that would never match.
+  const availableTierBands = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of baseVisible) if (m.snapshot.tier_band) set.add(m.snapshot.tier_band);
+    return (["low", "mid", "high"] as const).filter((b) => set.has(b));
+  }, [baseVisible]);
+
+  const filteredSorted = useMemo(() => {
+    let out = baseVisible.slice();
+    if (pillarFilter !== "all") {
+      out = out.filter((m) => m.snapshot.pillar === pillarFilter);
+    }
+    if (tierFilter !== "all") {
+      out = out.filter((m) => m.snapshot.tier_band === tierFilter);
+    }
+    const valOrInf = (n: number | null | undefined, asc: boolean) =>
+      typeof n === "number" ? n : asc ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+    switch (sort) {
+      case "effort_asc":
+        out.sort((a, b) => valOrInf(a.snapshot.effort, true) - valOrInf(b.snapshot.effort, true));
+        break;
+      case "effort_desc":
+        out.sort((a, b) => valOrInf(b.snapshot.effort, false) - valOrInf(a.snapshot.effort, false));
+        break;
+      case "impact_desc":
+        out.sort((a, b) => valOrInf(b.snapshot.impact, false) - valOrInf(a.snapshot.impact, false));
+        break;
+      case "impact_asc":
+        out.sort((a, b) => valOrInf(a.snapshot.impact, true) - valOrInf(b.snapshot.impact, true));
+        break;
+      default:
+        // keep recommended order
+        break;
+    }
+    return out;
+  }, [baseVisible, pillarFilter, tierFilter, sort]);
+
+  const filtersActive = sort !== "default" || tierFilter !== "all" || pillarFilter !== "all";
 
   return (
     <section className="container max-w-6xl py-10 sm:py-20">
@@ -184,11 +254,35 @@ export function MovesTab({
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {visibleMoves.map((move, i) => (
-          <MoveCard key={move.move_id} move={move} index={i} />
-        ))}
-      </div>
+      <MovesControls
+        sort={sort}
+        onSortChange={setSort}
+        tierFilter={tierFilter}
+        onTierFilterChange={setTierFilter}
+        pillarFilter={pillarFilter}
+        onPillarFilterChange={setPillarFilter}
+        availablePillars={availablePillars}
+        availableTierBands={availableTierBands}
+        totalCount={baseVisible.length}
+        visibleCount={filteredSorted.length}
+        filtersActive={filtersActive}
+        onReset={() => { setSort("default"); setTierFilter("all"); setPillarFilter("all"); }}
+      />
+
+      {filteredSorted.length === 0 ? (
+        <div className="rounded-md border border-cream/15 bg-surface-1/40 px-6 py-10 text-center">
+          <p className="font-display text-lg text-cream/75">No moves match these filters.</p>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+            Clear filters to see all {baseVisible.length} moves.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          {filteredSorted.map((move, i) => (
+            <MoveCard key={move.move_id} move={move} index={i} />
+          ))}
+        </div>
+      )}
 
       {lockedCount > 0 && (
         <LockedMovesContinuation
@@ -210,6 +304,144 @@ export function MovesTab({
 
       <ReportCta tier={tier} />
     </section>
+  );
+}
+
+interface MovesControlsProps {
+  sort: MoveSortKey;
+  onSortChange: (s: MoveSortKey) => void;
+  tierFilter: MoveTierFilter;
+  onTierFilterChange: (t: MoveTierFilter) => void;
+  pillarFilter: MovePillarFilter;
+  onPillarFilterChange: (p: MovePillarFilter) => void;
+  availablePillars: number[];
+  availableTierBands: ReadonlyArray<"low" | "mid" | "high">;
+  totalCount: number;
+  visibleCount: number;
+  filtersActive: boolean;
+  onReset: () => void;
+}
+
+function MovesControls({
+  sort, onSortChange,
+  tierFilter, onTierFilterChange,
+  pillarFilter, onPillarFilterChange,
+  availablePillars, availableTierBands,
+  totalCount, visibleCount, filtersActive, onReset,
+}: MovesControlsProps) {
+  return (
+    <div
+      role="region"
+      aria-label="Filter and sort your moves"
+      className="mb-8 sm:mb-10 rounded-md border border-cream/10 bg-surface-1/40 px-4 sm:px-5 py-4 sm:py-5"
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        {/* Filter chips */}
+        <div className="flex flex-col gap-3 min-w-0">
+          {availablePillars.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 mr-1">
+                Pillar
+              </span>
+              <ChipButton
+                active={pillarFilter === "all"}
+                onClick={() => onPillarFilterChange("all")}
+              >
+                All
+              </ChipButton>
+              {availablePillars.map((p) => (
+                <ChipButton
+                  key={p}
+                  active={pillarFilter === p}
+                  onClick={() => onPillarFilterChange(p)}
+                >
+                  {PILLAR_NAMES[p as 1] ?? `Pillar ${p}`}
+                </ChipButton>
+              ))}
+            </div>
+          )}
+
+          {availableTierBands.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 mr-1">
+                Tier band
+              </span>
+              <ChipButton
+                active={tierFilter === "all"}
+                onClick={() => onTierFilterChange("all")}
+              >
+                All
+              </ChipButton>
+              {availableTierBands.map((band) => (
+                <ChipButton
+                  key={band}
+                  active={tierFilter === band}
+                  onClick={() => onTierFilterChange(band)}
+                >
+                  {TIER_BAND_FILTER_LABEL[band]}
+                </ChipButton>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Sort + meta */}
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end shrink-0">
+          <label className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45">
+              Sort
+            </span>
+            <select
+              aria-label="Sort moves"
+              value={sort}
+              onChange={(e) => onSortChange(e.target.value as MoveSortKey)}
+              className="h-9 rounded-sm border border-cream/15 bg-surface-1/70 px-2 font-ui text-xs uppercase tracking-[0.14em] text-cream hover:border-cream/30 focus-visible:outline-none focus-visible:border-brass/50"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-walnut text-cream">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span
+            aria-live="polite"
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45"
+          >
+            {visibleCount}/{totalCount} shown
+          </span>
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright hover:text-brass-bright/80 underline-offset-2 hover:underline"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChipButton({
+  active, onClick, children,
+}: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={
+        "inline-flex items-center h-7 px-2.5 rounded-sm border font-ui text-[11px] uppercase tracking-[0.14em] transition-colors " +
+        (active
+          ? "border-brass/55 bg-brass/15 text-brass-bright"
+          : "border-cream/15 bg-transparent text-cream/65 hover:border-cream/30 hover:text-cream")
+      }
+    >
+      {children}
+    </button>
   );
 }
 
