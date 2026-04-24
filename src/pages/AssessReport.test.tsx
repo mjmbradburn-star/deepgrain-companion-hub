@@ -49,8 +49,11 @@ function makeMove(overrides: Partial<RecommendationMove> & {
   move_id: string;
   pillar: number;
   title: string;
+  effort?: number;
+  impact?: number;
+  tier_band?: "low" | "mid" | "high";
 }): RecommendationMove {
-  const { move_id, pillar, title, ...rest } = overrides;
+  const { move_id, pillar, title, effort, impact, tier_band, ...rest } = overrides;
   return {
     move_id,
     personalised_why_matters:
@@ -61,13 +64,14 @@ function makeMove(overrides: Partial<RecommendationMove> & {
     snapshot: {
       title,
       pillar,
-      tier_band: "low",
+      tier_band: tier_band ?? "low",
       lens: "organisational",
       function: null,
       why_matters: "Snapshot fallback why_matters.",
       what_to_do: "1. Do the thing.\n2. Then the next thing.",
       how_to_know: "You'll know because the metric moves.",
-      effort: 2,
+      effort: effort ?? 2,
+      impact: impact ?? 3,
       tags: ["pilot", "ops"],
       cta_type: null,
       cta_url: null,
