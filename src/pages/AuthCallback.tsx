@@ -145,9 +145,10 @@ export default function AuthCallback() {
       if (draft.level && totalQuestions > 0 && answered >= totalQuestions) {
         navigate("/assess/processing", { replace: true });
       } else if (draft.level && answered > 0) {
-        navigate(`/assess/q/${answered + 1}`, { replace: true });
+        // Resume — legacy per-question route retired; new scan handles partials.
+        navigate("/assess/scan", { replace: true });
       } else if (draft.level) {
-        navigate("/assess/q/1", { replace: true });
+        navigate("/assess/scan", { replace: true });
       } else {
         navigate("/reports", { replace: true });
       }

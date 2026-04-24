@@ -16,8 +16,7 @@ export type SeoRouteKey =
   | "flow"
   | "notFound"
   | "unsubscribe"
-  | "admin"
-  | "deployReview";
+  | "admin";
 
 export interface SeoConfig {
   title: string;
@@ -119,12 +118,6 @@ export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
     title: "Admin · Playbook | AI Operating Index",
     description: "Internal AIOI Moves library admin.",
     path: "/admin/playbook",
-    noindex: true,
-  },
-  deployReview: {
-    title: "Deploy Review | AI Operating Index",
-    description: "Internal release evidence.",
-    path: "/deploy-review",
     noindex: true,
   },
 };

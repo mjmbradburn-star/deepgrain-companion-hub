@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { PageTransition } from "@/components/aioi/PageTransition";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,8 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Assess from "./pages/Assess.tsx";
-import AssessStart from "./pages/AssessStart.tsx";
-import AssessQuestion from "./pages/AssessQuestion.tsx";
 import AssessProcessing from "./pages/AssessProcessing.tsx";
 import AssessReport from "./pages/AssessReport.tsx";
 import AssessScan from "./pages/AssessScan.tsx";
@@ -23,7 +21,7 @@ import SignIn from "./pages/SignIn.tsx";
 import MyReports from "./pages/MyReports.tsx";
 import DevHeroCta from "./pages/DevHeroCta.tsx";
 import Privacy from "./pages/Privacy.tsx";
-import DeployReview from "./pages/DeployReview.tsx";
+
 import AdminPlaybookLayout from "./pages/admin/AdminPlaybookLayout.tsx";
 import MovesListPage from "./pages/admin/MovesListPage.tsx";
 import MoveEditorPage from "./pages/admin/MoveEditorPage.tsx";
@@ -46,8 +44,9 @@ const App = () => (
           <Route path="/assess" element={<Assess />} />
           <Route path="/assess/scan" element={<AssessScan />} />
           <Route path="/assess/deep/:slug" element={<AssessDeep />} />
-          <Route path="/assess/start" element={<AssessStart />} />
-          <Route path="/assess/q/:step" element={<AssessQuestion />} />
+          {/* Legacy long-form flow retired April 2026 — redirect any in-flight email links. */}
+          <Route path="/assess/start" element={<Navigate to="/assess" replace />} />
+          <Route path="/assess/q/:step" element={<Navigate to="/assess/scan" replace />} />
           <Route path="/assess/processing" element={<AssessProcessing />} />
           <Route path="/assess/r/:slug" element={<AssessReport />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
@@ -59,7 +58,7 @@ const App = () => (
           <Route path="/signin" element={<SignIn />} />
           <Route path="/reports" element={<MyReports />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="/deploy-review" element={<DeployReview />} />
+          
           <Route path="/admin/playbook" element={<AdminPlaybookLayout />}>
             <Route index element={<MovesListPage />} />
             <Route path="coverage" element={<CoveragePage />} />

@@ -20,6 +20,7 @@ function move(overrides: Partial<Move>): Move {
     what_to_do: "do x",
     how_to_know: "you used it",
     effort: 1,
+    impact: 2,
     tags: null,
     cta_type: null,
     cta_url: null,
@@ -169,4 +170,61 @@ Deno.test("selectMoves: empty playbook returns empty selection", () => {
     [],
   );
   assertEquals(selected.length, 0);
+});
+
+// G6 — Functional lens falls back to function-base Moves (function = null)
+// when no function-specific Move exists for the hotspot.
+Deno.test("selectMoves: functional lens falls back to function-base moves", () => {
+  const playbook: Move[] = [
+    // No revops-specific moves — only base (function = null) coverage.
+    move({ lens: "functional", pillar: 4, tier_band: "low", function: null, title: "Base workflow" }),
+    move({ lens: "functional", pillar: 4, tier_band: "low", function: null, title: "Base measurement" }),
+    move({ lens: "functional", pillar: 5, tier_band: "low", function: null, title: "Base skills" }),
+    move({ lens: "functional", pillar: 6, tier_band: "low", function: null, title: "Base governance" }),
+    move({ lens: "functional", pillar: 7, tier_band: "low", function: null, title: "Base measurement 2" }),
+    // Distractor: marketing-specific move (different function) should NOT match.
+    move({ lens: "functional", pillar: 4, tier_band: "low", function: "marketing", title: "Marketing-only" }),
+  ];
+  const selected = selectMoves(
+    {
+      lens: "functional",
+      function: "revops",
+      size_band: "M2",
+      pillar_tiers: { 4: 1, 5: 1, 6: 1, 7: 1 },
+      cap_flag_pillars: [],
+    },
+    playbook,
+  );
+  // Core assertion: fallback works — revops respondent receives base (function=null)
+  // moves and never the marketing-specific distractor.
+  assert(selected.length > 0, "expected fallback base moves to be selected");
+  for (const s of selected) {
+    assert(s.function === null, `revops respondent should not receive marketing-only move ${s.title}`);
+  }
+});
+
+// G3 — Forced-rank pick may come from outside the top-3 hotspots when a
+// lower-tier pillar exists in the broader top-4 pool.
+Deno.test("selectMoves: organisational forced_rank prefers lowest-tier pillar in top-4", () => {
+  const playbook: Move[] = [
+    move({ lens: "organisational", pillar: 1, tier_band: "mid", title: "P1 mid" }),
+    move({ lens: "organisational", pillar: 2, tier_band: "mid", title: "P2 mid" }),
+    move({ lens: "organisational", pillar: 3, tier_band: "mid", title: "P3 mid" }),
+    move({ lens: "organisational", pillar: 6, tier_band: "low", title: "P6 LOW (true blocker)" }),
+    move({ lens: "organisational", pillar: 6, tier_band: "low", title: "P6 LOW alt" }),
+  ];
+  const selected = selectMoves(
+    {
+      lens: "organisational",
+      function: null,
+      size_band: "M2",
+      // P6 has the lowest tier; P1/P2/P3 are slightly higher but still hotspots.
+      pillar_tiers: { 1: 2, 2: 2, 3: 2, 6: 1, 7: 4, 8: 4 },
+      cap_flag_pillars: [],
+    },
+    playbook,
+  );
+  const forced = selected.find((s) => s.role === "forced_rank");
+  assert(forced, "expected a forced_rank move on organisational lens");
+  assertEquals(forced!.pillar, 6, `forced_rank should be the lowest-tier pillar (6), got ${forced!.pillar}`);
 });

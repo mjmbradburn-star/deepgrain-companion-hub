@@ -85,7 +85,7 @@ export default function AssessProcessing() {
       return;
     }
     if (Object.keys(draft.answers ?? {}).length === 0) {
-      navigate("/assess/q/1", { replace: true });
+      navigate("/assess/scan", { replace: true });
       return;
     }
 
@@ -147,7 +147,7 @@ export default function AssessProcessing() {
         // Signed-out — the magic link was already sent on the email screen.
         const email = draft.qualifier?.email;
         if (!email) {
-          navigate("/assess/start", { replace: true });
+          navigate("/assess", { replace: true });
           return;
         }
         if (!cancelled) {
@@ -233,7 +233,7 @@ export default function AssessProcessing() {
             <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-cream/30">
               Didn't arrive? <button onClick={resendLink} disabled={resending} className="underline underline-offset-4 hover:text-cream disabled:opacity-50">{resending ? "Sending…" : "Resend"}</button>
               {" · "}
-              Wrong email? <button onClick={() => navigate("/assess/start")} className="underline underline-offset-4 hover:text-cream">Change it</button>
+              Wrong email? <button onClick={() => navigate("/assess")} className="underline underline-offset-4 hover:text-cream">Change it</button>
             </p>
           </>
         )}
@@ -264,7 +264,7 @@ export default function AssessProcessing() {
                 Try again
               </Button>
               <button
-                onClick={() => navigate("/assess/start")}
+                onClick={() => navigate("/assess")}
                 className="font-ui text-xs uppercase tracking-[0.16em] text-cream/55 hover:text-cream"
               >
                 Start over
