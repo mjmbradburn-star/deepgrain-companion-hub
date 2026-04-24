@@ -170,39 +170,75 @@ export type Database = {
           applies_to_tier: number
           body: string
           created_at: string
+          cta_type: string | null
+          cta_url: string | null
           effort: number | null
+          function: string | null
+          how_to_know: string | null
           id: string
           impact: number | null
+          last_reviewed_at: string | null
+          lens: string
+          notes: string | null
           pillar: number
+          size_bands: string[] | null
+          tags: string[] | null
+          tier_band: string | null
           time_to_value: string | null
           title: string
           updated_at: string
+          what_to_do: string | null
+          why_matters: string | null
         }
         Insert: {
           active?: boolean
           applies_to_tier: number
           body: string
           created_at?: string
+          cta_type?: string | null
+          cta_url?: string | null
           effort?: number | null
+          function?: string | null
+          how_to_know?: string | null
           id?: string
           impact?: number | null
+          last_reviewed_at?: string | null
+          lens?: string
+          notes?: string | null
           pillar: number
+          size_bands?: string[] | null
+          tags?: string[] | null
+          tier_band?: string | null
           time_to_value?: string | null
           title: string
           updated_at?: string
+          what_to_do?: string | null
+          why_matters?: string | null
         }
         Update: {
           active?: boolean
           applies_to_tier?: number
           body?: string
           created_at?: string
+          cta_type?: string | null
+          cta_url?: string | null
           effort?: number | null
+          function?: string | null
+          how_to_know?: string | null
           id?: string
           impact?: number | null
+          last_reviewed_at?: string | null
+          lens?: string
+          notes?: string | null
           pillar?: number
+          size_bands?: string[] | null
+          tags?: string[] | null
+          tier_band?: string | null
           time_to_value?: string | null
           title?: string
           updated_at?: string
+          what_to_do?: string | null
+          why_matters?: string | null
         }
         Relationships: []
       }
@@ -332,9 +368,11 @@ export type Database = {
           generated_at: string | null
           hotspots: Json | null
           id: string
+          move_ids: string[] | null
           overall_tier: Database["public"]["Enums"]["maturity_tier"] | null
           pillar_tiers: Json | null
           plan: Json | null
+          recommendations: Json | null
           respondent_id: string
           score_audit: Json
           updated_at: string
@@ -349,9 +387,11 @@ export type Database = {
           generated_at?: string | null
           hotspots?: Json | null
           id?: string
+          move_ids?: string[] | null
           overall_tier?: Database["public"]["Enums"]["maturity_tier"] | null
           pillar_tiers?: Json | null
           plan?: Json | null
+          recommendations?: Json | null
           respondent_id: string
           score_audit?: Json
           updated_at?: string
@@ -366,9 +406,11 @@ export type Database = {
           generated_at?: string | null
           hotspots?: Json | null
           id?: string
+          move_ids?: string[] | null
           overall_tier?: Database["public"]["Enums"]["maturity_tier"] | null
           pillar_tiers?: Json | null
           plan?: Json | null
+          recommendations?: Json | null
           respondent_id?: string
           score_audit?: Json
           updated_at?: string
@@ -536,13 +578,25 @@ export type Database = {
           applies_to_tier: number
           body: string
           created_at: string
+          cta_type: string | null
+          cta_url: string | null
           effort: number | null
+          function: string | null
+          how_to_know: string | null
           id: string
           impact: number | null
+          last_reviewed_at: string | null
+          lens: string
+          notes: string | null
           pillar: number
+          size_bands: string[] | null
+          tags: string[] | null
+          tier_band: string | null
           time_to_value: string | null
           title: string
           updated_at: string
+          what_to_do: string | null
+          why_matters: string | null
         }[]
         SetofOptions: {
           from: "*"
