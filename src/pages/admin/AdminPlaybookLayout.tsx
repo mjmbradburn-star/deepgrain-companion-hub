@@ -57,6 +57,9 @@ export default function AdminPlaybookLayout({ children }: { children?: ReactNode
                   {item.label}
                 </NavLink>
               ))}
+              <div className="ml-2 border-l pl-2">
+                <BackfillMoveCopyButton />
+              </div>
             </nav>
           </div>
           <div className="border-t md:hidden">
