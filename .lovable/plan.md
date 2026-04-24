@@ -1,111 +1,122 @@
 
-## Plan to tighten DeepDiveUnlock mobile typography hierarchy
+# AIOI Recommendations Architecture — Credit-Conscious Adoption Plan
 
-### Goal
+## Guiding constraints
 
-Refine the `DeepDiveUnlock` intro typography on small screens so the eyebrow, headline, and detail feel intentionally grouped after the recent card reorder and spacing changes.
+- **Credits are tight.** Do the high-leverage backend/data work; defer anything that touches Hero, navigation, transitions, or design tokens.
+- **No design/UX regressions.** Reuse the existing `HotspotCard` / `ReportCta` / 90-day plan slots. The report visually looks the same; the *content source* changes.
+- **No big-bang rewrite.** Map the new architecture onto the table we already have (`outcomes_library`) instead of creating a parallel `playbook_moves` table and migrating twice.
+- **Defer the admin UI.** Authoring goes via SQL seed + a single read-only "Coverage" debug page. Full Lovable admin UX is Phase 4 (post-credit-refresh).
 
-### What will change
+---
 
-#### 1. Tune the compact intro stack
+## Phase 0 — Decisions to lock before any code (no credits)
 
-In `src/components/aioi/DeepDiveUnlock.tsx`, adjust the compact variant used on report pages so the top intro reads as a tighter hierarchy on mobile:
+Before we spend a single credit, you confirm:
 
-```text
-Eyebrow + icon
-Headline
-Detail
-Depth note
-```
+1. **Reuse `outcomes_library` vs. add `playbook_moves`?** Recommendation: **reuse and extend**. Add the missing columns (`lens`, `tier_band`, `function`, `size_bands`, `why_matters`, `how_to_know`, `effort`, `tags`, `cta_type`, `cta_url`, `active`, `last_reviewed_at`). One migration, no data loss, half the wiring.
+2. **Voice Wrapper model.** Default to **Lovable AI Gateway → `google/gemini-2.5-flash`** (free during current promo, no API key). Switch to Claude Sonnet later via env var if you want — but the gateway saves both credits and operational setup now.
+3. **Launch Playbook size.** Brief asks for 192 Moves. Recommendation: ship with **~60 Moves at v1** (8 pillars × 3 tier bands × ~2.5 lenses-or-functions average) so the Engine has something credible to select from. You write them; we don't burn credits on AI-drafted seeds.
+4. **Caching.** Per-respondent JSON cached on `reports.recommendations` column. Regenerated only on retake or admin "regenerate".
 
-The aim is to reduce visual looseness without making the card feel cramped.
+---
 
-#### 2. Eyebrow refinement
+## Phase 1 — Schema + seed (small migration, ~minimal credits)
 
-For `compact` mode:
+**Files touched:** 1 migration, 0 frontend.
 
-- slightly reduce the icon size on mobile
-- reduce the eyebrow tracking on the smallest screens
-- add `leading-snug` so long eyebrow copy does not feel airy if it wraps
-- preserve the wider tracking on `sm` and above
+1. `ALTER TABLE public.outcomes_library` to add the Move columns listed above. Keep existing rows working (defaults: `lens='organisational'`, `tier_band` derived from `applies_to_tier`, `active=true`).
+2. Add `reports.recommendations JSONB` (cached Voice Wrapper output) and `reports.move_ids UUID[]` (auditable selection).
+3. Seed file (`supabase/migrations/<ts>_seed_playbook_v1.sql`) with the worked examples from §10 of your doc as the first ~15 Moves. You add the rest by direct SQL or `psql` from your machine — no admin UI required for v1.
+4. RLS: `outcomes_library` already public-read; keep it. Only service role can write.
 
-Expected direction:
+**Acceptance:** existing reports keep rendering. New columns default safely.
 
-```text
-text-[9px] sm:text-[10px]
-tracking-[0.14em] sm:tracking-[0.2em]
-leading-snug
-```
+---
 
-#### 3. Headline refinement
+## Phase 2 — Selection Engine (pure TS, testable, no UI)
 
-For `compact` mode:
+**Files touched:**
+- New: `supabase/functions/_shared/selection-engine.ts` (pure, vitest-able)
+- New: `supabase/functions/_shared/selection-engine.test.ts`
+- Modify: `supabase/functions/score-responses/index.ts` and `rescore-respondent/index.ts` to call the engine after scoring and persist `move_ids`.
 
-- keep the headline prominent, but make the mobile line-height slightly tighter and more controlled
-- use a fluid/clamped or responsive size that sits between the current body detail and large desktop headline
-- preserve the existing desktop/tablet scale
+The engine implements §6 pseudocode:
+- `bandify(score)` → low/mid/high
+- Filter by `lens, pillar, tier_band, function, size_bands, active`
+- Score with the 0.40/0.20/0.20/0.20 weights
+- Cap counts per lens (Individual 3-5, Functional 5-7, Organisational 5+1)
+- Cross-check flag boost: when `capFlags` from `applyConsistencyCaps` mention a prerequisite pillar, boost Moves on that pillar
+- Effort balancing pass (don't return five 4-week moves)
 
-Expected direction:
+**No frontend changes in this phase.** The engine just stores `move_ids`. The report continues to render the legacy `fallbackPlan` until Phase 3.
 
-```text
-text-[1.6rem] sm:text-4xl
-leading-[1.02] sm:leading-[1.05]
-tracking-[-0.02em]
-```
+**Acceptance:** Unit tests cover the worked examples in §10 of the brief — given a synthetic respondent, the engine returns the expected Move IDs.
 
-This should keep “Unlock your full personal profile…” strong without dominating the card on phones.
+---
 
-#### 4. Detail refinement
+## Phase 3 — Voice Wrapper edge function + report wiring
 
-For `compact` mode:
+**Files touched:**
+- New: `supabase/functions/generate-recommendations/index.ts` (Lovable AI Gateway call, JSON output, fallback to raw Moves on failure per §7.6)
+- Modify: `src/pages/AssessReport.tsx` to read `reports.recommendations` (cached) and render Moves into the **existing** hotspot/plan slots
+- Modify: `src/components/aioi/HotspotCard.tsx` — *minor* prop additions (`whyMatters`, `whatToDo`, `howToKnow`, `effort`) — same visual frame, more fields. **No layout redesign.**
 
-- make the detail sit closer to the headline on mobile
-- use normal UI/body rhythm instead of feeling like a second display headline
-- improve readability with controlled line-height
+**Design impact = near zero.** We reuse:
+- `HotspotCard` for the per-Move cards (add an "effort dots" row — 4 small filled dots, brass-bright, ≤16px tall)
+- `ReportCta` unchanged
+- The 90-day plan section is replaced by a "Your Moves" section using the same container/typography tokens
 
-Expected direction:
+**Voice Wrapper rules:**
+- Use `LOVABLE_API_KEY` already in env
+- System prompt = §7.4 verbatim, stored in `_shared/voice-wrapper-prompt.ts`
+- Output JSON validated with zod; on parse failure → render Moves directly (graceful fallback)
+- Cache per respondent in `reports.recommendations`. Regen only on retake / admin trigger.
 
-```text
-mt-2.5 sm:mt-3
-text-[15px] sm:text-base
-leading-relaxed
-```
+**Acceptance:** A respondent's report shows 3–7 Moves, in your voice, sourced from the seeded Playbook. If the model fails, the same Moves render with the canned intro from §7.6 — user never sees an error.
 
-#### 5. Depth note refinement
+---
 
-For the small “Answer 1 additional question…” line:
+## Phase 4 — Deferred until after credit refresh
 
-- reduce mobile tracking slightly
-- keep it visually secondary to the main detail
-- maintain brass accent color
+These are explicitly **out of scope for the current credit budget**:
 
-Expected direction:
+- Full admin UX (table, editor, coverage heatmap, stale view, test report) — §8 of brief
+- Per-function specificity beyond the 4 priority functions (RevOps, Marketing, Engineering, People)
+- Tag autocomplete, markdown preview, audit log
+- "If you only do one thing this quarter" forced-rank visual treatment (we'll mark it with a single `is_forced_rank` flag in JSON; visually it's just the first card with an existing eyebrow until we invest in design)
+- Async n8n/batch re-run pipeline (§2 "Defer" row)
 
-```text
-mt-2.5 sm:mt-3
-text-[9px] sm:text-[10px]
-tracking-[0.13em] sm:tracking-[0.2em]
-leading-snug
-```
+You author Moves via direct SQL inserts in the meantime. That's the trade we make to protect credits and design.
 
-#### 6. Add a focused regression check
+---
 
-Update `src/pages/AssessReport.e2e.test.tsx` to protect the compact mobile typography classes for the report-page unlock card, similar to the existing CTA mobile-safe sizing test.
+## What this plan deliberately does NOT change
 
-The test should confirm that the individual unlock headline and surrounding intro elements render with the intended compact/mobile classes.
+- `Hero.tsx` and any landing-page styling
+- `SiteNav`, `SiteFooter`, `PageTransition`, motion utilities
+- Tailwind tokens, fonts, colour palette
+- Auth, email, benchmarks, scoring math (other than appending the engine call)
+- `ReportCta` copy or layout — `ctaForTier` keeps working unchanged
 
-### Files to edit
+---
 
-- `src/components/aioi/DeepDiveUnlock.tsx`
-- `src/pages/AssessReport.e2e.test.tsx`
+## Estimated credit footprint (rough, ordered cheapest → most)
 
-### Acceptance criteria
+1. Phase 1 schema + seed: **small** (1 migration, 1 seed file)
+2. Phase 2 engine + tests: **medium** (pure TS, no UI churn)
+3. Phase 3 voice wrapper + report wiring: **medium-large** (1 edge function + targeted edits in 2 components)
+4. Phase 4 admin UX: **large** — defer
 
-The change is complete when:
+If credits get tight mid-flight, **stop after Phase 2** and ship Moves rendered directly from the Playbook with no Voice Wrapper. The report is still a meaningful upgrade because the *content* is now yours and editable, even without AI framing.
 
-- On mobile, the eyebrow, headline, detail, and depth note feel visually grouped.
-- The headline remains the dominant element without feeling oversized or detached.
-- The detail copy reads comfortably and sits closer to the headline.
-- Tablet/desktop typography remains consistent with the current design.
-- Existing anonymous email-gate behavior and CTA sizing remain unchanged.
-- A regression test protects the compact typography hierarchy.
+---
+
+## Open questions for you
+
+1. Confirm: **reuse `outcomes_library`** rather than create `playbook_moves`? (Saves credits + migration risk.)
+2. Confirm: **Lovable AI Gateway / Gemini 2.5 Flash** for the Voice Wrapper v1, with Claude Sonnet as a later env-var swap? (Saves the API-key step and is free under the current gateway promo.)
+3. Confirm: **defer admin UI** to after credit refresh — you author Moves via SQL for v1?
+4. Confirm: **launch with ~60 Moves**, not 192, and grow over time?
+
+Once you answer those four, I can switch to default mode and execute Phases 1 → 3 in order.
