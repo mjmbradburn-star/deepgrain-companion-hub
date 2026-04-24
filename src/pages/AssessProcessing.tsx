@@ -79,7 +79,7 @@ export default function AssessProcessing() {
   // 1. Decide what to do based on session + draft.
   useEffect(() => {
     const draft = loadDraft();
-
+    const submitStartedAt = performance.now();
     if (!draft.level) {
       navigate("/assess", { replace: true });
       return;
