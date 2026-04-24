@@ -97,6 +97,11 @@ export default function MovesListPage() {
 
   const total = query.data?.length ?? 0;
   const staleCutoff = Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000;
+  const incompleteCount = useMemo(() => {
+    return (query.data ?? []).filter(
+      (m) => m.active && (!m.why_matters?.trim() || !m.what_to_do?.trim() || !m.how_to_know?.trim()),
+    ).length;
+  }, [query.data]);
 
   return (
     <div className="space-y-6">
@@ -105,6 +110,14 @@ export default function MovesListPage() {
           <h2 className="text-xl font-semibold">Moves</h2>
           <p className="text-sm text-muted-foreground">
             {query.isLoading ? "Loading…" : `${rows.length} of ${total} Moves`}
+            {!query.isLoading && incompleteCount > 0 && (
+              <>
+                {" · "}
+                <span className="text-amber-600">
+                  {incompleteCount} incomplete (missing why/what/how)
+                </span>
+              </>
+            )}
           </p>
         </div>
         <Button asChild>
