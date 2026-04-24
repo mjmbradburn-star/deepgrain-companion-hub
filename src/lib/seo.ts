@@ -16,8 +16,7 @@ export type SeoRouteKey =
   | "flow"
   | "notFound"
   | "unsubscribe"
-  | "admin"
-  | "deployReview";
+  | "admin";
 
 export interface SeoConfig {
   title: string;
