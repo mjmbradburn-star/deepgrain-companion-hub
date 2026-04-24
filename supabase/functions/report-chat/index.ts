@@ -419,7 +419,47 @@ Deno.serve(async (req) => {
   };
   const allowedMoveTitles = (recs?.moves ?? []).map((m: { snapshot: { title: string } }) => m.snapshot.title).filter(Boolean) as string[];
 
-  // 7. Off-topic short-circuit. Refuse before hitting the model — cheaper,
+  // 7a. Indirect prompt-injection check with per-rule cooldowns.
+  // Each rule category has its own sliding window counter so a burst of
+  // one technique trips that category without affecting unrelated ones,
+  // and a normal user who happens to trigger one rule once isn't punished
+  // for someone else's persona-jailbreak attempt.
+  const injectionLabel = detectInjection(message);
+  if (injectionLabel) {
+    const sinceIso = new Date(Date.now() - INJECTION_WINDOW_MINUTES * 60_000).toISOString();
+    const marker = injectionMarker(injectionLabel);
+    const { count: priorBlocksForRule } = await service
+      .from("report_chat_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("respondent_id", respondentId)
+      .eq("role", "assistant")
+      .ilike("content", `%${marker}%`)
+      .gte("created_at", sinceIso);
+
+    const rule = INJECTION_RULES.find((r) => r.label === injectionLabel)!;
+    if ((priorBlocksForRule ?? 0) >= rule.threshold) {
+      console.warn("report-chat injection cooldown", {
+        respondent_id: respondentId,
+        rule: injectionLabel,
+        prior_blocks: priorBlocksForRule,
+      });
+      return jsonError(429, {
+        error: "injection_rate_limited",
+        rule: injectionLabel,
+        window_minutes: INJECTION_WINDOW_MINUTES,
+        message: "You've sent several messages that look like prompt-injection attempts of the same kind. Try a normal question about your report in a little while.",
+      });
+    }
+
+    await service.from("report_chat_messages").insert({
+      respondent_id: respondentId,
+      role: "assistant",
+      content: buildInjectionRefusal(injectionLabel),
+    });
+    return syntheticSseResponse(INJECTION_REDIRECT);
+  }
+
+  // 7b. Off-topic short-circuit. Refuse before hitting the model — cheaper,
   // faster, and keeps obvious abuse out of model logs. We persist the
   // refusal so the conversation stays consistent on reload.
   if (isObviouslyOffTopic(message)) {
