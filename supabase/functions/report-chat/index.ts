@@ -65,6 +65,52 @@ const OFFTOPIC_PATTERNS: RegExp[] = [
 const GENERIC_REDIRECT =
   "I can only help with your AI Operating Index report and the Moves it recommends. Try asking, for example: \"Which Move should I start this quarter?\" or \"How do I brief my team on 'Set a 90-day AI mandate'?\"";
 
+const INJECTION_REDIRECT =
+  "I noticed instructions in that message that look like an attempt to change how I behave. I'll ignore those and stay focused on your report. Ask me about your scores, hotspots, or any of the Moves and I'll help.";
+
+// Prompt-injection patterns. These target both direct attacks ("ignore all
+// previous instructions") and indirect/roleplay framings ("pretend you are…",
+// "from now on you are DAN", quoted "system:" / "developer:" blocks pasted
+// into the message, fenced or tagged instruction blocks, attempts to extract
+// the system prompt, and base64/encoded payloads). Patterns are conservative
+// but err on the side of refusing — a false positive just nudges the user to
+// rephrase, while a false negative could subvert grounding.
+const INJECTION_PATTERNS: Array<{ name: string; re: RegExp }> = [
+  // Direct override attempts
+  { name: "ignore_previous", re: /\b(ignore|disregard|forget|override|bypass)\b[^.\n]{0,40}\b(previous|prior|above|earlier|all|any|the)\b[^.\n]{0,40}\b(instructions?|rules?|prompts?|directives?|constraints?|guidelines?|messages?)\b/i },
+  { name: "new_instructions", re: /\b(new|updated|revised|real|actual|true)\s+(instructions?|rules?|prompt|task|mission|directives?)\b/i },
+  { name: "from_now_on", re: /\b(from\s+now\s+on|starting\s+now|henceforth)\b[^.\n]{0,80}\b(you('| a)?re?|act|behave|respond|answer|reply)\b/i },
+
+  // Roleplay / persona hijack
+  { name: "roleplay_pretend", re: /\b(pretend|imagine|roleplay|role[-\s]?play|act\s+as(?:\s+if)?|behave\s+as|you\s+are\s+now|simulate|impersonate)\b[^.\n]{0,60}\b(an?|the)\b[^.\n]{0,40}\b(ai|assistant|model|chatbot|gpt|expert|hacker|jailbreak|unrestricted|uncensored|developer|admin|system)\b/i },
+  { name: "named_jailbreak", re: /\b(DAN|STAN|DUDE|AIM|developer\s*mode|jailbreak|jail\s*break|do\s+anything\s+now)\b/i },
+  { name: "no_restrictions", re: /\b(without|with\s+no|no)\s+(restrictions?|filters?|rules?|limits?|limitations?|guardrails?|censorship|safety)\b/i },
+
+  // Fake system / developer / role tags pasted into a user turn
+  { name: "fake_role_tag", re: /(^|\n)\s*(?:["'`>\-*]+\s*)?(system|developer|assistant|admin|root|user)\s*[:>\]\)]\s*/i },
+  { name: "fake_role_xml", re: /<\s*\/?\s*(system|developer|assistant|instructions?|prompt)\b[^>]*>/i },
+  { name: "fenced_instructions", re: /```(?:\s*(?:system|developer|prompt|instructions?))[\s\S]*?```/i },
+  { name: "bracketed_instructions", re: /\[\s*(?:system|developer|instructions?|prompt)\s*\][\s\S]{0,200}/i },
+
+  // Quoted instruction blocks ("the following is your new system prompt: …")
+  { name: "quoted_new_prompt", re: /\b(here\s+is|this\s+is|following\s+is|below\s+is)\b[^.\n]{0,40}\b(your\s+)?(new\s+)?(system\s+)?(prompt|instructions?|rules?|context)\b/i },
+
+  // Prompt extraction
+  { name: "reveal_prompt", re: /\b(reveal|show|print|repeat|output|display|dump|leak|tell\s+me)\b[^.\n]{0,40}\b(your\s+|the\s+)?(system\s+)?(prompt|instructions?|rules?|guidelines?|configuration|setup)\b/i },
+  { name: "what_were_you_told", re: /\bwhat\s+(were\s+you\s+(told|instructed)|are\s+your\s+(instructions?|rules?|guidelines?))\b/i },
+
+  // Encoded payload smuggling
+  { name: "base64_payload", re: /\b(base64|rot13|hex|binary|encoded?)\b[^.\n]{0,40}\b(decode|execute|run|follow|interpret)\b/i },
+  { name: "long_base64", re: /(?:[A-Za-z0-9+/]{80,}={0,2})/ },
+];
+
+function detectInjection(message: string): string | null {
+  for (const { name, re } of INJECTION_PATTERNS) {
+    if (re.test(message)) return name;
+  }
+  return null;
+}
+
 interface ChatBody {
   respondent_id: string;
   message: string;
