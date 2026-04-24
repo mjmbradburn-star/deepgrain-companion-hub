@@ -10,8 +10,12 @@
  * test focused, fast and free of network mocking.
  */
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { render, screen, within, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+
+// Per-test-controllable rpc spy. Tests that mount the full AssessReport page
+// override `mockRpc` to return their fixture; component-level tests ignore it.
+const mockRpc = vi.fn(async (_name: string, _args?: unknown) => ({ data: null, error: null }));
 
 // Some descendants (DeepDiveUnlock, ReportCta) read the auth session.
 // Stub the client at module level so they render harmlessly.
@@ -25,17 +29,27 @@ vi.mock("@/integrations/supabase/client", () => ({
       insert: () => Promise.resolve({ data: null, error: null }),
       select: () => Promise.resolve({ data: null, error: null }),
     }),
-    rpc: () => Promise.resolve({ data: null, error: null }),
+    rpc: (name: string, args?: unknown) => mockRpc(name, args),
     functions: { invoke: () => Promise.resolve({ data: null, error: null }) },
   },
 }));
+
+// Benchmarks fetch — return null so the page doesn't try to load slice data.
+vi.mock("@/lib/benchmarks", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/benchmarks")>("@/lib/benchmarks");
+  return {
+    ...actual,
+    fetchBestSlice: vi.fn(async () => null),
+  };
+});
 
 // Pure analytics — fire-and-forget shim.
 vi.mock("@/lib/analytics", () => ({
   trackEvent: () => undefined,
 }));
 
-import {
+
+import AssessReport, {
   MovesTab,
   OverviewTab,
   type Recommendations,
@@ -653,3 +667,83 @@ describe("AssessReport · AI wrapper timeout fallback (e2e-equivalent)", () => {
     ).toBeInTheDocument();
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Full-page journey: default tab renders → click Moves tab → assert hotspot
+// cards (from the Overview tab) are wired to the right Move IDs.
+//
+// Mounts the default-exported AssessReport page so the tab bar, URL-driven
+// tab state, and data-loading boundary are all exercised. Supabase RPCs are
+// stubbed to return the fixture payload `get_report_by_slug` would produce.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("AssessReport · full page · default tab + Moves tab navigation", () => {
+  it("renders Overview by default, then switching to Moves keeps the correct hotspot → Move ID links", async () => {
+    const userEvent = (await import("@testing-library/user-event")).default;
+    const user = userEvent.setup();
+
+    const recs = makeRecommendations();
+    const data = makeReportData(recs);
+    const slug = data.respondent.slug;
+
+    // get_report_by_slug → fixture; get_outcomes_for_report → []
+    mockRpc.mockImplementation(async (name: string) => {
+      if (name === "get_report_by_slug") {
+        return {
+          data: {
+            respondent: data.respondent,
+            report: data.report,
+            response_count: 1,
+            has_deepdive: data.hasDeepdive,
+          },
+          error: null,
+        };
+      }
+      if (name === "get_outcomes_for_report") return { data: [], error: null };
+      return { data: null, error: null };
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/assess/r/${slug}`]}>
+        <Routes>
+          <Route path="/assess/r/:slug" element={<AssessReport />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    // ── Default tab is Overview: headline diagnosis from recs is visible.
+    await waitFor(() =>
+      expect(screen.getByText(`"${recs.headline_diagnosis}"`)).toBeInTheDocument(),
+    );
+
+    // Overview-only signal: hotspot cards exist on the default tab and are
+    // links to /assess/r/<slug>?tab=plan#move-<move_id> matched by pillar.
+    const overviewCards = screen.getAllByTestId("hotspot-card");
+    expect(overviewCards.length).toBe(data.report!.hotspots.length);
+    for (const h of data.report!.hotspots) {
+      const move = recs.moves.find((m) => m.snapshot.pillar === h.pillar)!;
+      const card = overviewCards.find((c) => c.getAttribute("data-move-id") === move.move_id);
+      expect(card, `no HotspotCard wired to move_id ${move.move_id}`).toBeTruthy();
+      expect(card!.tagName).toBe("A");
+      expect(card!.getAttribute("href")).toBe(
+        `/assess/r/${slug}?tab=plan#move-${move.move_id}`,
+      );
+    }
+
+    // ── Click the Moves tab in the masthead tab bar.
+    await user.click(screen.getByRole("tab", { name: /^Moves$/i }));
+
+    // MovesTab signal: every Move's title now renders as a heading.
+    await waitFor(() => {
+      for (const m of recs.moves) {
+        expect(
+          screen.getByRole("heading", { name: m.snapshot.title }),
+        ).toBeInTheDocument();
+      }
+    });
+
+    // The hotspot cards belong to the Overview panel, which Radix unmounts
+    // when inactive. Confirm they're gone so we know the tab actually switched.
+    expect(screen.queryAllByTestId("hotspot-card")).toHaveLength(0);
+  });
+});
+
