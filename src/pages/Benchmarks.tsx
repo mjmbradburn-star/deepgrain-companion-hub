@@ -14,6 +14,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { Seo } from "@/components/aioi/Seo";
 import { trackEvent } from "@/lib/analytics";
 import { benchmarkDatasetJsonLd, breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
 type Row = Database["public"]["Tables"]["benchmarks_materialised"]["Row"] & {
