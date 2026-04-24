@@ -296,9 +296,9 @@ describe("AssessReport · OverviewTab (HotspotCards mapped to Move IDs)", () => 
 
     expect(screen.getByText(`"${report.diagnosis}"`)).toBeInTheDocument();
 
-    // hotspot pillar names still render as before
+    // hotspot pillar names still render (legacy hotspot stack — pillar name appears multiple times across the page)
     for (const h of report.hotspots) {
-      expect(screen.getByText(new RegExp(h.name))).toBeInTheDocument();
+      expect(screen.getAllByText(new RegExp(h.name)).length).toBeGreaterThan(0);
     }
   });
 });
