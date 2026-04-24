@@ -254,6 +254,7 @@ interface Recommendations extends WrapperOutput {
       what_to_do: string | null;
       how_to_know: string | null;
       effort: number | null;
+      impact: number | null;
       tags: string[] | null;
       cta_type: string | null;
       cta_url: string | null;
@@ -460,6 +461,7 @@ function stitchRecommendations(
         what_to_do: m.what_to_do ?? m.body ?? null,
         how_to_know: m.how_to_know,
         effort: m.effort,
+        impact: m.impact,
         tags: m.tags,
         cta_type: m.cta_type,
         cta_url: m.cta_url,
@@ -504,6 +506,7 @@ function buildFallback(
         what_to_do: m.what_to_do ?? m.body ?? null,
         how_to_know: m.how_to_know,
         effort: m.effort,
+        impact: m.impact,
         tags: m.tags,
         cta_type: m.cta_type,
         cta_url: m.cta_url,
