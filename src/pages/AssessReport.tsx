@@ -143,7 +143,7 @@ function tierBlurb(tierLabel: Tier, pillarName: string): string {
 }
 
 // ─── Moves (new — backed by the Voice Wrapper recommendations) ────────────
-function MovesTab({
+export function MovesTab({
   recommendations,
   tier,
   slug,
