@@ -18,6 +18,7 @@ export interface MoveSnapshot {
   what_to_do: string | null;
   how_to_know: string | null;
   effort: number | null;
+  impact: number | null;
   tags: string[] | null;
   cta_type: string | null;
   cta_url: string | null;
@@ -114,6 +115,9 @@ export function MoveCard({ move, index, className }: MoveCardProps) {
           {typeof snapshot.effort === "number" && (
             <EffortDots value={snapshot.effort} />
           )}
+          {typeof snapshot.impact === "number" && (
+            <ImpactDots value={snapshot.impact} />
+          )}
           {snapshot.tier_band && (
             <span>{TIER_BAND_LABEL[snapshot.tier_band] ?? snapshot.tier_band}</span>
           )}
@@ -161,6 +165,27 @@ export function EffortDots({ value }: { value: number }) {
             aria-hidden
             className={cn(
               "inline-block h-1.5 w-1.5 rounded-full",
+              i <= safe ? "bg-brass-bright" : "bg-cream/20",
+            )}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+export function ImpactDots({ value }: { value: number }) {
+  const safe = Math.max(0, Math.min(4, Math.round(value)));
+  return (
+    <span className="inline-flex items-center gap-2" title={`Impact ${safe}/4`}>
+      <span className="text-cream/40">Impact</span>
+      <span className="inline-flex items-center gap-1" aria-label={`Impact ${safe} of 4`}>
+        {[1, 2, 3, 4].map((i) => (
+          <span
+            key={i}
+            aria-hidden
+            className={cn(
+              "inline-block h-1.5 w-1.5 rounded-sm",
               i <= safe ? "bg-brass-bright" : "bg-cream/20",
             )}
           />
