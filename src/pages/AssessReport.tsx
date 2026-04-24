@@ -129,6 +129,21 @@ function narrativeReadout(report: NonNullable<ReportData["report"]>, hasDeepdive
   };
 }
 
+/** Short pillar-aware blurb for the HotspotCard headline. */
+function tierBlurb(tierLabel: Tier, pillarName: string): string {
+  switch (tierLabel) {
+    case "Dormant": return `${pillarName} is pre-AI. Foundations come before tooling.`;
+    case "Exploring": return `${pillarName} has activity but no operating shape yet.`;
+    case "Deployed": return `${pillarName} ships, but it does not yet compound.`;
+    case "Integrated": return `${pillarName} is part of the flow. Now make it consistent.`;
+    case "Leveraged": return `${pillarName} drives outcomes. Defend the gains.`;
+    case "AI-Native": return `${pillarName} is the substrate. Keep raising the floor.`;
+    default: return `${pillarName} needs sequencing before scale.`;
+  }
+}
+
+// removed-trailing-helper-stub
+
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
 export default function AssessReport() {
