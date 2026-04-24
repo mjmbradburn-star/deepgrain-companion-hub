@@ -1,0 +1,2 @@
+ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS recommendations_generated_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_reports_recommendations_generated_at ON public.reports(recommendations_generated_at);

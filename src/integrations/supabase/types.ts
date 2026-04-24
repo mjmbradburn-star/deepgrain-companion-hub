@@ -373,6 +373,7 @@ export type Database = {
           pillar_tiers: Json | null
           plan: Json | null
           recommendations: Json | null
+          recommendations_generated_at: string | null
           respondent_id: string
           score_audit: Json
           updated_at: string
@@ -392,6 +393,7 @@ export type Database = {
           pillar_tiers?: Json | null
           plan?: Json | null
           recommendations?: Json | null
+          recommendations_generated_at?: string | null
           respondent_id: string
           score_audit?: Json
           updated_at?: string
@@ -411,6 +413,7 @@ export type Database = {
           pillar_tiers?: Json | null
           plan?: Json | null
           recommendations?: Json | null
+          recommendations_generated_at?: string | null
           respondent_id?: string
           score_audit?: Json
           updated_at?: string
