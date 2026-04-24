@@ -42,6 +42,7 @@ import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 import { AdminRegenerateButton } from "@/components/admin/AdminRegenerateButton";
 import { ReportChatLauncher } from "@/components/aioi/ReportChatLauncher";
+import { ReportChatGuestCta } from "@/components/aioi/ReportChatGuestCta";
 import { DownloadActionPlanButton } from "@/components/aioi/DownloadActionPlanButton";
 
 // ─── Types coming back from the report row ────────────────────────────────
@@ -903,14 +904,20 @@ function ReportView({ data }: { data: ReportData }) {
       <FounderBio />
       <SiteFooter />
 
-      {/* AI assistant — only when we have Moves to ground on AND the user
-          owns the report (signed in). Anonymous link viewers see no chat. */}
-      {respondent.is_owner && report?.recommendations?.moves && report.recommendations.moves.length > 0 && (
-        <ReportChatLauncher
-          respondentId={respondent.id}
-          hasDeepdive={data.hasDeepdive}
-          enabled={true}
-        />
+      {/* AI assistant — owner-only. Anonymous link viewers get a friendly
+          inline sign-in CTA in the same screen position instead of a
+          dead launcher or a one-shot toast. We only surface either UI
+          when there are Moves available to ground the chat on. */}
+      {report?.recommendations?.moves && report.recommendations.moves.length > 0 && (
+        respondent.is_owner ? (
+          <ReportChatLauncher
+            respondentId={respondent.id}
+            hasDeepdive={data.hasDeepdive}
+            enabled={true}
+          />
+        ) : (
+          <ReportChatGuestCta slug={respondent.slug} />
+        )
       )}
     </div>
   );
