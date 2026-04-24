@@ -59,12 +59,11 @@ function makeMove(overrides: Partial<RecommendationMove> & {
     personalised_what_to_do_intro: rest.personalised_what_to_do_intro,
     role: rest.role,
     snapshot: {
-      id: move_id,
       title,
       pillar,
       tier_band: "low",
+      lens: "organisational",
       function: null,
-      size_bands: null,
       why_matters: "Snapshot fallback why_matters.",
       what_to_do: "1. Do the thing.\n2. Then the next thing.",
       how_to_know: "You'll know because the metric moves.",
