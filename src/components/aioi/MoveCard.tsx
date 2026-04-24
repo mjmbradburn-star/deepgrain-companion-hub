@@ -135,19 +135,21 @@ export function MoveCard({ move, index, className, isOwner = false }: MoveCardPr
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              window.dispatchEvent(
-                new CustomEvent("aioi:open-report-chat", {
-                  detail: { prompt: `Help me put "${snapshot.title}" into practice. What's the first concrete step for me?` },
-                }),
-              );
-            }}
-            className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 font-ui text-[11px] uppercase tracking-[0.16em] text-cream/55 hover:text-brass-bright transition-colors"
-          >
-            <MessageSquare className="h-3 w-3" /> Discuss
-          </button>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent("aioi:open-report-chat", {
+                    detail: { prompt: `Help me put "${snapshot.title}" into practice. What's the first concrete step for me?` },
+                  }),
+                );
+              }}
+              className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 font-ui text-[11px] uppercase tracking-[0.16em] text-cream/55 hover:text-brass-bright transition-colors"
+            >
+              <MessageSquare className="h-3 w-3" /> Discuss
+            </button>
+          )}
           {snapshot.cta_url && (
             <Button
               asChild
