@@ -170,6 +170,7 @@ export function MovesTab({
   level,
   hasDeepdive,
   isAnonymous,
+  actionPlanInput,
 }: {
   recommendations: Recommendations;
   tier: Tier;
@@ -177,6 +178,7 @@ export function MovesTab({
   level: string;
   hasDeepdive: boolean;
   isAnonymous: boolean;
+  actionPlanInput?: import("@/lib/actionPlanPdf").ActionPlanInput;
 }) {
   const moves = recommendations.moves;
   // When the user hasn't done the deep dive, show the first three Moves in the
