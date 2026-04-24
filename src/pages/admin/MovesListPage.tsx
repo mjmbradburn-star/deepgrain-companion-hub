@@ -225,6 +225,17 @@ export default function MovesListPage() {
                       >
                         {m.title}
                       </Link>
+                      {m.active &&
+                        (!m.why_matters?.trim() ||
+                          !m.what_to_do?.trim() ||
+                          !m.how_to_know?.trim()) && (
+                          <Badge
+                            variant="outline"
+                            className="ml-2 border-amber-500/50 text-amber-600"
+                          >
+                            Incomplete
+                          </Badge>
+                        )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {LENS_LABELS[m.lens as keyof typeof LENS_LABELS] ?? m.lens}
