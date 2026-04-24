@@ -60,3 +60,52 @@ Migration: added `reports.recommendations_generated_at timestamptz` (with index)
 
 Wired into `score-responses` after the report upsert. Old `plan` field stays untouched as backstop.
 
+---
+
+## Phase C — Report UI rewiring
+
+Update `AssessReport.tsx` to render the new `recommendations` payload when present, falling back to legacy `plan` only if absent.
+
+**Changes:**
+
+1. **`PlanTab` becomes `MovesTab`** — renders `recommendations.moves[]` as cards using `recommendations.personalised_intro` as the section lede. Each card shows:
+   - Title (from snapshot)
+   - "Why this matters for you" (from `personalised_why_matters`)
+   - "What to do" (from snapshot `what_to_do`, markdown rendered)
+   - "How you'll know it worked" (from snapshot `how_to_know`)
+   - Effort dots (1-4)
+   - Forced-rank badge for the organisational pinned Move
+   - Optional CTA button if `cta_type` is set
+
+2. **`HotspotCard` enriched** — add `why_matters` snippet and effort indicator from the top selected Move on that pillar.
+
+3. **Headline diagnosis** — replace `report.diagnosis` with `recommendations.headline_diagnosis` when present.
+
+4. **Closing CTA** — render `recommendations.closing_cta` above `ReportCta`.
+
+5. **Loading state** — copy on processing screen acknowledges ~5-8s wrapper latency.
+
+6. **Printable one-pager** — same data sources, condensed.
+
+Backwards-compatible: legacy reports without `recommendations` keep rendering the old `plan` view.
+
+---
+
+## Phase D — Admin Playbook editor
+
+Gated `/admin/playbook` route with admin-only RLS:
+- All Moves table (sort/filter/search)
+- Move editor (single page, all fields, markdown preview, tag autocomplete)
+- Coverage heatmap (lens × pillar × tier_band, function selector)
+- Stale view (>90d unreviewed)
+- Test report (synthetic profile → engine output)
+
+Mutations via authenticated Supabase client; admin RLS on `outcomes_library` for INSERT/UPDATE; soft-delete via `active = false`.
+
+---
+
+## Phase E — Migration & QA
+
+1. Backfill function `regenerate-all-recommendations` (rate-limited).
+2. Acceptance criteria: 192+ Moves ✓, synthetic 20-profile engine test, 50-call wrapper test (95%+ valid JSON), fallback verified, cap-flag handling, effort balance, coverage map clean, p95 < 12s.
+3. `/admin/changelog` page.
