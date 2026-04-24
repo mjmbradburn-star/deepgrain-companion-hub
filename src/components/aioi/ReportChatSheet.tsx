@@ -322,9 +322,25 @@ export function ReportChatSheet({
                 }
               >
                 {m.role === "assistant" ? (
-                  <div className="prose prose-sm prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-headings:text-cream prose-strong:text-cream">
-                    <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
-                  </div>
+                  (() => {
+                    const parsed = parseInjectionMarker(m.content);
+                    return (
+                      <>
+                        <div className="prose prose-sm prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-headings:text-cream prose-strong:text-cream">
+                          <ReactMarkdown>{parsed.visible || "…"}</ReactMarkdown>
+                        </div>
+                        {parsed.rule && (
+                          <div
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-cream/15 bg-cream/5 px-2 py-0.5 text-[11px] text-cream/55"
+                            title={`Refused by safety rule: ${parsed.rule}. This message looked like an attempt to override the assistant's instructions, change its persona, or extract its setup.`}
+                          >
+                            <span aria-hidden>⚑</span>
+                            <span>Refused: {INJECTION_RULE_LABELS[parsed.rule] ?? parsed.rule}</span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()
                 ) : (
                   m.content
                 )}
