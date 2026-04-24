@@ -335,7 +335,7 @@ export function MovesTab({
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {filteredSorted.map((move, i) => (
-            <MoveCard key={move.move_id} move={move} index={i} />
+            <MoveCard key={move.move_id} move={move} index={i} isOwner={!!actionPlanInput} />
           ))}
         </div>
       )}
