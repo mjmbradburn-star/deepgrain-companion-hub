@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { PageTransition } from "@/components/aioi/PageTransition";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,8 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Assess from "./pages/Assess.tsx";
-import AssessStart from "./pages/AssessStart.tsx";
-import AssessQuestion from "./pages/AssessQuestion.tsx";
 import AssessProcessing from "./pages/AssessProcessing.tsx";
 import AssessReport from "./pages/AssessReport.tsx";
 import AssessScan from "./pages/AssessScan.tsx";
@@ -23,7 +21,7 @@ import SignIn from "./pages/SignIn.tsx";
 import MyReports from "./pages/MyReports.tsx";
 import DevHeroCta from "./pages/DevHeroCta.tsx";
 import Privacy from "./pages/Privacy.tsx";
-import DeployReview from "./pages/DeployReview.tsx";
+
 import AdminPlaybookLayout from "./pages/admin/AdminPlaybookLayout.tsx";
 import MovesListPage from "./pages/admin/MovesListPage.tsx";
 import MoveEditorPage from "./pages/admin/MoveEditorPage.tsx";
