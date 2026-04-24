@@ -475,7 +475,17 @@ function LockedMovesContinuation({
  * there's no legacy plan to bridge from. Communicates that this is in-flight,
  * not broken, and gives the user one clear action.
  */
-export function MovesEmptyState({ tier }: { tier: Tier }) {
+export function MovesEmptyState({ tier, variant = "pending" }: { tier: Tier; variant?: "pending" | "partial" }) {
+  const isPartial = variant === "partial";
+  const eyebrow = isPartial ? "Recommendations pending" : "Moves are being drafted";
+  const headline = isPartial ? (
+    <>Finishing your moves<br /><span className="italic text-brass-bright">just a moment.</span></>
+  ) : (
+    <>Your moves aren't ready<br /><span className="italic text-brass-bright">just yet.</span></>
+  );
+  const body = isPartial
+    ? `We've drafted your ${tier} recommendations but the selection engine is still finalising the move ordering. We won't show stale plan content while this completes.`
+    : null;
   return (
     <section className="container max-w-3xl py-16 sm:py-24">
       <div className="rounded-lg border border-cream/10 bg-surface-1/40 px-6 sm:px-10 py-10 sm:py-14">
@@ -484,19 +494,22 @@ export function MovesEmptyState({ tier }: { tier: Tier }) {
             <Loader2 className="h-4 w-4 animate-spin" />
           </span>
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
-            Moves are being drafted
+            {eyebrow}
           </p>
         </div>
 
         <h2 className="font-display text-3xl sm:text-4xl text-cream leading-[1.1] tracking-tight text-balance">
-          Your moves aren't ready<br />
-          <span className="italic text-brass-bright">just yet.</span>
+          {headline}
         </h2>
 
         <p className="mt-5 font-display text-lg text-cream/70 leading-relaxed max-w-xl">
-          Your answers landed and your <span className="text-cream">{tier}</span> profile is
-          scored. The selection engine is choosing the right Moves and writing them in
-          your voice — this usually takes under a minute.
+          {body ?? (
+            <>
+              Your answers landed and your <span className="text-cream">{tier}</span> profile is
+              scored. The selection engine is choosing the right Moves and writing them in
+              your voice — this usually takes under a minute.
+            </>
+          )}
         </p>
 
         <ul className="mt-7 space-y-2 text-sm text-cream/65 max-w-xl">
@@ -710,27 +723,51 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          {report.recommendations && report.recommendations.moves.length > 0 ? (
-            <MovesTab
-              recommendations={report.recommendations}
-              tier={report.overall_tier}
-              slug={respondent.slug}
-              level={respondent.level}
-              hasDeepdive={data.hasDeepdive}
-              isAnonymous={needsEmailGate}
-            />
-          ) : report.plan && report.plan.length > 0 ? (
-            <PlanTab
-              plan={report.plan}
-              outcomes={outcomes}
-              slug={respondent.slug}
-              level={respondent.level}
-              hasDeepdive={data.hasDeepdive}
-              isAnonymous={needsEmailGate}
-            />
-          ) : (
-            <MovesEmptyState tier={report.overall_tier} />
-          )}
+          {(() => {
+            const recs = report.recommendations;
+            const moveIds = report.move_ids;
+            const hasRecs = !!recs && Array.isArray(recs.moves) && recs.moves.length > 0;
+            const hasMoveIds = Array.isArray(moveIds) && moveIds.length > 0;
+            const hasPlan = Array.isArray(report.plan) && report.plan.length > 0;
+
+            // Fully ready — render the new Moves tab.
+            if (hasRecs && hasMoveIds) {
+              return (
+                <MovesTab
+                  recommendations={recs!}
+                  tier={report.overall_tier}
+                  slug={respondent.slug}
+                  level={respondent.level}
+                  hasDeepdive={data.hasDeepdive}
+                  isAnonymous={needsEmailGate}
+                />
+              );
+            }
+
+            // Partial — recommendations exist on one side but not the other.
+            // Do NOT silently fall back to the legacy plan; surface a clear
+            // pending state so users (and we) can tell something is in-flight.
+            if (hasRecs !== hasMoveIds) {
+              return <MovesEmptyState tier={report.overall_tier} variant="partial" />;
+            }
+
+            // No recommendations at all — bridge to legacy plan if present.
+            if (hasPlan) {
+              return (
+                <PlanTab
+                  plan={report.plan}
+                  outcomes={outcomes}
+                  slug={respondent.slug}
+                  level={respondent.level}
+                  hasDeepdive={data.hasDeepdive}
+                  isAnonymous={needsEmailGate}
+                />
+              );
+            }
+
+            // Nothing at all — selection engine still drafting.
+            return <MovesEmptyState tier={report.overall_tier} />;
+          })()}
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
