@@ -395,7 +395,22 @@ Deno.serve(async (req) => {
   };
   const allowedMoveTitles = (recs?.moves ?? []).map((m: { snapshot: { title: string } }) => m.snapshot.title).filter(Boolean) as string[];
 
-  // 7. Off-topic short-circuit. Refuse before hitting the model — cheaper,
+  // 7a. Prompt-injection short-circuit. Catches indirect injection (quoted
+  // instructions, fake role tags, roleplay/persona hijack, prompt extraction,
+  // encoded payloads). We refuse with a clear, friendly message and persist
+  // it so reloads stay consistent. We also log which rule fired for tuning.
+  const injectionRule = detectInjection(message);
+  if (injectionRule) {
+    console.warn(`report-chat: injection blocked (rule=${injectionRule}, respondent=${respondentId})`);
+    await service.from("report_chat_messages").insert({
+      respondent_id: respondentId,
+      role: "assistant",
+      content: INJECTION_REDIRECT,
+    });
+    return syntheticSseResponse(INJECTION_REDIRECT);
+  }
+
+  // 7b. Off-topic short-circuit. Refuse before hitting the model — cheaper,
   // faster, and keeps obvious abuse out of model logs. We persist the
   // refusal so the conversation stays consistent on reload.
   if (isObviouslyOffTopic(message)) {
