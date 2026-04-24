@@ -723,27 +723,51 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          {report.recommendations && report.recommendations.moves.length > 0 ? (
-            <MovesTab
-              recommendations={report.recommendations}
-              tier={report.overall_tier}
-              slug={respondent.slug}
-              level={respondent.level}
-              hasDeepdive={data.hasDeepdive}
-              isAnonymous={needsEmailGate}
-            />
-          ) : report.plan && report.plan.length > 0 ? (
-            <PlanTab
-              plan={report.plan}
-              outcomes={outcomes}
-              slug={respondent.slug}
-              level={respondent.level}
-              hasDeepdive={data.hasDeepdive}
-              isAnonymous={needsEmailGate}
-            />
-          ) : (
-            <MovesEmptyState tier={report.overall_tier} />
-          )}
+          {(() => {
+            const recs = report.recommendations;
+            const moveIds = report.move_ids;
+            const hasRecs = !!recs && Array.isArray(recs.moves) && recs.moves.length > 0;
+            const hasMoveIds = Array.isArray(moveIds) && moveIds.length > 0;
+            const hasPlan = Array.isArray(report.plan) && report.plan.length > 0;
+
+            // Fully ready — render the new Moves tab.
+            if (hasRecs && hasMoveIds) {
+              return (
+                <MovesTab
+                  recommendations={recs!}
+                  tier={report.overall_tier}
+                  slug={respondent.slug}
+                  level={respondent.level}
+                  hasDeepdive={data.hasDeepdive}
+                  isAnonymous={needsEmailGate}
+                />
+              );
+            }
+
+            // Partial — recommendations exist on one side but not the other.
+            // Do NOT silently fall back to the legacy plan; surface a clear
+            // pending state so users (and we) can tell something is in-flight.
+            if (hasRecs !== hasMoveIds) {
+              return <MovesEmptyState tier={report.overall_tier} variant="partial" />;
+            }
+
+            // No recommendations at all — bridge to legacy plan if present.
+            if (hasPlan) {
+              return (
+                <PlanTab
+                  plan={report.plan}
+                  outcomes={outcomes}
+                  slug={respondent.slug}
+                  level={respondent.level}
+                  hasDeepdive={data.hasDeepdive}
+                  isAnonymous={needsEmailGate}
+                />
+              );
+            }
+
+            // Nothing at all — selection engine still drafting.
+            return <MovesEmptyState tier={report.overall_tier} />;
+          })()}
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
