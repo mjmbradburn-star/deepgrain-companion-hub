@@ -487,7 +487,7 @@ function ReportView({ data }: { data: ReportData }) {
               hasDeepdive={data.hasDeepdive}
               isAnonymous={needsEmailGate}
             />
-          ) : (
+          ) : report.plan && report.plan.length > 0 ? (
             <PlanTab
               plan={report.plan}
               outcomes={outcomes}
@@ -496,6 +496,8 @@ function ReportView({ data }: { data: ReportData }) {
               hasDeepdive={data.hasDeepdive}
               isAnonymous={needsEmailGate}
             />
+          ) : (
+            <MovesEmptyState tier={report.overall_tier} />
           )}
         </TabsPrimitive.Content>
 
