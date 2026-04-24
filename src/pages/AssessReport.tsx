@@ -422,30 +422,35 @@ function OverviewTab({
             </div>
           )}
 
-          {report.diagnosis && (
+          {headline && (
             <blockquote className="mt-10 border-l-2 border-brass/60 pl-6">
               <p className="font-display italic text-2xl sm:text-3xl text-cream/90 leading-snug text-balance">
-                "{report.diagnosis}"
+                "{headline}"
               </p>
             </blockquote>
           )}
 
           {/* Hotspots */}
           {report.hotspots.length > 0 && (
-            <div className="mt-12 space-y-3">
+            <div className="mt-12 space-y-4">
               <p className="eyebrow text-cream/45">Three pillars to watch</p>
-              <ul className="space-y-2">
-                {report.hotspots.map((h) => (
-                  <li key={h.pillar} className="flex items-center justify-between gap-4 border-b border-cream/10 py-3">
-                    <div className="flex items-center gap-3">
-                      <PillarChip index={h.pillar as 1|2|3|4|5|6|7|8} label={h.name} />
-                    </div>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/55 tabular-nums">
-                      Tier {h.tier} · {h.tierLabel}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="grid grid-cols-1 gap-4">
+                {report.hotspots.map((h) => {
+                  const move = movesByPillar.get(h.pillar);
+                  return (
+                    <HotspotCard
+                      key={h.pillar}
+                      pillar={h.pillar as 1|2|3|4|5|6|7|8}
+                      pillarLabel={h.name}
+                      tier={h.tierLabel}
+                      diagnosis={`Tier ${h.tier}. ${tierBlurb(h.tierLabel, h.name)}`}
+                      moveTitle={move?.snapshot.title}
+                      moveWhy={move?.personalised_why_matters || move?.snapshot.why_matters || undefined}
+                      moveEffort={move?.snapshot.effort ?? null}
+                    />
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
