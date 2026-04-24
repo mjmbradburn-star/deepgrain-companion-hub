@@ -150,6 +150,25 @@ Deno.serve(async (req) => {
     const playbook = (playbookRows ?? []) as Move[];
     const selected: SelectedMove[] = selectMoves(profile, playbook);
 
+    // Coverage guardrail: if the engine returns nothing for a lens that should
+    // produce output, log it so we can see playbook gaps in production rather
+    // than only via user complaints. Fire-and-forget; never blocks the response.
+    if (selected.length === 0) {
+      admin.from("events").insert({
+        name: "recommendations.empty_result",
+        payload: {
+          respondent_id: respondentId,
+          lens,
+          function: respondent.function,
+          size_band: sizeBand,
+          pillar_tiers: pillarTiers,
+          cap_flag_pillars: capPillars,
+          playbook_pool_size: playbook.length,
+        },
+      }).then(({ error }) => {
+        if (error) console.error("[recommend-report] empty_result event insert failed", error);
+      });
+    }
     // 4. Voice Wrapper — Lovable AI tool-calling. Fall back to bare render.
     let recommendations: Recommendations;
     let usedFallback = false;
