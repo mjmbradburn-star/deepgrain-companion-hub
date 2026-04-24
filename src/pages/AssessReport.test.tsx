@@ -10,8 +10,12 @@
  * test focused, fast and free of network mocking.
  */
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { render, screen, within, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+
+// Per-test-controllable rpc spy. Tests that mount the full AssessReport page
+// override `mockRpc` to return their fixture; component-level tests ignore it.
+const mockRpc = vi.fn(async (_name: string, _args?: unknown) => ({ data: null, error: null }));
 
 // Some descendants (DeepDiveUnlock, ReportCta) read the auth session.
 // Stub the client at module level so they render harmlessly.
@@ -25,15 +29,25 @@ vi.mock("@/integrations/supabase/client", () => ({
       insert: () => Promise.resolve({ data: null, error: null }),
       select: () => Promise.resolve({ data: null, error: null }),
     }),
-    rpc: () => Promise.resolve({ data: null, error: null }),
+    rpc: (name: string, args?: unknown) => mockRpc(name, args),
     functions: { invoke: () => Promise.resolve({ data: null, error: null }) },
   },
 }));
+
+// Benchmarks fetch — return null so the page doesn't try to load slice data.
+vi.mock("@/lib/benchmarks", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/benchmarks")>("@/lib/benchmarks");
+  return {
+    ...actual,
+    fetchBestSlice: vi.fn(async () => null),
+  };
+});
 
 // Pure analytics — fire-and-forget shim.
 vi.mock("@/lib/analytics", () => ({
   trackEvent: () => undefined,
 }));
+
 
 import {
   MovesTab,
