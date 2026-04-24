@@ -504,9 +504,13 @@ export function MovesEmptyState({ tier, variant = "pending" }: { tier: Tier; var
         </h2>
 
         <p className="mt-5 font-display text-lg text-cream/70 leading-relaxed max-w-xl">
-          Your answers landed and your <span className="text-cream">{tier}</span> profile is
-          scored. The selection engine is choosing the right Moves and writing them in
-          your voice — this usually takes under a minute.
+          {body ?? (
+            <>
+              Your answers landed and your <span className="text-cream">{tier}</span> profile is
+              scored. The selection engine is choosing the right Moves and writing them in
+              your voice — this usually takes under a minute.
+            </>
+          )}
         </p>
 
         <ul className="mt-7 space-y-2 text-sm text-cream/65 max-w-xl">
