@@ -84,3 +84,46 @@ Output: a single tick-list comment on `.lovable/plan.md` so you have a written r
 ~half a day of implementation. Backfill cost (Step 6) depends on respondent count; Step 1 will tell us.
 
 **Approve and I'll start with Step 1 (coverage queries) immediately, then ship Steps 2–6 as one code batch.**
+---
+
+## Phase 3 — completion log (2026-04-24)
+
+### Step 1 · Coverage diagnostic
+- **Total active Moves**: 265 (29 individual / 159 functional / 77 organisational).
+- **Coverage matrix**: every `lens × pillar × tier_band` cell has ≥1 Move. Thinnest cells: `organisational × high` (1 each on most pillars), `individual × *` (1 each except P5).
+- **Content debt to clear**: 57 active Moves missing one of `why_matters`/`what_to_do`/`how_to_know`; 105 stale (last_reviewed_at > 90d or null). Now visible at a glance in `/admin/playbook` (incomplete badge + count).
+- **Verdict**: coverage is sufficient to backfill. Quality is the bottleneck, not breadth.
+
+### Step 2 · Engine guardrail · DONE
+`recommend-report` now logs an `recommendations.empty_result` event whenever the engine returns 0 Moves. Includes lens, function, size_band, pillar_tiers, cap_flag_pillars, and playbook_pool_size so we can diagnose gaps from `events` rather than user complaints.
+
+### Step 3 · Per-report regenerate button · DONE
+New `<AdminRegenerateButton />` in `src/components/admin/`. Renders only for users with `admin` role (server-validated via `has_role` RPC). Calls `regenerate-all-recommendations` with `slug + apply + force`. Mounted in the report masthead so any report you visit gets a one-click rebuild.
+
+### Step 4 · Latency SLO · DONE
+`AssessProcessing.tsx` now fires a `report.latency_ms` event from `submitStartedAt → report ready`. Captures the §13 acceptance metric (target p95 < 12s). Query later with:
+
+```sql
+SELECT
+  percentile_cont(0.5) WITHIN GROUP (ORDER BY (payload->>'latency_ms')::int) AS p50,
+  percentile_cont(0.95) WITHIN GROUP (ORDER BY (payload->>'latency_ms')::int) AS p95
+FROM events WHERE name = 'report.latency_ms' AND created_at > now() - interval '7 days';
+```
+
+### Step 5 · Quality column · DONE
+`/admin/playbook` Moves list now shows an "Incomplete" pill on rows missing `why_matters`/`what_to_do`/`how_to_know` and a top-of-list count. Combined with the existing "Reviewed" column this is the single screen for content triage.
+
+### Step 6 · Bulk regenerate · ALREADY EXISTS
+`supabase/functions/regenerate-all-recommendations` already supports `apply`, `limit`, `offset`, `slug`, `force`, and `delay_ms`. Service-role gated. Audit row written to `events`. Step 3's button reuses it. No changes needed.
+
+### Step 7 · §13 acceptance checklist
+- Engine deterministic — covered by `selection-engine_test.ts`.
+- Fallback works — covered by `recommend-report` fallback tests + the `used_fallback` toggle in MovesTab.
+- JSON validation — covered by tool-calling enum + `allowed.has(move_id)` filter in `callVoiceWrapper`.
+- Tagged-prereq prioritisation — covered.
+- Functional fallback to base Moves — covered (Part 2 test).
+- Forced-rank from top-4 hotspots — covered (Part 2).
+- p95 < 12s — instrumented; query above to verify after a few days of traffic.
+- Empty-result detection — instrumented (Step 2).
+
+**Phase 3 closed.** Remaining work is content (clear the 57 incomplete Moves), then a one-shot Step 6 backfill.
