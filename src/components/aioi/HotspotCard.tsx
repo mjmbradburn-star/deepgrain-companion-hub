@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { PillarChip, type PillarIndex } from "./PillarChip";
 import { TierBadge, type Tier } from "./TierBadge";
+import { EffortDots } from "./MoveCard";
 
 interface HotspotCardProps {
   pillar: PillarIndex;
@@ -8,10 +9,24 @@ interface HotspotCardProps {
   tier: Tier;
   diagnosis: string;
   intervention?: string;
+  /** Top selected Move on this pillar — adds the personalised "why" snippet. */
+  moveTitle?: string;
+  moveWhy?: string;
+  moveEffort?: number | null;
   className?: string;
 }
 
-export function HotspotCard({ pillar, pillarLabel, tier, diagnosis, intervention, className }: HotspotCardProps) {
+export function HotspotCard({
+  pillar,
+  pillarLabel,
+  tier,
+  diagnosis,
+  intervention,
+  moveTitle,
+  moveWhy,
+  moveEffort,
+  className,
+}: HotspotCardProps) {
   return (
     <article
       className={cn(
@@ -25,13 +40,24 @@ export function HotspotCard({ pillar, pillarLabel, tier, diagnosis, intervention
         <TierBadge tier={tier} />
       </div>
       <p className="font-display text-2xl text-cream leading-snug text-balance">{diagnosis}</p>
-      {intervention && (
+
+      {(moveTitle || moveWhy || intervention) && (
         <>
           <div className="my-4 hairline h-px" />
-          <p className="text-sm text-cream/60 leading-relaxed">
-            <span className="eyebrow text-brass-bright/80 mr-2">Move</span>
-            {intervention}
-          </p>
+          <div className="space-y-2">
+            <p className="eyebrow text-brass-bright/85">Move</p>
+            {moveTitle && (
+              <p className="font-display text-base text-cream leading-snug">{moveTitle}</p>
+            )}
+            <p className="text-sm text-cream/65 leading-relaxed">
+              {moveWhy ?? intervention}
+            </p>
+            {typeof moveEffort === "number" && (
+              <div className="pt-1 font-mono text-[10px] uppercase tracking-[0.2em]">
+                <EffortDots value={moveEffort} />
+              </div>
+            )}
+          </div>
         </>
       )}
     </article>
