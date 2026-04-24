@@ -464,7 +464,7 @@ function ReportView({ data }: { data: ReportData }) {
 }
 
 // ─── Overview ─────────────────────────────────────────────────────────────
-function OverviewTab({
+export function OverviewTab({
   report, pillarValues, cohort, slice, slug, level, hasDeepdive, isAnonymous,
 }: {
   report: NonNullable<ReportData["report"]>;
