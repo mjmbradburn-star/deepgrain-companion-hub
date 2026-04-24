@@ -414,7 +414,49 @@ Deno.serve(async (req) => {
   };
   const allowedMoveTitles = (recs?.moves ?? []).map((m: { snapshot: { title: string } }) => m.snapshot.title).filter(Boolean) as string[];
 
-  // 7. Off-topic short-circuit. Refuse before hitting the model — cheaper,
+  // 7a. Injection short-circuit with per-respondent cool-down.
+  // Repeated injection attempts on the same report inside the rolling window
+  // get a hard 429 instead of a refusal. Normal users never hit this because
+  // the patterns are narrow (override-style language, fake role tags, prompt
+  // extraction) and the threshold is generous.
+  const injectionRule = detectInjection(message);
+  if (injectionRule) {
+    const windowStart = new Date(Date.now() - INJECTION_RATE_LIMIT.windowMinutes * 60_000).toISOString();
+    const { count: recentRefusals } = await service
+      .from("report_chat_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("respondent_id", respondentId)
+      .eq("role", "assistant")
+      .eq("content", INJECTION_REDIRECT)
+      .gte("created_at", windowStart);
+
+    if ((recentRefusals ?? 0) >= INJECTION_RATE_LIMIT.maxRefusalsInWindow) {
+      console.warn("report-chat injection rate-limit hit", {
+        respondent_id: respondentId,
+        rule: injectionRule,
+        recent_refusals: recentRefusals,
+      });
+      return jsonError(429, {
+        error: "injection_rate_limited",
+        message: INJECTION_COOLDOWN_MESSAGE,
+        retry_after_minutes: INJECTION_RATE_LIMIT.windowMinutes,
+      });
+    }
+
+    console.warn("report-chat injection blocked", {
+      respondent_id: respondentId,
+      rule: injectionRule,
+      recent_refusals: recentRefusals ?? 0,
+    });
+    await service.from("report_chat_messages").insert({
+      respondent_id: respondentId,
+      role: "assistant",
+      content: INJECTION_REDIRECT,
+    });
+    return syntheticSseResponse(INJECTION_REDIRECT);
+  }
+
+  // 7b. Off-topic short-circuit. Refuse before hitting the model — cheaper,
   // faster, and keeps obvious abuse out of model logs. We persist the
   // refusal so the conversation stays consistent on reload.
   if (isObviouslyOffTopic(message)) {
