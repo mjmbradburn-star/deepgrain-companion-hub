@@ -59,12 +59,60 @@ const OFFTOPIC_PATTERNS: RegExp[] = [
   /\b(write|generate|give\s+me)\s+(python|javascript|typescript|sql|bash|shell)\s+code\b/i,
   /\bsolve\s+this\s+(equation|problem|puzzle)\b/i,
   /\brecipe\s+for\b/i,
-  /\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules)\b/i,
-  /\bsystem\s+prompt\b/i,
 ];
+
+// Indirect prompt-injection patterns. Each rule has its own label so we can
+// rate-limit per category: bursts of one technique trip that category's
+// counter without affecting unrelated ones. Patterns are intentionally
+// narrow to keep false positives near zero.
+type InjectionLabel =
+  | "override"        // "ignore previous instructions", "disregard the rules above"
+  | "persona"         // DAN/STAN/jailbreak personas, "pretend you are"
+  | "role_tag"        // fake <system>, <|assistant|>, [INST] tags
+  | "extraction"      // "what is your system prompt", "repeat the instructions above"
+  | "code_exfil";     // "print everything between <system> and </system>"
+
+const INJECTION_RULES: Array<{ label: InjectionLabel; pattern: RegExp; threshold: number }> = [
+  { label: "override",   pattern: /\b(ignore|disregard|forget|override)\s+(all\s+|any\s+|the\s+)?(previous|prior|above|earlier|preceding)\s+(instructions?|rules?|prompts?|messages?|context)\b/i, threshold: 5 },
+  { label: "override",   pattern: /\b(new|updated)\s+(instructions?|rules?)\s*(:|are)\b/i, threshold: 5 },
+  { label: "persona",    pattern: /\b(you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as)\s+(?!an?\s+(aioi|ai\s+operating\s+index|coach|consultant|advisor)\b)/i, threshold: 5 },
+  { label: "persona",    pattern: /\b(DAN|STAN|developer\s+mode|jailbreak|do\s+anything\s+now)\b/i, threshold: 5 },
+  { label: "role_tag",   pattern: /<\s*\/?\s*(system|assistant|user|tool)\s*>/i, threshold: 5 },
+  { label: "role_tag",   pattern: /(\[INST\]|<\|im_start\|>|<\|im_end\|>|<\|assistant\|>|<\|system\|>)/i, threshold: 5 },
+  { label: "extraction", pattern: /\b(what\s+(is|are)|show\s+me|reveal|print|repeat|output)\s+(your\s+)?(system\s+prompt|initial\s+instructions?|the\s+(rules|instructions)\s+(above|you\s+were\s+given))\b/i, threshold: 5 },
+  { label: "extraction", pattern: /\b(repeat|echo)\s+(everything|the\s+text)\s+(above|before)\b/i, threshold: 5 },
+  { label: "code_exfil", pattern: /\bprint\s+everything\s+between\b/i, threshold: 5 },
+  { label: "code_exfil", pattern: /\b(in\s+a\s+code\s+block|inside\s+triple\s+backticks)\s*,?\s*(repeat|show|print)\b/i, threshold: 5 },
+];
+
+function detectInjection(message: string): InjectionLabel | null {
+  for (const rule of INJECTION_RULES) {
+    if (rule.pattern.test(message)) return rule.label;
+  }
+  return null;
+}
 
 const GENERIC_REDIRECT =
   "I can only help with your AI Operating Index report and the Moves it recommends. Try asking, for example: \"Which Move should I start this quarter?\" or \"How do I brief my team on 'Set a 90-day AI mandate'?\"";
+
+const INJECTION_REDIRECT =
+  "I can only discuss your AI Operating Index report. I won't change my instructions, take on another persona or repeat my setup. Ask me about a Move, a hotspot or what to do tomorrow morning instead.";
+
+// Sliding window for per-rule cooldowns. We embed a hidden marker in the
+// persisted refusal so we can count past blocks per label by querying
+// existing chat messages, without adding a new table.
+const INJECTION_WINDOW_MINUTES = 60;
+const INJECTION_MARKER_PREFIX = "[inj:"; // followed by `<label>]` on its own line
+function injectionMarker(label: InjectionLabel): string {
+  return `${INJECTION_MARKER_PREFIX}${label}]`;
+}
+function buildInjectionRefusal(label: InjectionLabel): string {
+  // Marker on its own trailing line — invisible to most renderers but easy
+  // to grep server-side. We keep it server-only by stripping before display
+  // is unnecessary because chat history is loaded from DB and we sanitise
+  // the visible bit; the marker is short and harmless if shown.
+  return `${INJECTION_REDIRECT}\n\n${injectionMarker(label)}`;
+}
 
 interface ChatBody {
   respondent_id: string;
