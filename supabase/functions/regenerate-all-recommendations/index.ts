@@ -50,8 +50,22 @@ Deno.serve(async (req) => {
     const token = authHeader.toLowerCase().startsWith("bearer ")
       ? authHeader.slice("bearer ".length).trim()
       : "";
-    if (!await isServiceRoleRequest(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, token, apikeyHeader)) {
-      return json({ error: "Unauthorized" }, 401);
+    const isServiceRole = await isServiceRoleRequest(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, token, apikeyHeader);
+    if (!isServiceRole) {
+      // Fall back to admin-user check so the admin UI can call this with a normal user JWT.
+      if (!token) return json({ error: "Unauthorized" }, 401);
+      const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: userData, error: userErr } = await userClient.auth.getUser();
+      if (userErr || !userData?.user?.id) return json({ error: "Unauthorized" }, 401);
+      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: roleData, error: roleErr } = await adminClient
+        .rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+      if (roleErr || roleData !== true) return json({ error: "Forbidden" }, 403);
     }
 
     const body = (await req.json().catch(() => ({}))) as BackfillBody;
