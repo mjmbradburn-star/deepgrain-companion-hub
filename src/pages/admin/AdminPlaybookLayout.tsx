@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { BackfillMoveCopyButton } from "@/components/admin/BackfillMoveCopyButton";
+import { BackfillReportsButton } from "@/components/admin/BackfillReportsButton";
 import { Seo } from "@/components/aioi/Seo";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +58,10 @@ export default function AdminPlaybookLayout({ children }: { children?: ReactNode
                   {item.label}
                 </NavLink>
               ))}
+              <div className="ml-2 flex items-center gap-2 border-l pl-2">
+                <BackfillMoveCopyButton />
+                <BackfillReportsButton />
+              </div>
             </nav>
           </div>
           <div className="border-t md:hidden">
