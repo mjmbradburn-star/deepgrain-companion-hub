@@ -212,6 +212,14 @@ Deno.serve(async (req) => {
     .order("created_at", { ascending: true })
     .limit(HISTORY_CAP);
 
+  // 5b. Pull current Next Actions so the assistant can reference them.
+  const { data: nextActions } = await service
+    .from("next_actions")
+    .select("title, due_date, completed_at, move_id")
+    .eq("respondent_id", respondentId)
+    .order("sort_order", { ascending: true })
+    .limit(50);
+
   // 6. Persist the user message immediately so it survives stream failures.
   await service.from("report_chat_messages").insert({
     respondent_id: respondentId,
@@ -233,8 +241,17 @@ Deno.serve(async (req) => {
     recommendations: ((report?.recommendations as any) ?? null),
   });
 
+  // Build a compact Next Actions note so the assistant can reason about
+  // what's already on the user's plate without bloating the system prompt.
+  const actionsNote = (nextActions ?? []).length === 0
+    ? "The user has not added any Next Actions yet. You can suggest using the Next Actions module on the report page to turn a Move into a checklist."
+    : `The user's current Next Actions (most recent first):\n${(nextActions ?? [])
+        .map((a) => `  - [${a.completed_at ? "x" : " "}] ${a.title}${a.due_date ? ` (due ${a.due_date})` : ""}`)
+        .join("\n")}\nWhen relevant, refer to specific items by name and suggest re-prioritising or adding new ones.`;
+
   const messages = [
     { role: "system", content: systemPrompt },
+    { role: "system", content: actionsNote },
     ...((history ?? []).map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))),
     { role: "user", content: message },
   ];
