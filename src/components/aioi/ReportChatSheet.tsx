@@ -18,6 +18,24 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-chat`
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+// Mirrors the labels used by the report-chat edge function. The marker
+// `[inj:<label>]` is appended to refusals so the UI can show a subtle hint
+// explaining why a message was refused.
+const INJECTION_RULE_LABELS: Record<string, string> = {
+  override: "instruction override",
+  persona: "persona / jailbreak",
+  role_tag: "fake role tag",
+  extraction: "prompt extraction",
+  code_exfil: "system exfiltration",
+};
+
+const INJECTION_MARKER_RE = /\n*\[inj:([a-z_]+)\]\s*$/i;
+function parseInjectionMarker(content: string): { visible: string; rule: string | null } {
+  const m = content.match(INJECTION_MARKER_RE);
+  if (!m) return { visible: content, rule: null };
+  return { visible: content.replace(INJECTION_MARKER_RE, "").trimEnd(), rule: m[1].toLowerCase() };
+}
+
 const FALLBACK_PROMPTS = [
   "What should I do tomorrow morning on my top Move?",
   "We don't have an AI policy yet. What's the smallest one that works?",
