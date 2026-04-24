@@ -18,6 +18,7 @@ export interface Move {
   what_to_do: string | null;
   how_to_know: string | null;
   effort: number | null; // 1-4
+  impact: number | null; // 1-4
   tags: string[] | null;
   cta_type: string | null;
   cta_url: string | null;

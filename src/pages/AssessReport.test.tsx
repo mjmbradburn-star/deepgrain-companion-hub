@@ -49,8 +49,11 @@ function makeMove(overrides: Partial<RecommendationMove> & {
   move_id: string;
   pillar: number;
   title: string;
+  effort?: number;
+  impact?: number;
+  tier_band?: "low" | "mid" | "high";
 }): RecommendationMove {
-  const { move_id, pillar, title, ...rest } = overrides;
+  const { move_id, pillar, title, effort, impact, tier_band, ...rest } = overrides;
   return {
     move_id,
     personalised_why_matters:
@@ -61,13 +64,14 @@ function makeMove(overrides: Partial<RecommendationMove> & {
     snapshot: {
       title,
       pillar,
-      tier_band: "low",
+      tier_band: tier_band ?? "low",
       lens: "organisational",
       function: null,
       why_matters: "Snapshot fallback why_matters.",
       what_to_do: "1. Do the thing.\n2. Then the next thing.",
       how_to_know: "You'll know because the metric moves.",
-      effort: 2,
+      effort: effort ?? 2,
+      impact: impact ?? 3,
       tags: ["pilot", "ops"],
       cta_type: null,
       cta_url: null,
@@ -300,5 +304,131 @@ describe("AssessReport · OverviewTab (HotspotCards mapped to Move IDs)", () => 
     for (const h of report.hotspots) {
       expect(screen.getAllByText(new RegExp(h.name)).length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("AssessReport · MovesTab filter & sort controls", () => {
+  // Build a deterministic, varied set so each control has something to bite on.
+  function makeVariedRecs(): Recommendations {
+    return makeRecommendations({
+      moves: [
+        makeMove({ move_id: "m1", pillar: 4, title: "Workflow seam",  effort: 3, impact: 2, tier_band: "low"  }),
+        makeMove({ move_id: "m2", pillar: 6, title: "Governance floor", effort: 1, impact: 4, tier_band: "mid"  }),
+        makeMove({ move_id: "m3", pillar: 7, title: "ROI dashboard",   effort: 4, impact: 3, tier_band: "high" }),
+        makeMove({ move_id: "m4", pillar: 4, title: "Workflow rituals", effort: 2, impact: 1, tier_band: "mid"  }),
+      ],
+    });
+  }
+
+  function mountTab(recs: Recommendations) {
+    return render(
+      <MemoryRouter>
+        <MovesTab
+          recommendations={recs}
+          tier="Deployed"
+          slug="test-slug-123"
+          level="company"
+          hasDeepdive
+          isAnonymous={false}
+        />
+      </MemoryRouter>,
+    );
+  }
+
+  function visibleMoveTitlesInOrder(recs: Recommendations): string[] {
+    // Card titles are <h3>s — pick out the ones that match our fixture set.
+    const fixtureTitles = new Set(recs.moves.map((m) => m.snapshot.title));
+    return screen
+      .getAllByRole("heading", { level: 3 })
+      .map((n) => n.textContent ?? "")
+      .filter((t) => fixtureTitles.has(t));
+  }
+
+  it("renders the controls with the correct option set", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    // Sort dropdown exposes all five options
+    const sort = screen.getByRole("combobox", { name: /sort moves/i }) as HTMLSelectElement;
+    expect(Array.from(sort.options).map((o) => o.value)).toEqual([
+      "default",
+      "impact_desc",
+      "impact_asc",
+      "effort_asc",
+      "effort_desc",
+    ]);
+
+    // Both filter rows (Pillar + Tier band) start with their "All" chip pressed
+    const pressedAll = screen.getAllByRole("button", { name: /^All$/, pressed: true });
+    expect(pressedAll).toHaveLength(2);
+    void user;
+  });
+
+  it("filters by pillar and shows the right counts", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    expect(visibleMoveTitlesInOrder(recs)).toHaveLength(4);
+
+    const p4Chip = screen.getByRole("button", { name: /Workflow Integration/i });
+    await user.click(p4Chip);
+
+    const titles = visibleMoveTitlesInOrder(recs);
+    expect(titles).toEqual(["Workflow seam", "Workflow rituals"]);
+    expect(screen.getByText("2/4 shown")).toBeInTheDocument();
+  });
+
+  it("filters by tier band and combines with pillar filter", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    await user.click(screen.getByRole("button", { name: /^Build$/i }));
+    const titles = visibleMoveTitlesInOrder(recs);
+    // tier_band=mid → m2 (Governance floor) + m4 (Workflow rituals)
+    expect(titles.sort()).toEqual(["Governance floor", "Workflow rituals"]);
+  });
+
+  it("sorts by impact descending and effort ascending", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    const sort = screen.getByRole("combobox", { name: /sort moves/i });
+
+    await user.selectOptions(sort, "impact_desc");
+    // impact: m2=4, m3=3, m1=2, m4=1
+    expect(visibleMoveTitlesInOrder(recs)).toEqual([
+      "Governance floor",
+      "ROI dashboard",
+      "Workflow seam",
+      "Workflow rituals",
+    ]);
+
+    await user.selectOptions(sort, "effort_asc");
+    // effort: m2=1, m4=2, m1=3, m3=4
+    expect(visibleMoveTitlesInOrder(recs)).toEqual([
+      "Governance floor",
+      "Workflow rituals",
+      "Workflow seam",
+      "ROI dashboard",
+    ]);
+  });
+
+  it("shows an empty-state when filters exclude every move and Reset restores the list", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    // pillar 7 ∩ Foundation (low) = ∅  (m3 is high)
+    await user.click(screen.getByRole("button", { name: /Measurement & ROI/i }));
+    await user.click(screen.getByRole("button", { name: /^Foundation$/i }));
+
+    expect(screen.getByText(/No moves match these filters/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^Reset$/i }));
+    expect(visibleMoveTitlesInOrder(recs)).toHaveLength(4);
   });
 });
