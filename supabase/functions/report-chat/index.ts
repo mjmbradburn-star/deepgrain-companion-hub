@@ -16,6 +16,7 @@
 //         deep-dive unlocked        = 50 user turns per respondent.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { VOICE_GUIDE, sanitise } from "../_shared/aioi-voice.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
