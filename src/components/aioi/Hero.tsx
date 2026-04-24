@@ -91,14 +91,14 @@ export function Hero() {
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container sm:px-8 lg:px-12 relative z-10 mt-auto pt-8 sm:pt-0 pb-8 sm:pb-24 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-end px-[45px] text-left">
+      <div className="container sm:px-8 lg:px-12 relative z-10 pt-10 sm:pt-16 md:pt-20 pb-10 sm:pb-24 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 px-[45px] text-left">
         <p className="md:col-span-6 md:col-start-7 font-display sm:text-2xl text-cream/80 leading-[1.45] sm:leading-[1.35] text-pretty motion-safe:animate-fade-up-soft [animation-delay:680ms]">
           <span className="block">For companies, functions and individuals.</span>
           <span className="block">Three minutes.</span>
           <span className="block">Eight pillars, one question each, from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.</span>
         </p>
 
-        <div className="md:col-span-6 md:col-start-7 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 motion-safe:animate-fade-up-soft [animation-delay:820ms]">
+        <div className="md:col-span-6 md:col-start-7 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 sm:gap-x-6 sm:gap-y-3 motion-safe:animate-fade-up-soft [animation-delay:820ms]">
           <Button
             asChild
             size="lg"
@@ -115,7 +115,7 @@ export function Hero() {
           >
             See the eight pillars
           </a>
-          <span className="sm:ml-auto font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 text-center sm:text-right leading-none">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 text-center sm:text-left leading-none w-full sm:w-auto sm:basis-full">
             ~3 min · 8 questions · no email
           </span>
         </div>
