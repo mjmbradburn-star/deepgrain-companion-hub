@@ -12,6 +12,7 @@ Disallow: /assess/q/
 Disallow: /assess/processing
 Disallow: /assess/deep/
 Disallow: /assess/r/
+Disallow: /deploy-review
 
 Sitemap: https://aioi.deepgrain.ai/sitemap.xml
 AI-Sitemap: https://aioi.deepgrain.ai/ai-sitemap.json
