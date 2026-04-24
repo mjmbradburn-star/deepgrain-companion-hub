@@ -568,3 +568,88 @@ describe("AssessReport · HotspotCard → Move deep links", () => {
     expect(probe.getAttribute("data-hash")).toBe(`#move-${move.move_id}`);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI edge-function timeout journey
+//
+// Originally requested as a Cypress e2e visiting the live /assess/:slug route.
+// We deliberately keep this at the integration level instead: Cypress would
+// require new infra (binary, config, CI wiring) and a seeded prod slug, and
+// the "timeout" would still be a network stub — not a real edge timeout.
+// Mounting OverviewTab + MovesTab with `used_fallback: true` exercises the
+// exact same render path the wrapper produces when the AI call times out
+// and the row is persisted with the snapshot-only fallback payload.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("AssessReport · AI wrapper timeout fallback (e2e-equivalent)", () => {
+  it("renders hotspot headline, Move CTA, and fallback banner when the wrapper times out", () => {
+    const recs = makeRecommendations({
+      used_fallback: true,
+      // Wrapper timed out → generic intro from the fallback path.
+      personalised_intro:
+        "We couldn't reach the personalised model in time, so this draws on your scored profile.",
+      moves: [
+        makeMove({ move_id: "move-p4", pillar: 4, title: "Tighten the workflow seam", personalised_why_matters: "" }),
+        makeMove({ move_id: "move-p6", pillar: 6, title: "Set a governance floor", personalised_why_matters: "" }),
+        makeMove({ move_id: "move-p7", pillar: 7, title: "Wire ROI to a single dashboard", personalised_why_matters: "" }),
+      ],
+    });
+    const data = makeReportData(recs);
+    const report = data.report!;
+
+    // Overview tab — hotspot cards still render with headline + Move CTA link.
+    const { unmount } = render(
+      <MemoryRouter>
+        <OverviewTab
+          report={report}
+          pillarValues={Object.fromEntries(
+            Object.entries(report.pillar_tiers).map(([k, v]) => [Number(k), v.tier]),
+          )}
+          slice={null}
+          slug={data.respondent.slug}
+          level={data.respondent.level}
+          hasDeepdive
+          isAnonymous={false}
+        />
+      </MemoryRouter>,
+    );
+
+    // Headline diagnosis still surfaces from the (fallback) recommendations payload.
+    expect(screen.getByText(`"${recs.headline_diagnosis}"`)).toBeInTheDocument();
+
+    // Hotspot cards render and expose the "View move" CTA link to the Plan tab anchor.
+    const cards = screen.getAllByTestId("hotspot-card");
+    expect(cards.length).toBeGreaterThan(0);
+    const linked = cards.filter((c) => c.tagName === "A");
+    expect(linked.length).toBeGreaterThan(0);
+    for (const card of linked) {
+      const moveId = card.getAttribute("data-move-id")!;
+      expect(card.getAttribute("href")).toBe(
+        `/assess/r/${data.respondent.slug}?tab=plan#move-${moveId}`,
+      );
+      expect(within(card as HTMLElement).getByText(/view move/i)).toBeInTheDocument();
+    }
+
+    unmount();
+
+    // Moves tab — fallback banner is visible alongside snapshot-derived Move copy.
+    render(
+      <MemoryRouter>
+        <MovesTab
+          recommendations={recs}
+          tier={report.overall_tier}
+          slug={data.respondent.slug}
+          level={data.respondent.level}
+          hasDeepdive
+          isAnonymous={false}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText(/personalised wrapper unavailable/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Tighten the workflow seam/i }),
+    ).toBeInTheDocument();
+  });
+});
