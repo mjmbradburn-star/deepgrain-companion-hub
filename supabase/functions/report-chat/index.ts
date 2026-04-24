@@ -229,7 +229,8 @@ Deno.serve(async (req) => {
     pillar_tiers: (report?.pillar_tiers as Record<string, { tier: number; label: string; name: string }> | null) ?? null,
     hotspots: (report?.hotspots as Array<{ pillar: number; name: string; tier: number; tierLabel: string }> | null) ?? null,
     diagnosis: (report?.diagnosis as string | null) ?? null,
-    recommendations: (report?.recommendations as ChatBody["respondent_id"] extends string ? any : never) ?? null,
+    // deno-lint-ignore no-explicit-any
+    recommendations: ((report?.recommendations as any) ?? null),
   });
 
   const messages = [

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, Pin } from "lucide-react";
+import { ArrowUpRight, MessageSquare, Pin } from "lucide-react";
 import { PillarChip, type PillarIndex } from "./PillarChip";
 import { Button } from "@/components/ui/button";
 import { PILLAR_NAMES } from "@/lib/assessment";
@@ -129,18 +129,33 @@ export function MoveCard({ move, index, className }: MoveCardProps) {
           )}
         </div>
 
-        {snapshot.cta_url && (
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="border-brass/40 bg-transparent text-brass-bright hover:bg-brass/10 font-ui text-[11px] uppercase tracking-[0.16em] h-8"
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(
+                new CustomEvent("aioi:open-report-chat", {
+                  detail: { prompt: `Help me put "${snapshot.title}" into practice. What's the first concrete step for me?` },
+                }),
+              );
+            }}
+            className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 font-ui text-[11px] uppercase tracking-[0.16em] text-cream/55 hover:text-brass-bright transition-colors"
           >
-            <a href={snapshot.cta_url} target="_blank" rel="noreferrer">
-              {ctaLabel(snapshot.cta_type)} <ArrowUpRight className="h-3 w-3 ml-1.5" />
-            </a>
-          </Button>
-        )}
+            <MessageSquare className="h-3 w-3" /> Discuss
+          </button>
+          {snapshot.cta_url && (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="border-brass/40 bg-transparent text-brass-bright hover:bg-brass/10 font-ui text-[11px] uppercase tracking-[0.16em] h-8"
+            >
+              <a href={snapshot.cta_url} target="_blank" rel="noreferrer">
+                {ctaLabel(snapshot.cta_type)} <ArrowUpRight className="h-3 w-3 ml-1.5" />
+              </a>
+            </Button>
+          )}
+        </div>
       </footer>
     </article>
   );
