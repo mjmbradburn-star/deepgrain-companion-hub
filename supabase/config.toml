@@ -13,6 +13,8 @@ project_id = "lschdkhtymifmxjcbtvb"
     verify_jwt = false
   [functions.score-responses]
     verify_jwt = false
+  [functions.recommend-report]
+    verify_jwt = false
   [functions.send-transactional-email]
     verify_jwt = false
   [functions.preview-transactional-email]

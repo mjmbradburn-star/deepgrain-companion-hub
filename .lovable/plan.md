@@ -37,24 +37,28 @@ The §10 worked examples (Individual P5 low; RevOps P4 low; People P3 mid; Org g
 
 ---
 
-## Phase B — Voice Wrapper edge function
+## Phase B — Voice Wrapper edge function ✅ COMPLETE
 
-New edge function `recommend-report`:
+Built `supabase/functions/recommend-report/index.ts`:
 
-- **Trigger:** Called from `score-responses` after scoring, and again on-demand from a `/regenerate` admin action.
-- **Inputs:** `respondent_id` (verified server-side via JWT + ownership), pulls respondent context, scored pillar tiers, hotspots, cap_flags from DB.
-- **Selection step:** Loads active Moves from `outcomes_library`, calls `selectMoves(profile, playbook)` from the shared engine. Persists `move_ids` to `reports`.
-- **Voice step:** Calls Lovable AI Gateway (`google/gemini-2.5-flash`) with tool-calling JSON schema per brief §7.2:
-  - `headline_diagnosis`
-  - `personalised_intro` (must reference respondent's stated `pain` or `role`)
-  - `moves[]` with `move_id`, `personalised_why_matters`, optional `personalised_what_to_do_intro`
+- **Trigger:** Auto-called from `score-responses` after the report row is upserted (best-effort, logged but never fails the parent call). Also callable directly with a user JWT for `/regenerate`.
+- **Auth:** dual-mode. Internal calls from `score-responses` send `internal: true` + `internal_secret` (service-role key); external calls require a user JWT and ownership of the respondent.
+- **Selection:** loads active Moves filtered to the respondent's lens (and function-or-null for functional lens), feeds into `selectMoves(profile, playbook)` from the shared engine. Persists `move_ids` on `reports`.
+- **Voice step:** Lovable AI Gateway, `google/gemini-2.5-flash` by default (overridable via `VOICE_WRAPPER_MODEL` env). Tool-calling JSON schema enforces:
+  - `headline_diagnosis` (operating shape, not the score)
+  - `personalised_intro` (must reference respondent's pain/role)
+  - `moves[]` with `move_id` (allowlist enforced via JSON schema enum), `personalised_why_matters`, optional `personalised_what_to_do_intro`
   - `closing_cta` (tier-aware)
-- **System prompt:** brief §7.4 verbatim — voice rules (British English, no em-dashes, no banned words list, no inventing tools).
-- **Hard validation:** every returned `move_id` must be in the engine's selection. Strip any extras. If JSON is malformed or call fails → fallback per §7.6 (render Moves bare with a generic on-voice intro, log the failure, retry once async).
-- **Cache:** Result stored in `reports.recommendations` (jsonb). Re-render is free until respondent retakes or admin clicks regenerate.
-- **Latency budget:** sub-10s. Wrap in try/catch with timeout.
+- **System prompt:** voice rules verbatim — British English, no em-dashes, banned-word list, no inventing tools.
+- **Hard validation:** server-side allowlist check on every `move_id`; banned-word post-filter strips/softens (em-dash → full stop, "leverage" → "use", etc.). If validation fails or wrapper output is empty → fallback path.
+- **Fallback:** generates an on-voice diagnosis + intro + CTA using only respondent context and the selected Moves' canonical copy. Marked `used_fallback: true` in the persisted payload.
+- **Cache:** result stored on `reports.recommendations` (jsonb) plus `reports.recommendations_generated_at` and `reports.move_ids`. Re-render is free until rescore or admin regen.
+- **Latency budget:** 8s `AbortController` timeout on the AI call. On timeout/error → fallback. Total wrapper p95 well inside the 12s submit→ready budget.
+- **Snapshot:** each Move in the persisted payload carries a `snapshot` of its source library row at generation time, so the UI never has to refetch and reports stay stable if the library changes later.
 
-**Wire into `score-responses`:** after the existing scoring + report row insert, call the selection + voice wrapper inline. If it fails, the report still renders (legacy `plan` stays as a backstop for one release while we validate).
+Migration: added `reports.recommendations_generated_at timestamptz` (with index) for cache-age tracking.
+
+Wired into `score-responses` after the report upsert. Old `plan` field stays untouched as backstop.
 
 ---
 
@@ -65,112 +69,43 @@ Update `AssessReport.tsx` to render the new `recommendations` payload when prese
 **Changes:**
 
 1. **`PlanTab` becomes `MovesTab`** — renders `recommendations.moves[]` as cards using `recommendations.personalised_intro` as the section lede. Each card shows:
-   - Title (from Move)
-   - "Why this matters for you" (from `personalised_why_matters` — Voice Wrapper output)
-   - "What to do" (from Move `what_to_do`, markdown rendered)
-   - "How you'll know it worked" (from Move `how_to_know`)
-   - Effort dots (1-4) — visual indicator
+   - Title (from snapshot)
+   - "Why this matters for you" (from `personalised_why_matters`)
+   - "What to do" (from snapshot `what_to_do`, markdown rendered)
+   - "How you'll know it worked" (from snapshot `how_to_know`)
+   - Effort dots (1-4)
    - Forced-rank badge for the organisational pinned Move
    - Optional CTA button if `cta_type` is set
 
-2. **`HotspotCard` enriched** — add `why_matters` snippet and effort indicator from the top selected Move on that pillar. Keeps existing visual frame.
+2. **`HotspotCard` enriched** — add `why_matters` snippet and effort indicator from the top selected Move on that pillar.
 
-3. **Headline diagnosis** — replace the legacy `report.diagnosis` quote with `recommendations.headline_diagnosis` when present.
+3. **Headline diagnosis** — replace `report.diagnosis` with `recommendations.headline_diagnosis` when present.
 
 4. **Closing CTA** — render `recommendations.closing_cta` above `ReportCta`.
 
-5. **Loading state** — "Building your report…" copy on the processing screen acknowledges the ~5-8s wrapper latency.
+5. **Loading state** — copy on processing screen acknowledges ~5-8s wrapper latency.
 
-6. **Printable one-pager** — same data sources, condensed layout. Shows top 3 Moves + forced-rank.
+6. **Printable one-pager** — same data sources, condensed.
 
-Backwards-compatible: legacy reports without `recommendations` keep rendering the old `plan` view. Once all live reports are regenerated (Phase E), the legacy code path is removed.
+Backwards-compatible: legacy reports without `recommendations` keep rendering the old `plan` view.
 
 ---
 
 ## Phase D — Admin Playbook editor
 
-Gated admin route `/admin/playbook` (RLS: only your `auth.uid()` — set via a `playbook_admins` table or a hardcoded uid env check on the page).
+Gated `/admin/playbook` route with admin-only RLS:
+- All Moves table (sort/filter/search)
+- Move editor (single page, all fields, markdown preview, tag autocomplete)
+- Coverage heatmap (lens × pillar × tier_band, function selector)
+- Stale view (>90d unreviewed)
+- Test report (synthetic profile → engine output)
 
-**Views:**
-
-- **All Moves table** — sortable/filterable by lens, pillar, tier_band, function, active, last_reviewed_at. Search by title/tag.
-- **Move editor** — single Move on a page, all fields editable. Markdown preview for `what_to_do`. Tag autocomplete from existing tag set. Save → live immediately.
-- **Coverage map** — heatmap (lens × pillar × tier_band, with function selector for functional lens) showing active Move counts per cell. Empty cells highlighted red.
-- **Stale view** — Moves not reviewed in 90 days, sorted by lens.
-- **Test report** — pick a synthetic respondent profile (lens, function, size, pillar tiers) and see exactly which Moves the engine would select. Sanity-check tool.
-
-**Mutations:** Use authenticated Supabase client with new RLS policies allowing INSERT/UPDATE on `outcomes_library` for admin uids only. Soft-delete via `active = false`.
+Mutations via authenticated Supabase client; admin RLS on `outcomes_library` for INSERT/UPDATE; soft-delete via `active = false`.
 
 ---
 
 ## Phase E — Migration & QA
 
-1. **Backfill existing reports:** one-off edge function `regenerate-all-recommendations` that loops through every report and calls `recommend-report`. Rate-limited to respect AI gateway.
-2. **Acceptance criteria check (brief §13):**
-   - 192+ active Moves ✓
-   - Synthetic test of 20 respondent profiles — engine returns correct count per lens
-   - 50-call wrapper test — 95%+ valid JSON
-   - Fallback verified
-   - Cross-check flag handling verified (cap fires → prereq pillar prioritised)
-   - Effort balance verified (no 5-of-the-same-effort outputs)
-   - Coverage map shows no critical empty cells
-   - p95 submit→ready < 12s
-3. **Changelog page** at `/admin/changelog` so updates are demonstrable.
-
----
-
-## Technical details
-
-**Files to create:**
-- `supabase/functions/recommend-report/index.ts` — Voice Wrapper + selection orchestration
-- `supabase/functions/regenerate-all-recommendations/index.ts` — backfill (admin-gated)
-- `src/pages/admin/PlaybookList.tsx`, `PlaybookEditor.tsx`, `PlaybookCoverage.tsx`, `PlaybookTestReport.tsx`, `PlaybookStale.tsx`
-- `src/components/aioi/MoveCard.tsx` — replaces OutcomeCard for new payload
-- `src/lib/playbook.ts` — typed client helpers
-
-**Files to modify:**
-- `supabase/functions/score-responses/index.ts` — call recommend-report after scoring
-- `src/pages/AssessReport.tsx` — `PlanTab` → `MovesTab`, headline + CTA wiring, fallback
-- `src/components/aioi/HotspotCard.tsx` — accept Move enrichment props
-- `src/integrations/supabase/types.ts` — auto-regenerated
-
-**Migrations needed:**
-- RLS policies on `outcomes_library` for INSERT/UPDATE by admins
-- Optional: `playbook_admins` table (or env-driven allowlist)
-- `recommendations_generated_at` column on `reports` for cache age tracking
-
-**Data inserts (no migration):**
-- ~152 new Moves to reach 192
-- Possibly rewrites of weak existing Moves
-
-**AI model:** `google/gemini-2.5-flash` via Lovable AI Gateway (free under current promo, no key setup, ~5-8s latency, structured-output via tool calling). Swappable to Claude Sonnet via env var later — `recommend-report` reads `VOICE_WRAPPER_MODEL` env if set.
-
-**Voice Wrapper guarantees:**
-- Tool-calling forces valid JSON schema (no parse failures from prose drift)
-- `move_id` allowlist enforced server-side
-- Banned-word post-filter (em-dash, "leverage", "unlock", "delve", "synergy", etc.) — auto-strip or retry once
-- 8s timeout → fallback path
-
----
-
-## Order of execution (build phase)
-
-1. **A. Seed 152 Moves** (largest single time investment; pure inserts)
-2. **B. Build `recommend-report` edge function** (selection wired to voice wrapper + cache)
-3. **C. Rewire report UI** (`MovesTab`, enriched HotspotCard, headline, CTA, fallback)
-4. **D. Admin Playbook editor** (table → editor → coverage map → test report → stale view)
-5. **E. Migrate existing reports + run acceptance suite**
-
-Each phase ships independently; phases A+B+C are required for launch. D unblocks your update cadence (§9). E is the polish + verification pass.
-
----
-
-## What this does NOT do
-
-- Does not migrate to a separate `playbook_moves` table (we keep `outcomes_library` extended — saves migration risk and the legacy `plan` fallback keeps working through transition).
-- Does not add an n8n workflow layer (your brief defers it; can be added later as Layer 4).
-- Does not include legal/compliance function Moves (deferred to Q2 per brief §11).
-- Does not change scoring logic (engine is downstream of scoring; current scoring stays as-is).
-
-Ready to execute on approval. Phase A is the credit-heavy step (large insert volume + drafting); B/C/D/E are mostly engineering with light AI involvement.
-
+1. Backfill function `regenerate-all-recommendations` (rate-limited).
+2. Acceptance criteria: 192+ Moves ✓, synthetic 20-profile engine test, 50-call wrapper test (95%+ valid JSON), fallback verified, cap-flag handling, effort balance, coverage map clean, p95 < 12s.
+3. `/admin/changelog` page.

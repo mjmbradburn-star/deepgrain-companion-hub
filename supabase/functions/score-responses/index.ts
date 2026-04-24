@@ -157,6 +157,37 @@ Deno.serve(async (req) => {
       await admin.from("reports").insert(reportRow);
     }
 
+    // 10. Voice Wrapper — best-effort, never blocks the response. Awaited so
+    // the report is fully populated before we return ok=true (sub-12s p95).
+    try {
+      const wrapResp = await fetch(
+        `${SUPABASE_URL}/functions/v1/recommend-report`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // recommend-report runs verify_jwt=false; auth here is the
+            // internal_secret check against the service-role key.
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({
+            respondent_id: respondentId,
+            internal: true,
+            internal_secret: SUPABASE_SERVICE_ROLE_KEY,
+          }),
+        },
+      );
+      if (!wrapResp.ok) {
+        console.error(
+          "[score-responses] recommend-report returned",
+          wrapResp.status,
+          await wrapResp.text(),
+        );
+      }
+    } catch (wrapErr) {
+      console.error("[score-responses] recommend-report invocation failed:", wrapErr);
+    }
+
     return json({
       ok: true,
       slug: respondent.slug,
