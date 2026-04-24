@@ -42,6 +42,7 @@ import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 import { AdminRegenerateButton } from "@/components/admin/AdminRegenerateButton";
 import { ReportChatLauncher } from "@/components/aioi/ReportChatLauncher";
+import { DownloadActionPlanButton } from "@/components/aioi/DownloadActionPlanButton";
 
 // ─── Types coming back from the report row ────────────────────────────────
 export interface PillarTierEntry {
