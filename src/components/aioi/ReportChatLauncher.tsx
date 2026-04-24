@@ -64,6 +64,8 @@ export function ReportChatLauncher({ respondentId, hasDeepdive, enabled, topMove
         respondentId={respondentId}
         hasDeepdive={hasDeepdive}
         seedPrompt={seedPrompt}
+        topMoveTitle={topMoveTitle}
+        topHotspotName={topHotspotName}
       />
     </>
   );
