@@ -1,129 +1,97 @@
-# Phase 3 completion — build queue
+# Report Assistant — "Ask your report" AI chat
 
-Parts 1 (architecture review) and 2 (redundancy + indexing fixes) are already shipped. This plan executes **Part 3**: closing the remaining Phase-3 gaps so the live report fully matches the v1 Recommendations Architecture and we have the ops levers needed for launch.
+## What we're building
 
----
+A chat assistant that lives **on the report page** (not the assessment), grounded in the user's actual results. It answers questions like:
 
-## Build queue (in execution order)
+- "Which Move should I do first this quarter?"
+- "Why is governance my weakest pillar?"
+- "Translate this Move into a one-page brief for my CFO."
+- "Build me a 30-day plan from my top three Moves."
 
-### Step 1 — Coverage diagnostic (no code, just data)
-Run the Move-coverage queries against `outcomes_library` and surface:
-- Active total + breakdown by `lens` (individual / functional / organisational)
-- Coverage matrix: pillar × tier_band × lens — flag empty cells
-- Function coverage for functional Moves
-- Stale Moves (`last_reviewed_at` > 90 days or null)
+It is a **report companion**, not a generic chatbot. It only ever talks about *this respondent's* report.
 
-**Output**: a short report you can act on. No DB writes. Determines whether you need a content sprint before backfill.
+## Where it lives
 
-### Step 2 — Engine guardrail (G7, new)
-Add a hard guard in `recommend-report`: if the engine returns 0 Moves for any lens that should have output, log a `recommendations.empty_result` event with respondent_id + lens + hotspots so we can detect coverage gaps in production rather than discovering them via user complaints.
+A pinned **"Ask your report"** panel inside `AssessReport.tsx`, anchored bottom-right as a floating launcher that opens a side sheet (Sheet component, already in shadcn). Visible only when:
 
-**Files**: `supabase/functions/recommend-report/index.ts` (~10 lines).
+1. The respondent's report has loaded successfully, AND
+2. `recommendations.moves.length > 0` (no moves = nothing to ground on).
 
-### Step 3 — Per-report regenerate button (G4 closure)
-Surface the existing regenerate capability on the admin report view so you can re-run a single respondent's recommendations after editing a Move, without forcing them to retake.
+The launcher uses the existing `Sparkles` / `MessageSquare` icon and copy: **"Ask your report"** with a subtle pulse on first arrival.
 
-- Add a "Regenerate recommendations" button on the admin per-report page (or on `/assess/r/:slug` when viewed as admin).
-- Wire it to call `recommend-report` with a `force: true` flag that bypasses the `recommendations` cache.
-- Show toast on success; refresh the report.
+Also surfaced as a **secondary CTA inside each MoveCard**: a small "Discuss this Move" link that opens the sheet pre-seeded with `"Help me put '<Move title>' into practice."`
 
-**Files**: `supabase/functions/recommend-report/index.ts` (accept `force` param), one admin React component, the report page.
+Not rendered on the locked pre-deepdive teaser (gated behind `hasDeepdive` for full Q&A; pre-deepdive users get 3 free turns then a soft paywall pointing to deep-dive unlock — keeps the Voice Wrapper economics intact).
 
-### Step 4 — Latency SLO instrumentation (G5 closure)
-Add a single `report.latency_ms` event fired from `AssessProcessing.tsx` at the moment the report becomes ready. Captures p95 submit→report so we can track against the §13 12s target without any dashboard work.
+## Why on the report (not the assessment)
 
-**Files**: `src/pages/AssessProcessing.tsx` (~10 lines), uses existing `events` table.
+The assessment is deliberately fast (3 minutes, 8 questions). Adding a chatbot mid-flow would inflate completion time and contaminate the scoring signal. After the report renders the user has *something to talk about* — their scores, hotspots, and ranked Moves — which is exactly what the LLM needs as grounding context.
 
-### Step 5 — Quality column on admin Moves list
-Small UX win for content work: surface `last_reviewed_at` age + Move usage count (how many reports cite this `move_id`) as a sortable column in `/admin/playbook`. Lets you see at a glance which Moves are stale-and-popular (highest fix priority) vs stale-and-unused (deletion candidates).
+## Grounding: what the assistant knows
 
-**Files**: one admin component + one read query.
+Every chat call sends the respondent's report state as the system context (server-side, never trusted from client). The edge function loads:
 
-### Step 6 — Idempotent bulk regenerate (admin-only)
-Add an admin-gated edge function `regenerate-all-recommendations` that:
-- Iterates respondents with reports
-- Calls the engine + voice wrapper for each
-- Skips any that already have a `recommendations_generated_at` newer than a `since` timestamp param
-- Rate-limited to ~1 req/sec to stay inside Lovable AI quotas
-- Logs progress to `events` table
+- `respondents` row: lens, function, size_band, pillar_tiers, overall score, tier
+- `recommendations` JSON: headline_diagnosis, personalised_intro, the ranked `moves[]` (id, title, pillar, why_matters, what_to_do, how_to_know, effort, impact)
+- Top hotspots and matched benchmark slice
 
-**This is the lever for migrating existing respondents to the new engine output (spec §11 requirement).** You press a button when ready; confirmation dialog shows count + estimated cost first.
+The system prompt enforces:
 
-**Files**: new `supabase/functions/regenerate-all-recommendations/index.ts`, new admin button on `/admin/playbook`.
+- British English, AIOI voice (reuses the same banned-word list from `backfill-move-copy`)
+- Refuses off-topic requests ("I can only help with your AI Operating Index report")
+- Always cites Move titles when recommending action
+- No hallucinated scores — if asked about something not in the report, say so
 
-### Step 7 — §13 acceptance checklist verification
-Once Steps 1–6 ship and at least Step 1 confirms enough Move coverage, walk the §13 checklist:
-- Engine deterministic (existing test) ✓
-- Fallback works (existing test) ✓
-- JSON validation (existing test) ✓
-- Tagged-prereq prioritisation (existing test) ✓
-- Functional fallback to base Moves (added in Part 2) ✓
-- Forced-rank from top-4 (added in Part 2) ✓
-- p95 < 12s (Step 4 will measure)
-- Empty-result detection (Step 2)
+## Conversation persistence
 
-Output: a single tick-list comment on `.lovable/plan.md` so you have a written record.
+Chats are saved per respondent so users returning via magic link see prior conversations. New table `report_chat_messages` (respondent_id, role, content, created_at) with RLS: respondent can read/write their own via the existing report token; admins can read all.
 
----
+Conversation history is included on every call (per AI chatbot best practices). Cap history at the last 30 messages to bound token cost; older messages are summarised into a single system note.
 
-## Order of operations
+## Streaming
 
-1. Step 1 (data) — runs first because it informs whether to defer Step 6.
-2. Steps 2, 3, 4, 5 (code) — independent, ship in one batch.
-3. Step 6 (code) — ships in same batch but stays behind admin button. Not run until you press it.
-4. Step 7 (verification) — after Step 4 has captured a day or two of latency events.
+SSE streaming via the standard Lovable AI Gateway pattern: tokens render progressively in the sheet using `react-markdown` so formatted answers (lists, bold, tables) display correctly. AbortController wired to a "stop" button.
 
-## What this does NOT include
+## Rate limiting / cost guardrails
 
-- Renaming `outcomes_library` (cosmetic, deferred per Part 1).
-- Auto-invalidation of cached recommendations on Move edit (Step 3 + retake covers it).
-- Splitting `AssessReport.tsx` (deferred per Part 2).
-- Writing new Moves content — that's your job once Step 1 shows the gaps.
+- Free tier (no deep-dive): 3 turns per respondent, then a CTA to unlock deep-dive
+- Deep-dive unlocked: 50 turns per respondent, then soft cap with a "you've explored this report deeply — want a 1:1?" CTA
+- 429/402 from the gateway surfaced as toast copy: "Too many requests, try again in a moment" / "AI quota reached for this report"
 
-## Estimated effort
-~half a day of implementation. Backfill cost (Step 6) depends on respondent count; Step 1 will tell us.
+## Model choice
 
-**Approve and I'll start with Step 1 (coverage queries) immediately, then ship Steps 2–6 as one code batch.**
----
+Default `google/gemini-3-flash-preview` — fast, cheap, multimodal-capable, plenty strong for grounded Q&A on a ~2KB report. We can A/B against `google/gemini-2.5-pro` later if users start asking heavy reasoning questions ("rebuild my org chart for an AI-native operating model").
 
-## Phase 3 — completion log (2026-04-24)
+## Technical change list
 
-### Step 1 · Coverage diagnostic
-- **Total active Moves**: 265 (29 individual / 159 functional / 77 organisational).
-- **Coverage matrix**: every `lens × pillar × tier_band` cell has ≥1 Move. Thinnest cells: `organisational × high` (1 each on most pillars), `individual × *` (1 each except P5).
-- **Content debt to clear**: 57 active Moves missing one of `why_matters`/`what_to_do`/`how_to_know`; 105 stale (last_reviewed_at > 90d or null). Now visible at a glance in `/admin/playbook` (incomplete badge + count).
-- **Verdict**: coverage is sufficient to backfill. Quality is the bottleneck, not breadth.
+**New files**
+- `supabase/functions/report-chat/index.ts` — streaming SSE handler. Loads respondent context server-side, builds the system prompt, forwards to Lovable AI Gateway, streams back. Validates respondent token + turn quota.
+- `src/components/aioi/ReportChatSheet.tsx` — Sheet UI, message list with `react-markdown`, input, streaming reducer, abort controller.
+- `src/components/aioi/ReportChatLauncher.tsx` — floating button + first-arrival pulse + unread indicator.
 
-### Step 2 · Engine guardrail · DONE
-`recommend-report` now logs an `recommendations.empty_result` event whenever the engine returns 0 Moves. Includes lens, function, size_band, pillar_tiers, cap_flag_pillars, and playbook_pool_size so we can diagnose gaps from `events` rather than user complaints.
+**Migration**
+- Create `report_chat_messages` table (id, respondent_id FK, role enum: user|assistant, content text, created_at) with RLS policies (respondent-owned read/write via existing token mechanism, admins via `has_role`).
+- Index on `(respondent_id, created_at)`.
 
-### Step 3 · Per-report regenerate button · DONE
-New `<AdminRegenerateButton />` in `src/components/admin/`. Renders only for users with `admin` role (server-validated via `has_role` RPC). Calls `regenerate-all-recommendations` with `slug + apply + force`. Mounted in the report masthead so any report you visit gets a one-click rebuild.
+**Edits**
+- `src/pages/AssessReport.tsx` — mount `<ReportChatLauncher>` and `<ReportChatSheet>` once recommendations load; pass `respondentId`, `hasDeepdive`, and a callback to seed prompts.
+- `src/components/aioi/MoveCard.tsx` — add the "Discuss this Move" link that emits a custom event the sheet listens for.
+- `package.json` — add `react-markdown` (~25KB gz) if not already present.
 
-### Step 4 · Latency SLO · DONE
-`AssessProcessing.tsx` now fires a `report.latency_ms` event from `submitStartedAt → report ready`. Captures the §13 acceptance metric (target p95 < 12s). Query later with:
+## What I'm explicitly NOT building
 
-```sql
-SELECT
-  percentile_cont(0.5) WITHIN GROUP (ORDER BY (payload->>'latency_ms')::int) AS p50,
-  percentile_cont(0.95) WITHIN GROUP (ORDER BY (payload->>'latency_ms')::int) AS p95
-FROM events WHERE name = 'report.latency_ms' AND created_at > now() - interval '7 days';
-```
+- A general-purpose chatbot or homepage assistant — too broad, low signal, high cost
+- Voice/audio input — out of scope for v1
+- Image generation — assistant is text-only; the report already has charts
+- Automatic email of chat transcripts — easy to add later if users ask
 
-### Step 5 · Quality column · DONE
-`/admin/playbook` Moves list now shows an "Incomplete" pill on rows missing `why_matters`/`what_to_do`/`how_to_know` and a top-of-list count. Combined with the existing "Reviewed" column this is the single screen for content triage.
+## Order of execution if approved
 
-### Step 6 · Bulk regenerate · ALREADY EXISTS
-`supabase/functions/regenerate-all-recommendations` already supports `apply`, `limit`, `offset`, `slug`, `force`, and `delay_ms`. Service-role gated. Audit row written to `events`. Step 3's button reuses it. No changes needed.
+1. Migration: `report_chat_messages` table + RLS
+2. Edge function `report-chat` with streaming + grounding + quota
+3. UI: `ReportChatSheet` and `ReportChatLauncher`
+4. Wire into `AssessReport.tsx` and `MoveCard.tsx`
+5. QA: spot-check on a real report; verify the assistant refuses off-topic prompts and cites Move titles correctly
 
-### Step 7 · §13 acceptance checklist
-- Engine deterministic — covered by `selection-engine_test.ts`.
-- Fallback works — covered by `recommend-report` fallback tests + the `used_fallback` toggle in MovesTab.
-- JSON validation — covered by tool-calling enum + `allowed.has(move_id)` filter in `callVoiceWrapper`.
-- Tagged-prereq prioritisation — covered.
-- Functional fallback to base Moves — covered (Part 2 test).
-- Forced-rank from top-4 hotspots — covered (Part 2).
-- p95 < 12s — instrumented; query above to verify after a few days of traffic.
-- Empty-result detection — instrumented (Step 2).
-
-**Phase 3 closed.** Remaining work is content (clear the 57 incomplete Moves), then a one-shot Step 6 backfill.
+Approve and I'll ship steps 1–4 in one batch and then do step 5.

@@ -357,6 +357,30 @@ export type Database = {
         }
         Relationships: []
       }
+      report_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          respondent_id: string
+          role: Database["public"]["Enums"]["chat_message_role"]
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          respondent_id: string
+          role: Database["public"]["Enums"]["chat_message_role"]
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          respondent_id?: string
+          role?: Database["public"]["Enums"]["chat_message_role"]
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           aioi_score: number | null
@@ -661,6 +685,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "editor" | "user"
       assessment_level: "company" | "function" | "individual"
+      chat_message_role: "user" | "assistant"
       maturity_tier:
         | "Dormant"
         | "Exploring"
@@ -797,6 +822,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "editor", "user"],
       assessment_level: ["company", "function", "individual"],
+      chat_message_role: ["user", "assistant"],
       maturity_tier: [
         "Dormant",
         "Exploring",
