@@ -222,6 +222,28 @@ export function ReportChatSheet({
     } finally {
       setIsStreaming(false);
       abortRef.current = null;
+      // Replace the in-memory streamed reply with the server-sanitised copy
+      // (em-dashes stripped, AI tells removed). One extra read keeps voice tight.
+      try {
+        const { data: latest } = await supabase
+          .from("report_chat_messages")
+          .select("role, content")
+          .eq("respondent_id", respondentId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latest && latest.role === "assistant" && typeof latest.content === "string") {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant") {
+              return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: latest.content as string } : m));
+            }
+            return prev;
+          });
+        }
+      } catch {
+        // Non-fatal; the streamed copy stays.
+      }
     }
   };
 
