@@ -252,7 +252,7 @@ export function ReportChatSheet({
             <div className="space-y-3">
               <p className="text-sm text-cream/65">Try one of these to get started:</p>
               <ul className="space-y-2">
-                {SUGGESTED_PROMPTS.map((p) => (
+                {suggestedPrompts.map((p) => (
                   <li key={p}>
                     <button
                       type="button"
