@@ -142,6 +142,97 @@ function tierBlurb(tierLabel: Tier, pillarName: string): string {
   }
 }
 
+// ─── Moves (new — backed by the Voice Wrapper recommendations) ────────────
+function MovesTab({
+  recommendations,
+  tier,
+  slug,
+  level,
+  hasDeepdive,
+  isAnonymous,
+}: {
+  recommendations: Recommendations;
+  tier: Tier;
+  slug: string;
+  level: string;
+  hasDeepdive: boolean;
+  isAnonymous: boolean;
+}) {
+  const moves = recommendations.moves;
+  // When the user hasn't done the deep dive, show the first three Moves in the
+  // clear and lock the rest behind a normal-flow upsell.
+  const VISIBLE_PRE_DEEPDIVE = 3;
+  const visibleMoves = hasDeepdive ? moves : moves.slice(0, VISIBLE_PRE_DEEPDIVE);
+  const lockedCount = hasDeepdive ? 0 : Math.max(0, moves.length - VISIBLE_PRE_DEEPDIVE);
+  const usedFallback = recommendations.used_fallback === true;
+
+  return (
+    <section className="container max-w-6xl py-10 sm:py-20">
+      <div className="max-w-3xl mb-12">
+        <p className="eyebrow mb-5">Your moves</p>
+        <h2 className="font-display text-4xl sm:text-5xl text-cream leading-[1.05] tracking-tight">
+          The shortest path<br />
+          <span className="italic text-brass-bright">from here.</span>
+        </h2>
+        <p className="mt-6 font-display text-lg text-cream/65 max-w-2xl leading-relaxed">
+          {recommendations.personalised_intro}
+        </p>
+        {usedFallback && (
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">
+            Generated from your scored profile · personalised wrapper unavailable
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {visibleMoves.map((move, i) => (
+          <MoveCard key={move.move_id} move={move} index={i} />
+        ))}
+      </div>
+
+      {lockedCount > 0 && (
+        <LockedMovesContinuation
+          lockedCount={lockedCount}
+          slug={slug}
+          level={level}
+          isAnonymous={isAnonymous}
+        />
+      )}
+
+      {recommendations.closing_cta && (
+        <div className="mt-12 sm:mt-16 rounded-md border border-brass/30 bg-brass/8 px-6 sm:px-8 py-6 sm:py-7">
+          <p className="eyebrow text-brass-bright/85 mb-2">Where to start</p>
+          <p className="font-display text-xl sm:text-2xl text-cream leading-snug text-balance">
+            {recommendations.closing_cta}
+          </p>
+        </div>
+      )}
+
+      <ReportCta tier={tier} />
+    </section>
+  );
+}
+
+function LockedMovesContinuation({
+  lockedCount, slug, level, isAnonymous,
+}: { lockedCount: number; slug: string; level: string; isAnonymous: boolean }) {
+  return (
+    <div className="mt-12 border-t border-cream/10 pt-8 sm:pt-10">
+      <div className="rounded-lg border border-brass/30 bg-surface-1/55 p-5 sm:p-8 lg:p-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-brass/35 bg-brass/10 text-brass-bright">
+            <Lock className="h-4 w-4" />
+          </span>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
+            {lockedCount} more move{lockedCount === 1 ? "" : "s"} locked until Deep Dive
+          </p>
+        </div>
+        <DeepDiveUnlock slug={slug} level={level} variant="inline" isAnonymous={isAnonymous} />
+      </div>
+    </div>
+  );
+}
+
 
 
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
