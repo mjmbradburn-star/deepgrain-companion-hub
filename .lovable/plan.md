@@ -91,16 +91,29 @@ Backwards-compatible: legacy reports without `recommendations` keep rendering th
 
 ---
 
-## Phase D — Admin Playbook editor
+## Phase D — Admin Playbook editor ✅ COMPLETE
 
-Gated `/admin/playbook` route with admin-only RLS:
-- All Moves table (sort/filter/search)
-- Move editor (single page, all fields, markdown preview, tag autocomplete)
-- Coverage heatmap (lens × pillar × tier_band, function selector)
-- Stale view (>90d unreviewed)
-- Test report (synthetic profile → engine output)
+Gated `/admin/playbook` route, admin-only.
 
-Mutations via authenticated Supabase client; admin RLS on `outcomes_library` for INSERT/UPDATE; soft-delete via `active = false`.
+**Schema (migration):**
+- New `app_role` enum (`admin`, `editor`, `user`) and `user_roles` table (separate from profiles to prevent privilege escalation).
+- `has_role(_user_id, _role)` SECURITY DEFINER helper.
+- RLS on `outcomes_library`: admins can read all (incl. archived), insert, and update. No DELETE policy — soft-delete via `active = false` only. Public SELECT (active=true) preserved.
+- `updated_at` trigger added to `outcomes_library`.
+
+**Frontend:**
+- `useIsAdmin()` calls `has_role` RPC; never trusts client storage.
+- `<AdminGuard>` redirects unauthenticated users to `/signin?next=…` and signed-in non-admins to `/`.
+- `AdminPlaybookLayout` shell with top nav (Moves / Coverage / Stale / Test).
+- **Moves list:** sortable, filterable (lens/pillar/tier_band/function/status), free-text search over title + tags, stale-row highlighting, deep-link from coverage cells.
+- **Move editor:** single page, all fields, react-hook-form + zod validation, markdown preview (via tiny safe `markdown-lite` renderer — no new deps), tag chip input, size_band toggles, archive switch, duplicate, Cmd/Ctrl-S save. Sets `last_reviewed_at = now()` on every save.
+- **Coverage heatmap:** lens × pillar × tier_band grid, function selector, click-through to filtered list.
+- **Stale view:** active Moves with `last_reviewed_at` null or older than 90d.
+- **Test report:** synthetic profile form (lens, function, size band, per-pillar tiers, cap-flag pillars) calls a new `admin-test-selection` edge function which validates admin via `has_role` and runs the live `selectMoves` engine. Shows selected Moves grouped by pillar with effort and forced-rank badge.
+
+**Edge function:** `admin-test-selection` — JWT-protected, re-validates admin via `has_role` server-side. No data persisted.
+
+**Granting admin:** insert into `public.user_roles (user_id, role) values ('<auth.users.id>', 'admin')` — single SQL, manual.
 
 ---
 
