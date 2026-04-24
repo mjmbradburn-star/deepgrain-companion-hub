@@ -66,25 +66,60 @@ Deno.serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    // Eligible set = submitted respondents that have a report row.
-    // When force=false we additionally skip rows that already carry recommendations.
+    // Eligible set: rows in `reports` (joined to respondents for slug). We
+    // can't rely on a PostgREST FK shortcut between reports↔respondents, so we
+    // query reports directly and look up respondent metadata separately.
     let q = admin
-      .from("respondents")
-      .select("id, slug, reports!inner(id, recommendations)")
-      .not("submitted_at", "is", null)
+      .from("reports")
+      .select("id, respondent_id, recommendations")
       .order("created_at", { ascending: true });
 
+    if (force) {
+      // include all
+    } else {
+      q = q.is("recommendations", null);
+    }
+
     if (slug) {
-      q = q.eq("slug", slug);
+      // Resolve slug → respondent_id, then narrow.
+      const { data: r, error: sErr } = await admin
+        .from("respondents")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (sErr) return json({ error: sErr.message }, 500);
+      if (!r) return json({ error: "Respondent not found for slug" }, 404);
+      q = q.eq("respondent_id", r.id);
     } else {
       q = q.range(offset, offset + limit - 1);
     }
 
-    const { data: rows, error: rowsErr } = await q;
+    const { data: reportRows, error: rowsErr } = await q;
     if (rowsErr) return json({ error: rowsErr.message }, 500);
 
-    type Row = { id: string; slug: string; reports: Array<{ id: string; recommendations: unknown }> };
-    const candidates = (rows ?? []) as unknown as Row[];
+    const reportArr = (reportRows ?? []) as Array<{ id: string; respondent_id: string; recommendations: unknown }>;
+
+    // Hydrate slugs in one shot for clean reporting.
+    const respondentIds = reportArr.map((r) => r.respondent_id);
+    const slugByRespondent = new Map<string, string>();
+    if (respondentIds.length > 0) {
+      const { data: respRows } = await admin
+        .from("respondents")
+        .select("id, slug, submitted_at")
+        .in("id", respondentIds);
+      for (const r of (respRows ?? []) as Array<{ id: string; slug: string; submitted_at: string | null }>) {
+        if (r.submitted_at) slugByRespondent.set(r.id, r.slug);
+      }
+    }
+
+    type Row = { respondent_id: string; slug: string; recommendations: unknown };
+    const candidates: Row[] = reportArr
+      .filter((r) => slugByRespondent.has(r.respondent_id))
+      .map((r) => ({
+        respondent_id: r.respondent_id,
+        slug: slugByRespondent.get(r.respondent_id)!,
+        recommendations: r.recommendations,
+      }));
 
     const results: PerRespondentResult[] = [];
     const startedAt = Date.now();
