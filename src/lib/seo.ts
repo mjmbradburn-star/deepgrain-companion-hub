@@ -120,12 +120,6 @@ export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
     path: "/admin/playbook",
     noindex: true,
   },
-  deployReview: {
-    title: "Deploy Review | AI Operating Index",
-    description: "Internal release evidence.",
-    path: "/deploy-review",
-    noindex: true,
-  },
 };
 
 export function canonicalUrl(path: string) {
