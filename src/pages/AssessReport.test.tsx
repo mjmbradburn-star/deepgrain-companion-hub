@@ -177,8 +177,6 @@ describe("AssessReport · MovesTab (Voice Wrapper output)", () => {
           level="company"
           hasDeepdive
           isAnonymous={false}
-          respondentId="r-test"
-          isOwner={true}
         />
       </MemoryRouter>,
     );
@@ -239,8 +237,6 @@ describe("AssessReport · MovesTab (Voice Wrapper output)", () => {
           level="company"
           hasDeepdive
           isAnonymous={false}
-          respondentId="r-test"
-          isOwner={true}
         />
       </MemoryRouter>,
     );
@@ -348,8 +344,6 @@ describe("AssessReport · MovesTab filter & sort controls", () => {
           level="company"
           hasDeepdive
           isAnonymous={false}
-          respondentId="r-test"
-          isOwner={true}
         />
       </MemoryRouter>,
     );
@@ -661,8 +655,6 @@ describe("AssessReport · AI wrapper timeout fallback (e2e-equivalent)", () => {
           level={data.respondent.level}
           hasDeepdive
           isAnonymous={false}
-          respondentId="r-test"
-          isOwner={true}
         />
       </MemoryRouter>,
     );

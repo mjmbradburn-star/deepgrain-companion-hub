@@ -42,7 +42,6 @@ import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 import { AdminRegenerateButton } from "@/components/admin/AdminRegenerateButton";
 import { ReportChatLauncher } from "@/components/aioi/ReportChatLauncher";
-import { NextActionsModule } from "@/components/aioi/NextActionsModule";
 
 // ─── Types coming back from the report row ────────────────────────────────
 export interface PillarTierEntry {
@@ -171,8 +170,6 @@ export function MovesTab({
   level,
   hasDeepdive,
   isAnonymous,
-  respondentId,
-  isOwner,
 }: {
   recommendations: Recommendations;
   tier: Tier;
@@ -180,8 +177,6 @@ export function MovesTab({
   level: string;
   hasDeepdive: boolean;
   isAnonymous: boolean;
-  respondentId: string;
-  isOwner: boolean;
 }) {
   const moves = recommendations.moves;
   // When the user hasn't done the deep dive, show the first three Moves in the
@@ -354,12 +349,6 @@ export function MovesTab({
           </p>
         </aside>
       )}
-
-      <NextActionsModule
-        respondentId={respondentId}
-        moves={recommendations.moves}
-        isOwner={isOwner}
-      />
 
       <ReportCta tier={tier} />
     </section>
@@ -831,8 +820,6 @@ function ReportView({ data }: { data: ReportData }) {
                   level={respondent.level}
                   hasDeepdive={data.hasDeepdive}
                   isAnonymous={needsEmailGate}
-                  respondentId={respondent.id}
-                  isOwner={!!respondent.is_owner}
                 />
               );
             }
