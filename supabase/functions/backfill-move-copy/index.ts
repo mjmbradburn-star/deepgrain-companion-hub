@@ -57,14 +57,31 @@ Deno.serve(async (req) => {
       return json({ error: "Missing service config" }, 500);
     }
 
-    // Service-role gating.
+    // Auth: accept either a service-role key OR an authenticated admin user.
     const authHeader = req.headers.get("Authorization") ?? "";
     const apikeyHeader = (req.headers.get("apikey") ?? "").trim();
     const token = authHeader.toLowerCase().startsWith("bearer ")
       ? authHeader.slice("bearer ".length).trim()
       : "";
-    if (token !== SUPABASE_SERVICE_ROLE_KEY && apikeyHeader !== SUPABASE_SERVICE_ROLE_KEY) {
-      return json({ error: "Unauthorized" }, 401);
+
+    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY ||
+      apikeyHeader === SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!isServiceRole) {
+      if (!token) return json({ error: "Unauthorized" }, 401);
+      const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: userData, error: userErr } = await userClient.auth.getUser();
+      if (userErr || !userData?.user?.id) return json({ error: "Unauthorized" }, 401);
+      // Admin role check via security-definer RPC.
+      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: roleData, error: roleErr } = await adminClient
+        .rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+      if (roleErr || roleData !== true) return json({ error: "Forbidden" }, 403);
     }
 
     const body = (await req.json().catch(() => ({}))) as BackfillBody;
