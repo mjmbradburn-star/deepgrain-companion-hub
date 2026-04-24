@@ -259,6 +259,18 @@ function isObviouslyOffTopic(message: string): boolean {
   return OFFTOPIC_PATTERNS.some((p) => p.test(trimmed));
 }
 
+// Returns the first matching injection rule, or null. Injection patterns are
+// stricter than off-topic: they catch attempts to override or extract the
+// system prompt rather than just talking about an unrelated subject.
+function detectInjection(message: string): string | null {
+  const trimmed = message.trim();
+  if (trimmed.length < 3) return null;
+  for (const p of INJECTION_PATTERNS) {
+    if (p.test(trimmed)) return p.source;
+  }
+  return null;
+}
+
 // After the stream finishes, sanity-check the answer for the most common
 // hallucinations: Move titles in single quotes that are not in the
 // allow-list. We log warnings but don't rewrite the response, so the user
