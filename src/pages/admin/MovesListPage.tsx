@@ -64,12 +64,12 @@ export default function MovesListPage() {
       const { data, error } = await supabase
         .from("outcomes_library")
         .select(
-          "id,title,lens,pillar,tier_band,applies_to_tier,function,effort,impact,active,last_reviewed_at,updated_at,tags",
+          "id,title,lens,pillar,tier_band,applies_to_tier,function,effort,impact,active,last_reviewed_at,updated_at,tags,why_matters,what_to_do,how_to_know",
         )
         .order("updated_at", { ascending: false })
         .limit(1000);
       if (error) throw error;
-      return data as Move[];
+      return data as (Move & { why_matters: string | null; what_to_do: string | null; how_to_know: string | null })[];
     },
     staleTime: 30_000,
   });
@@ -97,6 +97,11 @@ export default function MovesListPage() {
 
   const total = query.data?.length ?? 0;
   const staleCutoff = Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000;
+  const incompleteCount = useMemo(() => {
+    return (query.data ?? []).filter(
+      (m) => m.active && (!m.why_matters?.trim() || !m.what_to_do?.trim() || !m.how_to_know?.trim()),
+    ).length;
+  }, [query.data]);
 
   return (
     <div className="space-y-6">
@@ -105,6 +110,14 @@ export default function MovesListPage() {
           <h2 className="text-xl font-semibold">Moves</h2>
           <p className="text-sm text-muted-foreground">
             {query.isLoading ? "Loading…" : `${rows.length} of ${total} Moves`}
+            {!query.isLoading && incompleteCount > 0 && (
+              <>
+                {" · "}
+                <span className="text-amber-600">
+                  {incompleteCount} incomplete (missing why/what/how)
+                </span>
+              </>
+            )}
           </p>
         </div>
         <Button asChild>
@@ -212,6 +225,17 @@ export default function MovesListPage() {
                       >
                         {m.title}
                       </Link>
+                      {m.active &&
+                        (!m.why_matters?.trim() ||
+                          !m.what_to_do?.trim() ||
+                          !m.how_to_know?.trim()) && (
+                          <Badge
+                            variant="outline"
+                            className="ml-2 border-amber-500/50 text-amber-600"
+                          >
+                            Incomplete
+                          </Badge>
+                        )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {LENS_LABELS[m.lens as keyof typeof LENS_LABELS] ?? m.lens}

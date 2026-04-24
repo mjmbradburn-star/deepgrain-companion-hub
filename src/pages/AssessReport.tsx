@@ -40,6 +40,7 @@ import { sendMagicLink, SyncError } from "@/lib/sync";
 import { seoRoutes } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
+import { AdminRegenerateButton } from "@/components/admin/AdminRegenerateButton";
 
 // ─── Types coming back from the report row ────────────────────────────────
 export interface PillarTierEntry {
@@ -756,6 +757,7 @@ function ReportView({ data }: { data: ReportData }) {
                   </Button>
                 )}
                 <ResendReportLink slug={respondent.slug} />
+                <AdminRegenerateButton slug={respondent.slug} />
               </div>
             </div>
 

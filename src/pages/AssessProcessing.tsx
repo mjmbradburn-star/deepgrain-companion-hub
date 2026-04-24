@@ -79,7 +79,7 @@ export default function AssessProcessing() {
   // 1. Decide what to do based on session + draft.
   useEffect(() => {
     const draft = loadDraft();
-
+    const submitStartedAt = performance.now();
     if (!draft.level) {
       navigate("/assess", { replace: true });
       return;
@@ -120,6 +120,12 @@ export default function AssessProcessing() {
           }
 
           setPhase("done");
+          // Latency SLO instrumentation (§13: target p95 < 12s submit→report).
+          const latencyMs = Math.round(performance.now() - submitStartedAt);
+          void supabase.from("events").insert({
+            name: "report.latency_ms",
+            payload: { slug, latency_ms: latencyMs, level: draft.level ?? null },
+          });
           // Brief settle before redirect so the build-log finishes.
           window.setTimeout(() => {
             if (!cancelled) navigate(`/assess/r/${slug}`, { replace: true });
