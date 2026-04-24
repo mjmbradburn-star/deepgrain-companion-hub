@@ -372,6 +372,18 @@ function OverviewTab({
 }) {
   const [chartVariant, setChartVariant] = usePillarChartVariant();
   const readout = narrativeReadout(report, hasDeepdive);
+  const recs = report.recommendations;
+  const headline = recs?.headline_diagnosis ?? report.diagnosis;
+  // Index the first selected Move per pillar so HotspotCards can show
+  // the most relevant Move snippet inline.
+  const movesByPillar = useMemo(() => {
+    const map = new Map<number, RecommendationMove>();
+    if (!recs) return map;
+    for (const m of recs.moves) {
+      if (!map.has(m.snapshot.pillar)) map.set(m.snapshot.pillar, m);
+    }
+    return map;
+  }, [recs]);
   return (
     <>
     <section className="container max-w-6xl py-8 sm:py-20">
