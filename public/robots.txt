@@ -1,17 +1,8 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /deploy-review
 Disallow: /reports
 Disallow: /signin
 Disallow: /auth/callback
@@ -23,4 +14,5 @@ Disallow: /assess/processing
 Disallow: /assess/deep/
 Disallow: /assess/r/
 
+Sitemap: https://aioi.deepgrain.ai/sitemap.xml
 AI-Sitemap: https://aioi.deepgrain.ai/ai-sitemap.json
