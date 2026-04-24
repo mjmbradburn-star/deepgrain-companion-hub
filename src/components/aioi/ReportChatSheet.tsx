@@ -18,12 +18,27 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-chat`
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const SUGGESTED_PROMPTS = [
-  "Which Move should I start this quarter?",
-  "Why is my weakest pillar dragging the score down?",
-  "Draft a one-page brief for my CFO from the top three Moves.",
-  "Build me a 30-day plan from the recommended Moves.",
+const FALLBACK_PROMPTS = [
+  "What should I do tomorrow morning on my top Move?",
+  "We don't have an AI policy yet. What's the smallest one that works?",
+  "Someone on my team is using ChatGPT for client work without telling me. How do I handle it?",
+  "Give me a 30-minute agenda for next Monday's standup that opens up my weakest pillar.",
 ];
+
+function buildSuggestedPrompts(topMoveTitle?: string, topHotspotName?: string): string[] {
+  const move = topMoveTitle?.trim();
+  const hotspot = topHotspotName?.trim();
+  return [
+    move
+      ? `What should I do tomorrow morning on '${move}'?`
+      : FALLBACK_PROMPTS[0],
+    "We don't have an AI policy yet. What's the smallest one that works?",
+    "Someone on my team is using ChatGPT for client work without telling me. How do I handle it?",
+    hotspot
+      ? `Give me a 30-minute agenda for next Monday's standup that opens up ${hotspot}.`
+      : FALLBACK_PROMPTS[3],
+  ];
+}
 
 export interface ReportChatSheetProps {
   open: boolean;
@@ -32,6 +47,8 @@ export interface ReportChatSheetProps {
   hasDeepdive: boolean;
   /** Optional pre-seeded prompt (e.g. from a "Discuss this Move" link). */
   seedPrompt?: string;
+  topMoveTitle?: string;
+  topHotspotName?: string;
 }
 
 export function ReportChatSheet({
