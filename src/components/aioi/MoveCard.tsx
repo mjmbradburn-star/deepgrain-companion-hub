@@ -52,9 +52,12 @@ export function MoveCard({ move, index, className }: MoveCardProps) {
 
   return (
     <article
+      id={`move-${move.move_id}`}
+      data-move-id={move.move_id}
       className={cn(
-        "group relative rounded-lg border border-cream/10 bg-surface-1/55 backdrop-blur-sm",
+        "group relative scroll-mt-32 rounded-lg border border-cream/10 bg-surface-1/55 backdrop-blur-sm",
         "p-6 sm:p-8 motion-lift hover:border-brass/40 transition-colors",
+        "target:ring-2 target:ring-brass/60 target:border-brass/60",
         isForcedRank && "border-brass/45 bg-surface-1/75 ring-1 ring-brass/20",
         className,
       )}

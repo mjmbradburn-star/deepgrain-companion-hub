@@ -432,3 +432,139 @@ describe("AssessReport · MovesTab filter & sort controls", () => {
     expect(visibleMoveTitlesInOrder(recs)).toHaveLength(4);
   });
 });
+
+// ─── Hotspot → Move deep-link contract ───────────────────────────────────
+//
+// Each HotspotCard, when its pillar maps to a selected Move, must render
+// an anchor pointing at the Move's anchor on the Plan tab. The MoveCard
+// component renders `<article id="move-<move_id>" />`, so the link target
+// is `/assess/r/<slug>?tab=plan#move-<move_id>`. This guards against:
+//   - accidentally swapping or losing the move_id wiring,
+//   - drift between the link target and the actual MoveCard anchor,
+//   - regressing the "no link when no Move" presentational fallback.
+
+describe("AssessReport · HotspotCard → Move deep links", () => {
+  it("renders each HotspotCard as a Link to /assess/r/<slug>?tab=plan#move-<move_id> using the right move_id per pillar", () => {
+    const recs = makeRecommendations();
+    const data = makeReportData(recs);
+    const report = data.report!;
+
+    render(
+      <MemoryRouter>
+        <OverviewTab
+          report={report}
+          pillarValues={{}}
+          slice={null}
+          slug={data.respondent.slug}
+          level={data.respondent.level}
+          hasDeepdive
+          isAnonymous={false}
+        />
+      </MemoryRouter>,
+    );
+
+    const cards = screen.getAllByTestId("hotspot-card");
+    // One card per hotspot pillar.
+    expect(cards.length).toBe(report.hotspots.length);
+
+    for (const h of report.hotspots) {
+      const move = recs.moves.find((m) => m.snapshot.pillar === h.pillar);
+      // Every hotspot in this fixture has a matching Move.
+      expect(move, `expected a Move on pillar ${h.pillar}`).toBeTruthy();
+
+      const card = cards.find((c) => c.getAttribute("data-move-id") === move!.move_id);
+      expect(card, `no HotspotCard wired to move_id ${move!.move_id}`).toBeTruthy();
+
+      // Link target must be the canonical anchor on the Plan tab.
+      expect(card!.tagName).toBe("A");
+      expect(card!.getAttribute("href")).toBe(
+        `/assess/r/${data.respondent.slug}?tab=plan#move-${move!.move_id}`,
+      );
+    }
+  });
+
+  it("falls back to a non-link <article> when no Move exists for a hotspot pillar", () => {
+    // Drop all recommendations so hotspots have no Move match.
+    const data = makeReportData(null);
+
+    render(
+      <MemoryRouter>
+        <OverviewTab
+          report={data.report!}
+          pillarValues={{}}
+          slice={null}
+          slug={data.respondent.slug}
+          level={data.respondent.level}
+          hasDeepdive
+          isAnonymous={false}
+        />
+      </MemoryRouter>,
+    );
+
+    const cards = screen.getAllByTestId("hotspot-card");
+    expect(cards.length).toBeGreaterThan(0);
+    for (const c of cards) {
+      // Presentational only — no anchor target, no href.
+      expect(c.tagName).toBe("ARTICLE");
+      expect(c.getAttribute("href")).toBeNull();
+    }
+  });
+
+  it("clicking a HotspotCard navigates to the matching Move's anchor URL", async () => {
+    const userEvent = (await import("@testing-library/user-event")).default;
+    const user = userEvent.setup();
+
+    const recs = makeRecommendations();
+    const data = makeReportData(recs);
+    const report = data.report!;
+    const slug = data.respondent.slug;
+
+    // A small location probe rendered alongside the OverviewTab so we can
+    // assert react-router's location after the click — without booting the
+    // full AssessReport route tree.
+    function LocationProbe() {
+      const loc = (require("react-router-dom") as typeof import("react-router-dom")).useLocation();
+      return (
+        <div
+          data-testid="loc-probe"
+          data-pathname={loc.pathname}
+          data-search={loc.search}
+          data-hash={loc.hash}
+        />
+      );
+    }
+
+    render(
+      <MemoryRouter initialEntries={[`/assess/r/${slug}`]}>
+        <OverviewTab
+          report={report}
+          pillarValues={{}}
+          slice={null}
+          slug={slug}
+          level={data.respondent.level}
+          hasDeepdive
+          isAnonymous={false}
+        />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    // Pick the first hotspot that has a Move and click it.
+    const firstHotspot = report.hotspots.find((h) =>
+      recs.moves.some((m) => m.snapshot.pillar === h.pillar),
+    )!;
+    const move = recs.moves.find((m) => m.snapshot.pillar === firstHotspot.pillar)!;
+
+    const card = screen
+      .getAllByTestId("hotspot-card")
+      .find((c) => c.getAttribute("data-move-id") === move.move_id)!;
+    expect(card.tagName).toBe("A");
+
+    await user.click(card);
+
+    const probe = screen.getByTestId("loc-probe");
+    expect(probe.getAttribute("data-pathname")).toBe(`/assess/r/${slug}`);
+    expect(probe.getAttribute("data-search")).toBe(`?tab=plan`);
+    expect(probe.getAttribute("data-hash")).toBe(`#move-${move.move_id}`);
+  });
+});
