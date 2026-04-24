@@ -433,7 +433,10 @@ Deno.serve(async (req) => {
   if (injectionLabel) {
     const sinceIso = new Date(Date.now() - INJECTION_WINDOW_MINUTES * 60_000).toISOString();
     const marker = injectionMarker(injectionLabel);
-    const { count: priorBlocksForRule } = await service
+    const rule = INJECTION_RULES.find((r) => r.label === injectionLabel)!;
+
+    // Per-thread counter (this respondent only).
+    const { count: threadBlocks } = await service
       .from("report_chat_messages")
       .select("id", { count: "exact", head: true })
       .eq("respondent_id", respondentId)
@@ -441,18 +444,47 @@ Deno.serve(async (req) => {
       .ilike("content", `%${marker}%`)
       .gte("created_at", sinceIso);
 
-    const rule = INJECTION_RULES.find((r) => r.label === injectionLabel)!;
-    if ((priorBlocksForRule ?? 0) >= rule.threshold) {
+    // Per-user counter across every report the user owns. Stops attackers
+    // from rotating respondent_id (their own reports, or freshly created
+    // ones) to dodge the per-thread cooldown. We resolve the user's
+    // respondent IDs first, then count blocks against any of them.
+    const { data: ownedRespondents } = await service
+      .from("respondents")
+      .select("id")
+      .eq("user_id", userId);
+    const ownedIds = (ownedRespondents ?? []).map((r) => r.id as string);
+    let userBlocks = 0;
+    if (ownedIds.length > 0) {
+      const { count } = await service
+        .from("report_chat_messages")
+        .select("id", { count: "exact", head: true })
+        .in("respondent_id", ownedIds)
+        .eq("role", "assistant")
+        .ilike("content", `%${marker}%`)
+        .gte("created_at", sinceIso);
+      userBlocks = count ?? 0;
+    }
+
+    const threadTripped = (threadBlocks ?? 0) >= rule.threshold;
+    const userTripped = userBlocks >= INJECTION_PER_USER_THRESHOLD;
+    if (threadTripped || userTripped) {
+      const scope: "thread" | "user" = threadTripped ? "thread" : "user";
       console.warn("report-chat injection cooldown", {
         respondent_id: respondentId,
+        user_id: userId,
         rule: injectionLabel,
-        prior_blocks: priorBlocksForRule,
+        scope,
+        thread_blocks: threadBlocks,
+        user_blocks: userBlocks,
       });
       return jsonError(429, {
         error: "injection_rate_limited",
         rule: injectionLabel,
+        scope,
         window_minutes: INJECTION_WINDOW_MINUTES,
-        message: "You've sent several messages that look like prompt-injection attempts of the same kind. Try a normal question about your report in a little while.",
+        message: scope === "user"
+          ? "You've sent several messages across your reports that look like prompt-injection attempts. Try a normal question about your report in a little while."
+          : "You've sent several messages on this report that look like prompt-injection attempts of the same kind. Try a normal question about your report in a little while.",
       });
     }
 
