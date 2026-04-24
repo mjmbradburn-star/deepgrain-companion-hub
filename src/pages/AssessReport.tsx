@@ -237,7 +237,63 @@ function LockedMovesContinuation({
   );
 }
 
+/**
+ * Empty state for the Moves tab — shown when the report row exists but the
+ * Voice Wrapper / Selection Engine hasn't produced recommendations yet AND
+ * there's no legacy plan to bridge from. Communicates that this is in-flight,
+ * not broken, and gives the user one clear action.
+ */
+export function MovesEmptyState({ tier }: { tier: Tier }) {
+  return (
+    <section className="container max-w-3xl py-16 sm:py-24">
+      <div className="rounded-lg border border-cream/10 bg-surface-1/40 px-6 sm:px-10 py-10 sm:py-14">
+        <div className="flex items-center gap-3 mb-6">
+          <span aria-hidden className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-brass/35 bg-brass/10 text-brass-bright">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </span>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
+            Moves are being drafted
+          </p>
+        </div>
 
+        <h2 className="font-display text-3xl sm:text-4xl text-cream leading-[1.1] tracking-tight text-balance">
+          Your moves aren't ready<br />
+          <span className="italic text-brass-bright">just yet.</span>
+        </h2>
+
+        <p className="mt-5 font-display text-lg text-cream/70 leading-relaxed max-w-xl">
+          Your answers landed and your <span className="text-cream">{tier}</span> profile is
+          scored. The selection engine is choosing the right Moves and writing them in
+          your voice — this usually takes under a minute.
+        </p>
+
+        <ul className="mt-7 space-y-2 text-sm text-cream/65 max-w-xl">
+          <li className="flex gap-3">
+            <Check className="h-4 w-4 mt-0.5 shrink-0 text-brass-bright" />
+            <span>Your Overview, Report and Methodology tabs are already complete.</span>
+          </li>
+          <li className="flex gap-3">
+            <Check className="h-4 w-4 mt-0.5 shrink-0 text-brass-bright" />
+            <span>Refresh in a moment to pick up the personalised Moves once they're written.</span>
+          </li>
+        </ul>
+
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Button
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-[11px] uppercase tracking-[0.16em] h-9"
+          >
+            Refresh now
+          </Button>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/35">
+            Auto-retried on every page load
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
