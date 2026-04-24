@@ -156,11 +156,28 @@ export function ReportChatSheet({
             variant: "destructive",
           });
         } else if (resp.status === 429) {
-          toast({
-            title: "Slow down",
-            description: "Too many requests, try again in a moment.",
-            variant: "destructive",
-          });
+          const body = await resp.json().catch(() => ({} as { error?: string; rule?: string; message?: string }));
+          if (body.error === "injection_rate_limited") {
+            const ruleLabels: Record<string, string> = {
+              override: "instruction-override",
+              persona: "persona/jailbreak",
+              role_tag: "fake role tag",
+              extraction: "prompt extraction",
+              code_exfil: "system exfiltration",
+            };
+            const ruleName = body.rule ? (ruleLabels[body.rule] ?? body.rule) : "prompt-injection";
+            toast({
+              title: "Cooling down",
+              description: body.message ?? `Too many ${ruleName} attempts. Try a normal question about your report shortly.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Slow down",
+              description: body.message ?? "Too many requests, try again in a moment.",
+              variant: "destructive",
+            });
+          }
         } else if (resp.status === 401 || resp.status === 403) {
           toast({
             title: "Sign-in required",
