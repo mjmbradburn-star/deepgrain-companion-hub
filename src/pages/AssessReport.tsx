@@ -142,7 +142,7 @@ function tierBlurb(tierLabel: Tier, pillarName: string): string {
   }
 }
 
-// removed-trailing-helper-stub
+
 
 type LoadState = "loading" | "ready" | "missing" | "no-report" | "error";
 
