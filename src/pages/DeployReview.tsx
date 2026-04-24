@@ -1,8 +1,10 @@
 import { Download, FileText } from "lucide-react";
 
+import { Seo } from "@/components/aioi/Seo";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { SiteNav } from "@/components/aioi/SiteNav";
 import { Button } from "@/components/ui/button";
+import { seoRoutes } from "@/lib/seo";
 
 const E2E_REPORT_PATH = "/e2e-production-deploy-summary.pdf";
 
