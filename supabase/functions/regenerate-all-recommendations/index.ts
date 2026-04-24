@@ -125,19 +125,16 @@ Deno.serve(async (req) => {
     const startedAt = Date.now();
 
     for (const row of candidates) {
-      const hasRecs = Array.isArray(row.reports) && row.reports.some((r) => r.recommendations !== null);
-      if (hasRecs && !force) {
-        results.push({ respondent_id: row.id, slug: row.slug, status: "skipped_existing" });
-        continue;
-      }
-      if (!Array.isArray(row.reports) || row.reports.length === 0) {
-        results.push({ respondent_id: row.id, slug: row.slug, status: "missing_report" });
+      // The query already filters out non-null recommendations unless force=true,
+      // so this branch only fires defensively (e.g. concurrent backfill runs).
+      if (row.recommendations !== null && !force) {
+        results.push({ respondent_id: row.respondent_id, slug: row.slug, status: "skipped_existing" });
         continue;
       }
 
       if (!apply) {
         // Dry-run: we'd attempt this respondent but make no calls.
-        results.push({ respondent_id: row.id, slug: row.slug, status: "ok" });
+        results.push({ respondent_id: row.respondent_id, slug: row.slug, status: "ok" });
         continue;
       }
 
@@ -152,7 +149,7 @@ Deno.serve(async (req) => {
             "apikey": SUPABASE_SERVICE_ROLE_KEY,
           },
           body: JSON.stringify({
-            respondent_id: row.id,
+            respondent_id: row.respondent_id,
             internal: true,
             internal_secret: SUPABASE_SERVICE_ROLE_KEY,
           }),
@@ -165,7 +162,7 @@ Deno.serve(async (req) => {
 
         if (!resp.ok) {
           results.push({
-            respondent_id: row.id,
+            respondent_id: row.respondent_id,
             slug: row.slug,
             status: "error",
             http_status: resp.status,
@@ -175,7 +172,7 @@ Deno.serve(async (req) => {
         } else {
           const usedFallback = parsed?.used_fallback === true;
           results.push({
-            respondent_id: row.id,
+            respondent_id: row.respondent_id,
             slug: row.slug,
             status: usedFallback ? "ok_fallback" : "ok",
             http_status: resp.status,
@@ -186,7 +183,7 @@ Deno.serve(async (req) => {
         }
       } catch (err) {
         results.push({
-          respondent_id: row.id,
+          respondent_id: row.respondent_id,
           slug: row.slug,
           status: "error",
           duration_ms: Date.now() - t0,
