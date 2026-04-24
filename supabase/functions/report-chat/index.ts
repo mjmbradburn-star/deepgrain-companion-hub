@@ -213,6 +213,7 @@ ${moveLines}
 
 Your existing Next Actions checklist:
 ${actionLines}`;
+}
 
 // Conservative classifier. Returns true only when we are confident the
 // message has nothing to do with the report. Anything ambiguous returns
