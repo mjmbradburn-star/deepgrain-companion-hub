@@ -359,9 +359,9 @@ describe("AssessReport · MovesTab filter & sort controls", () => {
       "effort_desc",
     ]);
 
-    // Pillar chips include the three pillars represented in the fixture set
-    expect(screen.getByRole("button", { name: /^All$/, pressed: true })).toBeInTheDocument();
-    // user-event keeps lint happy that we exercised the realtime control
+    // Both filter rows (Pillar + Tier band) start with their "All" chip pressed
+    const pressedAll = screen.getAllByRole("button", { name: /^All$/, pressed: true });
+    expect(pressedAll).toHaveLength(2);
     void user;
   });
 
