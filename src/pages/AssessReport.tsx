@@ -310,6 +310,7 @@ export function MovesTab({
         </div>
       )}
 
+      <MovesControls
         sort={sort}
         onSortChange={setSort}
         tierFilter={tierFilter}
