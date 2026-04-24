@@ -156,9 +156,11 @@ export function ReportChatSheet({
             variant: "destructive",
           });
         } else if (resp.status === 429) {
+          const body = await resp.json().catch(() => ({}));
+          const isInjectionCooldown = body?.error === "injection_rate_limited";
           toast({
-            title: "Slow down",
-            description: "Too many requests, try again in a moment.",
+            title: isInjectionCooldown ? "Cooling down" : "Slow down",
+            description: body?.message ?? "Too many requests, try again in a moment.",
             variant: "destructive",
           });
         } else if (resp.status === 401 || resp.status === 403) {

@@ -59,12 +59,43 @@ const OFFTOPIC_PATTERNS: RegExp[] = [
   /\b(write|generate|give\s+me)\s+(python|javascript|typescript|sql|bash|shell)\s+code\b/i,
   /\bsolve\s+this\s+(equation|problem|puzzle)\b/i,
   /\brecipe\s+for\b/i,
-  /\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules)\b/i,
+];
+
+// Injection patterns: indirect or direct attempts to override the system
+// prompt, hijack the persona, or extract internal instructions. We treat
+// these more strictly than off-topic — repeated injection attempts trigger
+// a per-respondent cool-down (see INJECTION_RATE_LIMIT below).
+const INJECTION_PATTERNS: RegExp[] = [
+  /\bignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|rules|prompts?)\b/i,
+  /\b(disregard|forget)\s+(all\s+)?(previous|prior|above|your)\s+(instructions|rules|prompts?)\b/i,
+  /\b(new|updated)\s+(instructions|rules)\s*[:\-]/i,
+  /\bfrom\s+now\s+on\s+(you|act|behave|respond)\b/i,
+  /\b(you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as)\b.*\b(unrestricted|jailbroken|DAN|STAN|developer|admin|god\s+mode)\b/i,
+  /\b(reveal|show|print|repeat|output|leak)\s+(your|the)\s+(system\s+)?(prompt|instructions|rules)\b/i,
   /\bsystem\s+prompt\b/i,
+  /<\/?\s*(system|developer|assistant)\s*>/i,
+  /^\s*(system|developer)\s*:/im,
+  /\bbase64[:\-]/i,
 ];
 
 const GENERIC_REDIRECT =
   "I can only help with your AI Operating Index report and the Moves it recommends. Try asking, for example: \"Which Move should I start this quarter?\" or \"How do I brief my team on 'Set a 90-day AI mandate'?\"";
+
+const INJECTION_REDIRECT =
+  "That looks like an attempt to override my instructions, so I won't act on it. I'm here to discuss your AI Operating Index report. Ask me about a Move, your weakest pillar, or what to do this week.";
+
+const INJECTION_COOLDOWN_MESSAGE =
+  "I've blocked several attempts to override my instructions on this report in the last hour. Take a break and come back in a bit. If this is a misunderstanding, just rephrase your question in plain English.";
+
+// Per-respondent cool-down for repeat injection attempts. Counts assistant
+// refusals containing the INJECTION_REDIRECT string within the window.
+// Threshold and window are deliberately generous so a confused user who
+// happens to type "ignore the previous answer" twice never hits it.
+const INJECTION_RATE_LIMIT = {
+  windowMinutes: 60,
+  maxRefusalsInWindow: 5,
+};
+
 
 interface ChatBody {
   respondent_id: string;
@@ -228,6 +259,18 @@ function isObviouslyOffTopic(message: string): boolean {
   return OFFTOPIC_PATTERNS.some((p) => p.test(trimmed));
 }
 
+// Returns the first matching injection rule, or null. Injection patterns are
+// stricter than off-topic: they catch attempts to override or extract the
+// system prompt rather than just talking about an unrelated subject.
+function detectInjection(message: string): string | null {
+  const trimmed = message.trim();
+  if (trimmed.length < 3) return null;
+  for (const p of INJECTION_PATTERNS) {
+    if (p.test(trimmed)) return p.source;
+  }
+  return null;
+}
+
 // After the stream finishes, sanity-check the answer for the most common
 // hallucinations: Move titles in single quotes that are not in the
 // allow-list. We log warnings but don't rewrite the response, so the user
@@ -371,7 +414,49 @@ Deno.serve(async (req) => {
   };
   const allowedMoveTitles = (recs?.moves ?? []).map((m: { snapshot: { title: string } }) => m.snapshot.title).filter(Boolean) as string[];
 
-  // 7. Off-topic short-circuit. Refuse before hitting the model — cheaper,
+  // 7a. Injection short-circuit with per-respondent cool-down.
+  // Repeated injection attempts on the same report inside the rolling window
+  // get a hard 429 instead of a refusal. Normal users never hit this because
+  // the patterns are narrow (override-style language, fake role tags, prompt
+  // extraction) and the threshold is generous.
+  const injectionRule = detectInjection(message);
+  if (injectionRule) {
+    const windowStart = new Date(Date.now() - INJECTION_RATE_LIMIT.windowMinutes * 60_000).toISOString();
+    const { count: recentRefusals } = await service
+      .from("report_chat_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("respondent_id", respondentId)
+      .eq("role", "assistant")
+      .eq("content", INJECTION_REDIRECT)
+      .gte("created_at", windowStart);
+
+    if ((recentRefusals ?? 0) >= INJECTION_RATE_LIMIT.maxRefusalsInWindow) {
+      console.warn("report-chat injection rate-limit hit", {
+        respondent_id: respondentId,
+        rule: injectionRule,
+        recent_refusals: recentRefusals,
+      });
+      return jsonError(429, {
+        error: "injection_rate_limited",
+        message: INJECTION_COOLDOWN_MESSAGE,
+        retry_after_minutes: INJECTION_RATE_LIMIT.windowMinutes,
+      });
+    }
+
+    console.warn("report-chat injection blocked", {
+      respondent_id: respondentId,
+      rule: injectionRule,
+      recent_refusals: recentRefusals ?? 0,
+    });
+    await service.from("report_chat_messages").insert({
+      respondent_id: respondentId,
+      role: "assistant",
+      content: INJECTION_REDIRECT,
+    });
+    return syntheticSseResponse(INJECTION_REDIRECT);
+  }
+
+  // 7b. Off-topic short-circuit. Refuse before hitting the model — cheaper,
   // faster, and keeps obvious abuse out of model logs. We persist the
   // refusal so the conversation stays consistent on reload.
   if (isObviouslyOffTopic(message)) {
