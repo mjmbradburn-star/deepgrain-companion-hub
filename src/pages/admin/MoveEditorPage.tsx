@@ -105,7 +105,7 @@ export default function MoveEditorPage() {
         applies_to_tier: m.applies_to_tier,
         tier_band: (m.tier_band as MoveFormValues["tier_band"]) ?? "low",
         function: (m.function as MoveFormValues["function"]) ?? null,
-        size_bands: ((m.size_bands ?? []) as MoveFormValues["size_bands"]) ?? [],
+        size_bands: (m.size_bands ?? []) as MoveFormValues["size_bands"],
         why_matters: m.why_matters ?? undefined,
         what_to_do: m.what_to_do ?? undefined,
         how_to_know: m.how_to_know ?? undefined,
@@ -399,26 +399,26 @@ export default function MoveEditorPage() {
               label="Why this matters"
               register={form.register("why_matters")}
               value={form.watch("why_matters") ?? ""}
-              error={form.formState.errors.why_matters?.message}
+              error={form.formState.errors.why_matters?.message as string | undefined}
             />
             <MarkdownField
               label="What to do"
               register={form.register("what_to_do")}
               value={form.watch("what_to_do") ?? ""}
-              error={form.formState.errors.what_to_do?.message}
+              error={form.formState.errors.what_to_do?.message as string | undefined}
               rows={6}
             />
             <MarkdownField
               label="How you'll know it worked"
               register={form.register("how_to_know")}
               value={form.watch("how_to_know") ?? ""}
-              error={form.formState.errors.how_to_know?.message}
+              error={form.formState.errors.how_to_know?.message as string | undefined}
             />
             <MarkdownField
               label="Body (legacy summary)"
               register={form.register("body")}
               value={form.watch("body")}
-              error={form.formState.errors.body?.message}
+              error={form.formState.errors.body?.message as string | undefined}
               rows={4}
             />
           </Section>
