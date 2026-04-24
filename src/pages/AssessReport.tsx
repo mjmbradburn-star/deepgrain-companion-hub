@@ -69,6 +69,15 @@ interface OutcomeRow {
   impact: number | null;
   time_to_value: string | null;
 }
+interface Recommendations {
+  headline_diagnosis: string;
+  personalised_intro: string;
+  closing_cta: string;
+  moves: RecommendationMove[];
+  generated_at?: string;
+  voice_model?: string;
+  used_fallback?: boolean;
+}
 interface ReportData {
   respondent: {
     id: string;
@@ -89,6 +98,9 @@ interface ReportData {
     hotspots: Hotspot[];
     diagnosis: string | null;
     plan: PlanMonth[];
+    recommendations: Recommendations | null;
+    recommendations_generated_at: string | null;
+    move_ids: string[] | null;
     generated_at: string | null;
     cap_flags?: Array<{ code: string; label: string }>;
     benchmark_excluded?: boolean;
