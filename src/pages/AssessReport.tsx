@@ -638,12 +638,47 @@ function ReportView({ data }: { data: ReportData }) {
     : data.slice;
   const needsEmailGate = respondent.is_anonymous;
 
+  // URL-driven tab state. Lets HotspotCards deep-link via
+  // `/assess/r/:slug?tab=plan#move-<id>` and keeps tab choice shareable.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const VALID_TABS = ["overview", "plan", "report", "methodology", "invite"] as const;
+  type TabValue = typeof VALID_TABS[number];
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabValue =
+    (VALID_TABS as readonly string[]).includes(tabParam ?? "")
+      ? (tabParam as TabValue)
+      : "overview";
+
+  const handleTabChange = (next: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (next === "overview") nextParams.delete("tab");
+    else nextParams.set("tab", next);
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  // Honour `#move-<id>` anchors after the Plan tab content mounts.
+  // Radix only renders the active tab panel, so a plain hash navigation
+  // can't find the element until the tab is open.
+  useEffect(() => {
+    if (activeTab !== "plan") return;
+    const hash = location.hash;
+    if (!hash || !hash.startsWith("#move-")) return;
+    const id = hash.slice(1);
+    // Defer one frame so the panel is in the DOM.
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [activeTab, location.hash]);
+
   return (
     <div className="min-h-screen bg-walnut text-cream">
       <Seo {...seoRoutes.report} path={`/assess/r/${respondent.slug}`} />
       <SiteNav />
 
-      <TabsPrimitive.Root defaultValue="overview" className="w-full">
+      <TabsPrimitive.Root value={activeTab} onValueChange={handleTabChange} className="w-full">
         {/* ─── Masthead ─── */}
         <header className="border-b border-cream/10 pt-24 sm:pt-36 pb-6 sm:pb-8">
           <div className="container max-w-6xl">
