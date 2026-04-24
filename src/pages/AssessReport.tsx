@@ -832,6 +832,26 @@ function ReportView({ data }: { data: ReportData }) {
                   level={respondent.level}
                   hasDeepdive={data.hasDeepdive}
                   isAnonymous={needsEmailGate}
+                  actionPlanInput={
+                    respondent.is_owner
+                      ? {
+                          respondent: {
+                            id: respondent.id,
+                            slug: respondent.slug,
+                            level: respondent.level,
+                            function: respondent.function,
+                            org_size: respondent.org_size,
+                          },
+                          report: {
+                            aioi_score: report.aioi_score,
+                            overall_tier: report.overall_tier,
+                            pillar_tiers: report.pillar_tiers,
+                            hotspots: report.hotspots,
+                            recommendations: recs!,
+                          },
+                        }
+                      : undefined
+                  }
                 />
               );
             }
