@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { BackfillMoveCopyButton } from "@/components/admin/BackfillMoveCopyButton";
 import { Seo } from "@/components/aioi/Seo";
 import { cn } from "@/lib/utils";
 
