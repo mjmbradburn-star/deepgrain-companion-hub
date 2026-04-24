@@ -102,6 +102,11 @@ const INJECTION_REDIRECT =
 // persisted refusal so we can count past blocks per label by querying
 // existing chat messages, without adding a new table.
 const INJECTION_WINDOW_MINUTES = 60;
+// Per-user threshold is stricter than per-thread: it aggregates blocks for
+// the same rule across every report the signed-in user owns, so an attacker
+// can't dodge the cooldown by rotating respondent_id (their own reports or
+// newly created ones). Whichever threshold trips first wins.
+const INJECTION_PER_USER_THRESHOLD = 8;
 const INJECTION_MARKER_PREFIX = "[inj:"; // followed by `<label>]` on its own line
 function injectionMarker(label: InjectionLabel): string {
   return `${INJECTION_MARKER_PREFIX}${label}]`;
