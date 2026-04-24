@@ -847,6 +847,7 @@ export function OverviewTab({
                       moveTitle={move?.snapshot.title}
                       moveWhy={move?.personalised_why_matters || move?.snapshot.why_matters || undefined}
                       moveEffort={move?.snapshot.effort ?? null}
+                      moveImpact={move?.snapshot.impact ?? null}
                     />
                   );
                 })}

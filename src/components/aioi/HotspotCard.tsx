@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { PillarChip, type PillarIndex } from "./PillarChip";
 import { TierBadge, type Tier } from "./TierBadge";
-import { EffortDots } from "./MoveCard";
+import { EffortDots, ImpactDots } from "./MoveCard";
 
 interface HotspotCardProps {
   pillar: PillarIndex;
@@ -13,6 +13,7 @@ interface HotspotCardProps {
   moveTitle?: string;
   moveWhy?: string;
   moveEffort?: number | null;
+  moveImpact?: number | null;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export function HotspotCard({
   moveTitle,
   moveWhy,
   moveEffort,
+  moveImpact,
   className,
 }: HotspotCardProps) {
   return (
@@ -52,9 +54,10 @@ export function HotspotCard({
             <p className="text-sm text-cream/65 leading-relaxed">
               {moveWhy ?? intervention}
             </p>
-            {typeof moveEffort === "number" && (
-              <div className="pt-1 font-mono text-[10px] uppercase tracking-[0.2em]">
-                <EffortDots value={moveEffort} />
+            {(typeof moveEffort === "number" || typeof moveImpact === "number") && (
+              <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[10px] uppercase tracking-[0.2em]">
+                {typeof moveEffort === "number" && <EffortDots value={moveEffort} />}
+                {typeof moveImpact === "number" && <ImpactDots value={moveImpact} />}
               </div>
             )}
           </div>
