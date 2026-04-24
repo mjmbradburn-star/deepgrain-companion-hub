@@ -15,7 +15,9 @@ export type SeoRouteKey =
   | "report"
   | "flow"
   | "notFound"
-  | "unsubscribe";
+  | "unsubscribe"
+  | "admin"
+  | "deployReview";
 
 export interface SeoConfig {
   title: string;
@@ -111,6 +113,18 @@ export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
     title: "Page Not Found | AI Operating Index",
     description: "This AIOI page could not be found.",
     path: "/404",
+    noindex: true,
+  },
+  admin: {
+    title: "Admin · Playbook | AI Operating Index",
+    description: "Internal AIOI Moves library admin.",
+    path: "/admin/playbook",
+    noindex: true,
+  },
+  deployReview: {
+    title: "Deploy Review | AI Operating Index",
+    description: "Internal release evidence.",
+    path: "/deploy-review",
     noindex: true,
   },
 };
