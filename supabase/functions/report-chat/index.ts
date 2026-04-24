@@ -59,12 +59,43 @@ const OFFTOPIC_PATTERNS: RegExp[] = [
   /\b(write|generate|give\s+me)\s+(python|javascript|typescript|sql|bash|shell)\s+code\b/i,
   /\bsolve\s+this\s+(equation|problem|puzzle)\b/i,
   /\brecipe\s+for\b/i,
-  /\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules)\b/i,
+];
+
+// Injection patterns: indirect or direct attempts to override the system
+// prompt, hijack the persona, or extract internal instructions. We treat
+// these more strictly than off-topic — repeated injection attempts trigger
+// a per-respondent cool-down (see INJECTION_RATE_LIMIT below).
+const INJECTION_PATTERNS: RegExp[] = [
+  /\bignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|rules|prompts?)\b/i,
+  /\b(disregard|forget)\s+(all\s+)?(previous|prior|above|your)\s+(instructions|rules|prompts?)\b/i,
+  /\b(new|updated)\s+(instructions|rules)\s*[:\-]/i,
+  /\bfrom\s+now\s+on\s+(you|act|behave|respond)\b/i,
+  /\b(you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as)\b.*\b(unrestricted|jailbroken|DAN|STAN|developer|admin|god\s+mode)\b/i,
+  /\b(reveal|show|print|repeat|output|leak)\s+(your|the)\s+(system\s+)?(prompt|instructions|rules)\b/i,
   /\bsystem\s+prompt\b/i,
+  /<\/?\s*(system|developer|assistant)\s*>/i,
+  /^\s*(system|developer)\s*:/im,
+  /\bbase64[:\-]/i,
 ];
 
 const GENERIC_REDIRECT =
   "I can only help with your AI Operating Index report and the Moves it recommends. Try asking, for example: \"Which Move should I start this quarter?\" or \"How do I brief my team on 'Set a 90-day AI mandate'?\"";
+
+const INJECTION_REDIRECT =
+  "That looks like an attempt to override my instructions, so I won't act on it. I'm here to discuss your AI Operating Index report. Ask me about a Move, your weakest pillar, or what to do this week.";
+
+const INJECTION_COOLDOWN_MESSAGE =
+  "I've blocked several attempts to override my instructions on this report in the last hour. Take a break and come back in a bit. If this is a misunderstanding, just rephrase your question in plain English.";
+
+// Per-respondent cool-down for repeat injection attempts. Counts assistant
+// refusals containing the INJECTION_REDIRECT string within the window.
+// Threshold and window are deliberately generous so a confused user who
+// happens to type "ignore the previous answer" twice never hits it.
+const INJECTION_RATE_LIMIT = {
+  windowMinutes: 60,
+  maxRefusalsInWindow: 5,
+};
+
 
 interface ChatBody {
   respondent_id: string;
