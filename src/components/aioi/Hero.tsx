@@ -63,15 +63,13 @@ export function Hero() {
       </div>
 
       {/* Headline block */}
-      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-8 sm:pt-16">
+      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-8 sm:pt-12 lg:pt-14">
         <p className="eyebrow mb-6 sm:mb-5 motion-safe:animate-fade-up-soft">Issue 01 · A diagnostic</p>
         <h1
-          className="font-display font-light text-cream max-w-[14ch] sm:max-w-[12ch] text-[clamp(3.5rem,18vw,5.75rem)] sm:text-[6rem] md:text-[7.5rem] lg:text-[10rem] leading-[0.95] sm:leading-[0.88] tracking-[-0.02em]"
+          className="font-display font-light text-cream max-w-[14ch] sm:max-w-[12ch] text-[clamp(3.5rem,18vw,5.75rem)] sm:text-[5.5rem] md:text-[7rem] lg:text-[8rem] xl:text-[9.5rem] leading-[0.95] sm:leading-[0.9] tracking-[-0.02em]"
           style={{ perspective: "1000px" }}
         >
-          <span
-            className="block overflow-hidden"
-          >
+          <span className="block overflow-hidden">
             <span className="block motion-safe:animate-slide-up-mask [animation-delay:120ms]">
               Measure
             </span>
@@ -82,16 +80,16 @@ export function Hero() {
             </span>
           </span>
           <span className="block overflow-hidden">
-            <span className="block italic font-normal text-brass motion-safe:animate-slide-up-mask [animation-delay:340ms] text-left mb-0 pb-[30px]">
+            <span className="block italic font-normal text-brass motion-safe:animate-slide-up-mask [animation-delay:340ms] text-left">
               AI Capability
             </span>
           </span>
         </h1>
-        <div className="mt-4 sm:mt-6 h-px w-20 sm:w-24 bg-brass/70 origin-left motion-safe:animate-underline-draw [animation-delay:580ms]" />
+        <div className="mt-5 sm:mt-6 h-px w-20 sm:w-24 bg-brass/70 origin-left motion-safe:animate-underline-draw [animation-delay:580ms]" />
       </div>
 
       {/* Standfirst + CTA */}
-      <div className="container sm:px-8 lg:px-12 relative z-10 pt-10 sm:pt-16 md:pt-20 pb-10 sm:pb-24 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 px-[45px] text-left">
+      <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-8 sm:pt-12 lg:pt-14 pb-10 sm:pb-20 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 text-left">
         <p className="md:col-span-6 md:col-start-7 font-display sm:text-2xl text-cream/80 leading-[1.45] sm:leading-[1.35] text-pretty motion-safe:animate-fade-up-soft [animation-delay:680ms]">
           <span className="block">For companies, functions and individuals.</span>
           <span className="block">Three minutes.</span>
