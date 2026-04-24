@@ -11,6 +11,7 @@ const E2E_REPORT_PATH = "/e2e-production-deploy-summary.pdf";
 export default function DeployReview() {
   return (
     <div className="min-h-screen bg-walnut text-cream">
+      <Seo {...seoRoutes.deployReview} />
       <SiteNav />
       <main className="container flex min-h-screen items-center pt-20 pb-16">
         <section className="w-full max-w-3xl">
