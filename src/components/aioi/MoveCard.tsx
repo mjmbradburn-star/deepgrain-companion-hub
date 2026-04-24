@@ -36,6 +36,11 @@ interface MoveCardProps {
   move: RecommendationMove;
   index: number;
   className?: string;
+  /** Owner-only: enables the "Discuss" CTA that opens the grounded chat.
+   *  When false (anonymous link viewer), we hide the button entirely so
+   *  there's no dead-click experience. The page-level guest CTA covers
+   *  sign-in messaging in one consistent place. */
+  isOwner?: boolean;
 }
 
 const TIER_BAND_LABEL: Record<string, string> = {
@@ -44,7 +49,7 @@ const TIER_BAND_LABEL: Record<string, string> = {
   high: "Sharpen",
 };
 
-export function MoveCard({ move, index, className }: MoveCardProps) {
+export function MoveCard({ move, index, className, isOwner = false }: MoveCardProps) {
   const { snapshot, personalised_why_matters, personalised_what_to_do_intro, role } = move;
   const pillarIndex = (snapshot.pillar as PillarIndex);
   const pillarLabel = PILLAR_NAMES[pillarIndex] ?? `Pillar ${snapshot.pillar}`;
