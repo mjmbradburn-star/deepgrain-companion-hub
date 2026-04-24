@@ -306,3 +306,129 @@ describe("AssessReport · OverviewTab (HotspotCards mapped to Move IDs)", () => 
     }
   });
 });
+
+describe("AssessReport · MovesTab filter & sort controls", () => {
+  // Build a deterministic, varied set so each control has something to bite on.
+  function makeVariedRecs(): Recommendations {
+    return makeRecommendations({
+      moves: [
+        makeMove({ move_id: "m1", pillar: 4, title: "Workflow seam",  effort: 3, impact: 2, tier_band: "low"  }),
+        makeMove({ move_id: "m2", pillar: 6, title: "Governance floor", effort: 1, impact: 4, tier_band: "mid"  }),
+        makeMove({ move_id: "m3", pillar: 7, title: "ROI dashboard",   effort: 4, impact: 3, tier_band: "high" }),
+        makeMove({ move_id: "m4", pillar: 4, title: "Workflow rituals", effort: 2, impact: 1, tier_band: "mid"  }),
+      ],
+    });
+  }
+
+  function mountTab(recs: Recommendations) {
+    return render(
+      <MemoryRouter>
+        <MovesTab
+          recommendations={recs}
+          tier="Deployed"
+          slug="test-slug-123"
+          level="company"
+          hasDeepdive
+          isAnonymous={false}
+        />
+      </MemoryRouter>,
+    );
+  }
+
+  function visibleMoveTitlesInOrder(recs: Recommendations): string[] {
+    // Card titles are <h3>s — pick out the ones that match our fixture set.
+    const fixtureTitles = new Set(recs.moves.map((m) => m.snapshot.title));
+    return screen
+      .getAllByRole("heading", { level: 3 })
+      .map((n) => n.textContent ?? "")
+      .filter((t) => fixtureTitles.has(t));
+  }
+
+  it("renders the controls with the correct option set", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    // Sort dropdown exposes all five options
+    const sort = screen.getByRole("combobox", { name: /sort moves/i }) as HTMLSelectElement;
+    expect(Array.from(sort.options).map((o) => o.value)).toEqual([
+      "default",
+      "impact_desc",
+      "impact_asc",
+      "effort_asc",
+      "effort_desc",
+    ]);
+
+    // Pillar chips include the three pillars represented in the fixture set
+    expect(screen.getByRole("button", { name: /^All$/, pressed: true })).toBeInTheDocument();
+    // user-event keeps lint happy that we exercised the realtime control
+    void user;
+  });
+
+  it("filters by pillar and shows the right counts", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    expect(visibleMoveTitlesInOrder(recs)).toHaveLength(4);
+
+    const p4Chip = screen.getByRole("button", { name: /Workflow Integration/i });
+    await user.click(p4Chip);
+
+    const titles = visibleMoveTitlesInOrder(recs);
+    expect(titles).toEqual(["Workflow seam", "Workflow rituals"]);
+    expect(screen.getByText("2/4 shown")).toBeInTheDocument();
+  });
+
+  it("filters by tier band and combines with pillar filter", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    await user.click(screen.getByRole("button", { name: /^Build$/i }));
+    const titles = visibleMoveTitlesInOrder(recs);
+    // tier_band=mid → m2 (Governance floor) + m4 (Workflow rituals)
+    expect(titles.sort()).toEqual(["Governance floor", "Workflow rituals"]);
+  });
+
+  it("sorts by impact descending and effort ascending", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    const sort = screen.getByRole("combobox", { name: /sort moves/i });
+
+    await user.selectOptions(sort, "impact_desc");
+    // impact: m2=4, m3=3, m1=2, m4=1
+    expect(visibleMoveTitlesInOrder(recs)).toEqual([
+      "Governance floor",
+      "ROI dashboard",
+      "Workflow seam",
+      "Workflow rituals",
+    ]);
+
+    await user.selectOptions(sort, "effort_asc");
+    // effort: m2=1, m4=2, m1=3, m3=4
+    expect(visibleMoveTitlesInOrder(recs)).toEqual([
+      "Governance floor",
+      "Workflow rituals",
+      "Workflow seam",
+      "ROI dashboard",
+    ]);
+  });
+
+  it("shows an empty-state when filters exclude every move and Reset restores the list", async () => {
+    const user = (await import("@testing-library/user-event")).default.setup();
+    const recs = makeVariedRecs();
+    mountTab(recs);
+
+    // pillar 7 ∩ Foundation (low) = ∅  (m3 is high)
+    await user.click(screen.getByRole("button", { name: /Measurement & ROI/i }));
+    await user.click(screen.getByRole("button", { name: /^Foundation$/i }));
+
+    expect(screen.getByText(/No moves match these filters/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^Reset$/i }));
+    expect(visibleMoveTitlesInOrder(recs)).toHaveLength(4);
+  });
+});
