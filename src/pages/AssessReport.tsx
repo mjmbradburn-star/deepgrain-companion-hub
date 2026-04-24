@@ -308,7 +308,7 @@ export function MovesTab({
         totalCount={baseVisible.length}
         visibleCount={filteredSorted.length}
         filtersActive={filtersActive}
-        onReset={() => { setSort("default"); setTierFilter("all"); setPillarFilter("all"); }}
+        onReset={resetFilters}
       />
 
       {filteredSorted.length === 0 ? (
