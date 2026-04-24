@@ -44,8 +44,9 @@ const App = () => (
           <Route path="/assess" element={<Assess />} />
           <Route path="/assess/scan" element={<AssessScan />} />
           <Route path="/assess/deep/:slug" element={<AssessDeep />} />
-          <Route path="/assess/start" element={<AssessStart />} />
-          <Route path="/assess/q/:step" element={<AssessQuestion />} />
+          {/* Legacy long-form flow retired April 2026 — redirect any in-flight email links. */}
+          <Route path="/assess/start" element={<Navigate to="/assess" replace />} />
+          <Route path="/assess/q/:step" element={<Navigate to="/assess/scan" replace />} />
           <Route path="/assess/processing" element={<AssessProcessing />} />
           <Route path="/assess/r/:slug" element={<AssessReport />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
@@ -57,7 +58,7 @@ const App = () => (
           <Route path="/signin" element={<SignIn />} />
           <Route path="/reports" element={<MyReports />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="/deploy-review" element={<DeployReview />} />
+          
           <Route path="/admin/playbook" element={<AdminPlaybookLayout />}>
             <Route index element={<MovesListPage />} />
             <Route path="coverage" element={<CoveragePage />} />
