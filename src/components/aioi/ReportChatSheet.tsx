@@ -18,6 +18,24 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-chat`
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+// Mirrors the labels used by the report-chat edge function. The marker
+// `[inj:<label>]` is appended to refusals so the UI can show a subtle hint
+// explaining why a message was refused.
+const INJECTION_RULE_LABELS: Record<string, string> = {
+  override: "instruction override",
+  persona: "persona / jailbreak",
+  role_tag: "fake role tag",
+  extraction: "prompt extraction",
+  code_exfil: "system exfiltration",
+};
+
+const INJECTION_MARKER_RE = /\n*\[inj:([a-z_]+)\]\s*$/i;
+function parseInjectionMarker(content: string): { visible: string; rule: string | null } {
+  const m = content.match(INJECTION_MARKER_RE);
+  if (!m) return { visible: content, rule: null };
+  return { visible: content.replace(INJECTION_MARKER_RE, "").trimEnd(), rule: m[1].toLowerCase() };
+}
+
 const FALLBACK_PROMPTS = [
   "What should I do tomorrow morning on my top Move?",
   "We don't have an AI policy yet. What's the smallest one that works?",
@@ -322,9 +340,25 @@ export function ReportChatSheet({
                 }
               >
                 {m.role === "assistant" ? (
-                  <div className="prose prose-sm prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-headings:text-cream prose-strong:text-cream">
-                    <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
-                  </div>
+                  (() => {
+                    const parsed = parseInjectionMarker(m.content);
+                    return (
+                      <>
+                        <div className="prose prose-sm prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-headings:text-cream prose-strong:text-cream">
+                          <ReactMarkdown>{parsed.visible || "…"}</ReactMarkdown>
+                        </div>
+                        {parsed.rule && (
+                          <div
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-cream/15 bg-cream/5 px-2 py-0.5 text-[11px] text-cream/55"
+                            title={`Refused by safety rule: ${parsed.rule}. This message looked like an attempt to override the assistant's instructions, change its persona, or extract its setup.`}
+                          >
+                            <span aria-hidden>⚑</span>
+                            <span>Refused: {INJECTION_RULE_LABELS[parsed.rule] ?? parsed.rule}</span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()
                 ) : (
                   m.content
                 )}
