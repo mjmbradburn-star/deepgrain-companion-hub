@@ -42,12 +42,12 @@ import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 
 // ─── Types coming back from the report row ────────────────────────────────
-interface PillarTierEntry {
+export interface PillarTierEntry {
   tier: number;
   label: Tier;
   name: string;
 }
-interface Hotspot {
+export interface Hotspot {
   pillar: number;
   name: string;
   tier: number;
@@ -69,7 +69,7 @@ interface OutcomeRow {
   impact: number | null;
   time_to_value: string | null;
 }
-interface Recommendations {
+export interface Recommendations {
   headline_diagnosis: string;
   personalised_intro: string;
   closing_cta: string;
@@ -78,7 +78,7 @@ interface Recommendations {
   voice_model?: string;
   used_fallback?: boolean;
 }
-interface ReportData {
+export interface ReportData {
   respondent: {
     id: string;
     slug: string;
@@ -143,7 +143,7 @@ function tierBlurb(tierLabel: Tier, pillarName: string): string {
 }
 
 // ─── Moves (new — backed by the Voice Wrapper recommendations) ────────────
-function MovesTab({
+export function MovesTab({
   recommendations,
   tier,
   slug,
@@ -464,7 +464,7 @@ function ReportView({ data }: { data: ReportData }) {
 }
 
 // ─── Overview ─────────────────────────────────────────────────────────────
-function OverviewTab({
+export function OverviewTab({
   report, pillarValues, cohort, slice, slug, level, hasDeepdive, isAnonymous,
 }: {
   report: NonNullable<ReportData["report"]>;
