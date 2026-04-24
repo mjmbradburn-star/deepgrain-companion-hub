@@ -910,6 +910,8 @@ function ReportView({ data }: { data: ReportData }) {
           respondentId={respondent.id}
           hasDeepdive={data.hasDeepdive}
           enabled={true}
+          topMoveTitle={report.recommendations.moves[0]?.snapshot?.title}
+          topHotspotName={report.hotspots?.[0]?.name}
         />
       )}
     </div>
