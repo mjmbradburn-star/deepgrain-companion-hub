@@ -758,6 +758,7 @@ function ReportView({ data }: { data: ReportData }) {
                 )}
                 <ResendReportLink slug={respondent.slug} />
                 <AdminRegenerateButton slug={respondent.slug} />
+              </div>
             </div>
 
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-cream leading-tight tracking-tight max-w-3xl text-balance">
