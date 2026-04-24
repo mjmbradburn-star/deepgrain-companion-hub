@@ -14,6 +14,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { Seo } from "@/components/aioi/Seo";
 import { trackEvent } from "@/lib/analytics";
 import { benchmarkDatasetJsonLd, breadcrumbJsonLd, seoRoutes } from "@/lib/seo";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 type Level = Database["public"]["Enums"]["assessment_level"];
 type Row = Database["public"]["Tables"]["benchmarks_materialised"]["Row"] & {
@@ -461,6 +462,7 @@ export default function Benchmarks() {
   const [loading, setLoading] = useState(true);
   const [refreshingBase, setRefreshingBase] = useState(false);
   const [chartVariant, setChartVariant] = usePillarChartVariant();
+  const { isAdmin } = useIsAdmin();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -739,15 +741,18 @@ export default function Benchmarks() {
               </span>
               Copy share link
             </button>
-            <button
-              onClick={refreshBenchmarkBase}
-              disabled={refreshingBase}
-              className="inline-flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-sm font-ui text-xs tracking-wide transition-colors border bg-brass/10 text-brass-bright border-brass/30 hover:border-brass/60 hover:bg-brass/15 disabled:opacity-50 disabled:cursor-wait"
-              aria-label="Refresh benchmark base data for current filters"
-            >
-              <RefreshCw className={`h-3 w-3 shrink-0 ${refreshingBase ? "animate-spin" : ""}`} aria-hidden />
-              {refreshingBase ? "Refreshing…" : "Refresh benchmark base data"}
-            </button>
+            {isAdmin && (
+              <button
+                onClick={refreshBenchmarkBase}
+                disabled={refreshingBase}
+                className="inline-flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[36px] rounded-sm font-ui text-xs tracking-wide transition-colors border bg-brass/10 text-brass-bright border-brass/30 hover:border-brass/60 hover:bg-brass/15 disabled:opacity-50 disabled:cursor-wait"
+                aria-label="Refresh benchmark base data for current filters"
+                title="Admin only"
+              >
+                <RefreshCw className={`h-3 w-3 shrink-0 ${refreshingBase ? "animate-spin" : ""}`} aria-hidden />
+                {refreshingBase ? "Refreshing…" : "Refresh benchmark base data"}
+              </button>
+            )}
           </div>
 
           {/* Filter rows — slice the cohort by level / function / size / sector / region. */}
