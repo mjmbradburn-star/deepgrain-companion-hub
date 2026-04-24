@@ -312,7 +312,25 @@ function ReportView({ data }: { data: ReportData }) {
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="plan" className="focus-visible:outline-none">
-          <PlanTab plan={report.plan} outcomes={outcomes} slug={respondent.slug} level={respondent.level} hasDeepdive={data.hasDeepdive} isAnonymous={needsEmailGate} />
+          {report.recommendations && report.recommendations.moves.length > 0 ? (
+            <MovesTab
+              recommendations={report.recommendations}
+              tier={report.overall_tier}
+              slug={respondent.slug}
+              level={respondent.level}
+              hasDeepdive={data.hasDeepdive}
+              isAnonymous={needsEmailGate}
+            />
+          ) : (
+            <PlanTab
+              plan={report.plan}
+              outcomes={outcomes}
+              slug={respondent.slug}
+              level={respondent.level}
+              hasDeepdive={data.hasDeepdive}
+              isAnonymous={needsEmailGate}
+            />
+          )}
         </TabsPrimitive.Content>
 
         <TabsPrimitive.Content value="report" className="focus-visible:outline-none">
