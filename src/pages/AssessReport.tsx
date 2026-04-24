@@ -42,12 +42,12 @@ import { trackEvent } from "@/lib/analytics";
 import { buildAuthCallbackUrl } from "@/lib/auth-callback-url";
 
 // ─── Types coming back from the report row ────────────────────────────────
-interface PillarTierEntry {
+export interface PillarTierEntry {
   tier: number;
   label: Tier;
   name: string;
 }
-interface Hotspot {
+export interface Hotspot {
   pillar: number;
   name: string;
   tier: number;
@@ -69,7 +69,7 @@ interface OutcomeRow {
   impact: number | null;
   time_to_value: string | null;
 }
-interface Recommendations {
+export interface Recommendations {
   headline_diagnosis: string;
   personalised_intro: string;
   closing_cta: string;
@@ -78,7 +78,7 @@ interface Recommendations {
   voice_model?: string;
   used_fallback?: boolean;
 }
-interface ReportData {
+export interface ReportData {
   respondent: {
     id: string;
     slug: string;
