@@ -432,7 +432,7 @@ export default function MoveEditorPage() {
               <FieldLabel label="CTA type">
                 <Input {...form.register("cta_type")} placeholder="e.g. workshop, template" />
               </FieldLabel>
-              <FieldLabel label="CTA URL" error={form.formState.errors.cta_url?.message}>
+              <FieldLabel label="CTA URL" error={form.formState.errors.cta_url?.message as string | undefined}>
                 <Input {...form.register("cta_url")} placeholder="https://…" />
               </FieldLabel>
             </div>
