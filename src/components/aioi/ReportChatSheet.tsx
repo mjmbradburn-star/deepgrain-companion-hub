@@ -57,7 +57,10 @@ export function ReportChatSheet({
   respondentId,
   hasDeepdive,
   seedPrompt,
+  topMoveTitle,
+  topHotspotName,
 }: ReportChatSheetProps) {
+  const suggestedPrompts = buildSuggestedPrompts(topMoveTitle, topHotspotName);
   const { toast } = useToast();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
