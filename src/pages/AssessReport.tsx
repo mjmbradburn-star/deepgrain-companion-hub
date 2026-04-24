@@ -475,7 +475,17 @@ function LockedMovesContinuation({
  * there's no legacy plan to bridge from. Communicates that this is in-flight,
  * not broken, and gives the user one clear action.
  */
-export function MovesEmptyState({ tier }: { tier: Tier }) {
+export function MovesEmptyState({ tier, variant = "pending" }: { tier: Tier; variant?: "pending" | "partial" }) {
+  const isPartial = variant === "partial";
+  const eyebrow = isPartial ? "Recommendations pending" : "Moves are being drafted";
+  const headline = isPartial ? (
+    <>Finishing your moves<br /><span className="italic text-brass-bright">just a moment.</span></>
+  ) : (
+    <>Your moves aren't ready<br /><span className="italic text-brass-bright">just yet.</span></>
+  );
+  const body = isPartial
+    ? `We've drafted your ${tier} recommendations but the selection engine is still finalising the move ordering. We won't show stale plan content while this completes.`
+    : null;
   return (
     <section className="container max-w-3xl py-16 sm:py-24">
       <div className="rounded-lg border border-cream/10 bg-surface-1/40 px-6 sm:px-10 py-10 sm:py-14">
