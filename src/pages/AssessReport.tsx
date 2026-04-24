@@ -494,13 +494,12 @@ export function MovesEmptyState({ tier, variant = "pending" }: { tier: Tier; var
             <Loader2 className="h-4 w-4 animate-spin" />
           </span>
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright">
-            Moves are being drafted
+            {eyebrow}
           </p>
         </div>
 
         <h2 className="font-display text-3xl sm:text-4xl text-cream leading-[1.1] tracking-tight text-balance">
-          Your moves aren't ready<br />
-          <span className="italic text-brass-bright">just yet.</span>
+          {headline}
         </h2>
 
         <p className="mt-5 font-display text-lg text-cream/70 leading-relaxed max-w-xl">
