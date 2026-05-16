@@ -1,0 +1,1970 @@
+[
+  {
+    "id": "afc7c3dc-a3ca-464f-8d10-d3e046026e7f",
+    "question_id": "p1-mandate",
+    "tier": 0,
+    "label": "Nobody. It hasn't come up.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "fc6b03ad-ba2e-46e6-a7ed-caf38e2cbf2f",
+    "question_id": "p1-mandate",
+    "tier": 1,
+    "label": "Whoever shouts loudest in a given week.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "14f93097-04d4-4e30-ae11-bb339b1ed3aa",
+    "question_id": "p1-mandate",
+    "tier": 2,
+    "label": "An interested deputy, on the side of their desk.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "9a9d759c-9536-4c27-be10-6c965c209e61",
+    "question_id": "p1-mandate",
+    "tier": 3,
+    "label": "A named lead with a remit, no budget.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "958f13fe-063d-4d9c-9903-37337692d607",
+    "question_id": "p1-mandate",
+    "tier": 4,
+    "label": "A named lead with a remit and a budget.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "45dfab7f-045a-495e-ae73-f7f927060006",
+    "question_id": "p1-mandate",
+    "tier": 5,
+    "label": "It's the function head's first agenda item, every week.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "dea2c2a0-4038-4669-b565-b2c51d3bfc62",
+    "question_id": "p1-strategy",
+    "tier": 0,
+    "label": "No, and nobody has asked for one.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "cf0d72f5-bdb3-4b24-b71c-e85e10eeff89",
+    "question_id": "p1-strategy",
+    "tier": 1,
+    "label": "A few slides someone made for an offsite.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "f8032b26-de0a-49c7-8ae0-26da89c353f2",
+    "question_id": "p1-strategy",
+    "tier": 2,
+    "label": "A draft document, never finalised.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "5b2acf1a-e371-448a-98e8-497a35365d21",
+    "question_id": "p1-strategy",
+    "tier": 3,
+    "label": "A one-pager with goals, owned by the lead.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "ec042882-016a-400f-9051-e9d64358d3f0",
+    "question_id": "p1-strategy",
+    "tier": 4,
+    "label": "Strategy with quarterly milestones tied to OKRs.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "b65bc59e-69a9-488b-a9f7-984e025f2dc5",
+    "question_id": "p1-strategy",
+    "tier": 5,
+    "label": "AI is the operating model \u2014 the strategy is the strategy.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "d35b172b-6c8d-4099-9936-2db24d80e472",
+    "question_id": "p2-data",
+    "tier": 0,
+    "label": "PDFs, inboxes and Slack threads.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "2fc9c661-6f2a-4f5c-bd2c-7a809e086248",
+    "question_id": "p2-data",
+    "tier": 1,
+    "label": "A few shared drives and one battered spreadsheet.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "9598e93f-7ad9-419b-b9bd-adeb4e62e23f",
+    "question_id": "p2-data",
+    "tier": 2,
+    "label": "A CRM or warehouse, half-populated.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "c4c7a0bf-b352-4398-a01a-3212d5a9a655",
+    "question_id": "p2-data",
+    "tier": 3,
+    "label": "Clean tables for the core entities, gaps elsewhere.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "bf0ae310-a9c2-4970-b2e4-36eef5878d7a",
+    "question_id": "p2-data",
+    "tier": 4,
+    "label": "A documented schema that engineering trusts.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "a4f99c89-ed0a-4a9b-91ef-3ad38abbdab9",
+    "question_id": "p2-data",
+    "tier": 5,
+    "label": "Versioned, governed, and queryable by an agent today.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "0044355c-092f-4492-b0b8-e9c093559fda",
+    "question_id": "p2-quality",
+    "tier": 0,
+    "label": "We don't really know what's in there.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "5f36ea9e-bb81-4a8d-aed6-4b648641bf57",
+    "question_id": "p2-quality",
+    "tier": 1,
+    "label": "We know it's messy; nobody has time to fix it.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "8ee8e1be-a7b1-4b00-abbd-9243c809bf50",
+    "question_id": "p2-quality",
+    "tier": 2,
+    "label": "We trust one or two reports, not the rest.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "839da868-450b-49fc-baf9-eda49f659c86",
+    "question_id": "p2-quality",
+    "tier": 3,
+    "label": "Core entities are clean; we audit occasionally.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "4e10c8dd-76c3-4c77-aa28-7dc161099623",
+    "question_id": "p2-quality",
+    "tier": 4,
+    "label": "Quality SLAs exist; owners are named.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "d0515c24-3822-42c6-ac51-3c1839d79380",
+    "question_id": "p2-quality",
+    "tier": 5,
+    "label": "Continuous monitoring; data quality is a tracked KPI.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "be98bda6-ebb7-4709-b845-c5d9bd1d2313",
+    "question_id": "p2-access",
+    "tier": 0,
+    "label": "They ask in Slack and hope.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "0b33ed92-33e5-4c5b-9b0a-d66bcba187e3",
+    "question_id": "p2-access",
+    "tier": 1,
+    "label": "Someone in BI runs it on request, eventually.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "35af83a3-ad2e-4e69-a832-49e563f8951d",
+    "question_id": "p2-access",
+    "tier": 2,
+    "label": "Self-serve dashboards for the obvious questions.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "331ebb3a-b6eb-40e3-94ed-f0da95be0a05",
+    "question_id": "p2-access",
+    "tier": 3,
+    "label": "Self-serve for most, BI for the long tail.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "52847287-604f-4349-9015-067f70619186",
+    "question_id": "p2-access",
+    "tier": 4,
+    "label": "Natural-language queries on a governed warehouse.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "d1b50a2c-8dfa-4bf3-b9ac-2bebbaf35f2f",
+    "question_id": "p2-access",
+    "tier": 5,
+    "label": "Agents pull and join data across systems autonomously.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "8eb9e2f4-b7a0-4ec5-a89d-04327eb001b9",
+    "question_id": "p3-tools",
+    "tier": 0,
+    "label": "None.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "e20136c9-b680-40a3-8ece-ebbb67fdc220",
+    "question_id": "p3-tools",
+    "tier": 1,
+    "label": "Personal ChatGPT accounts on company cards.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "a3c91364-0681-4e47-8956-3f08ed61e824",
+    "question_id": "p3-tools",
+    "tier": 2,
+    "label": "One team licence to Copilot or similar.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "db21a8a0-5ad3-4cf7-aecf-2fc813dab8ee",
+    "question_id": "p3-tools",
+    "tier": 3,
+    "label": "An approved stack with SSO and data controls.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "eb771dfa-f120-4d2b-8f36-c7a752d4839b",
+    "question_id": "p3-tools",
+    "tier": 4,
+    "label": "Approved stack plus internal copilots for two workflows.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "dc02ea1d-7a8a-4c90-9006-b48da7cde665",
+    "question_id": "p3-tools",
+    "tier": 5,
+    "label": "Bespoke agents in production, monitored, with fallbacks.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6c74a8a6-a34d-4659-b8f5-db026e4fb379",
+    "question_id": "p3-integration",
+    "tier": 0,
+    "label": "It doesn't. Copy-paste is the integration.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "5a034c8c-1022-43af-bf67-2eec254f9749",
+    "question_id": "p3-integration",
+    "tier": 1,
+    "label": "Browser extensions and clipboard.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "4fa3e281-6398-4674-baef-f15d5122b983",
+    "question_id": "p3-integration",
+    "tier": 2,
+    "label": "A handful of off-the-shelf integrations.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6f9093c4-8a36-42f4-8b17-4abf7300f603",
+    "question_id": "p3-integration",
+    "tier": 3,
+    "label": "Sanctioned connectors for the systems that matter.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6ab62e8e-f30f-4162-b0f2-d0ef45ea3015",
+    "question_id": "p3-integration",
+    "tier": 4,
+    "label": "API-level integration with our core systems.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "dd0d0481-64cc-445d-a6b8-9adb340c4e85",
+    "question_id": "p3-integration",
+    "tier": 5,
+    "label": "Models and tools share a unified context layer.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "1a72778b-03f7-4087-8f07-4bdbf88bd210",
+    "question_id": "p4-workflow",
+    "tier": 0,
+    "label": "Nowhere. It's a separate tab people open occasionally.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "69fb77af-7b05-4a56-a0aa-2fc86de96ed4",
+    "question_id": "p4-workflow",
+    "tier": 1,
+    "label": "A few people use it for first drafts, off-process.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "e075ceb7-7a96-4055-ae8b-dd638ac5e025",
+    "question_id": "p4-workflow",
+    "tier": 2,
+    "label": "It's part of one named workflow, owned by one team.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6f5034b7-698f-437c-97dc-4bdf98676884",
+    "question_id": "p4-workflow",
+    "tier": 3,
+    "label": "Embedded in 2\u20133 workflows, with playbooks.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "150e79bf-40cb-453a-b337-f380cd58a5fa",
+    "question_id": "p4-workflow",
+    "tier": 4,
+    "label": "Default for most production work, with humans on review.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "62b403cb-c006-4f69-b0c3-a24a60396409",
+    "question_id": "p4-workflow",
+    "tier": 5,
+    "label": "Workflows are designed model-first; humans escalate.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "d7881a23-f1ad-4c0d-a860-e8a61dc5a09c",
+    "question_id": "p4-redesign",
+    "tier": 0,
+    "label": "No \u2014 workflows are exactly as they were.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6d2a681f-7a2d-40f6-8943-bc585cb40652",
+    "question_id": "p4-redesign",
+    "tier": 1,
+    "label": "We've talked about it. Nothing changed.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "25361ba7-c720-4dce-9707-b7121b1465af",
+    "question_id": "p4-redesign",
+    "tier": 2,
+    "label": "One workflow has been tweaked to include AI steps.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "fd636e9f-6bb7-4c25-9a15-d23c389d1dfd",
+    "question_id": "p4-redesign",
+    "tier": 3,
+    "label": "Two or three workflows were redesigned around AI.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "5aa3ca17-2a0c-44c7-a2b8-89b735ca4dd5",
+    "question_id": "p4-redesign",
+    "tier": 4,
+    "label": "Most core workflows have been rebuilt model-first.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "e4684d87-344b-4e69-84dc-8ff0a5759600",
+    "question_id": "p4-redesign",
+    "tier": 5,
+    "label": "New work is designed for AI by default; humans escalate.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "912be643-3a4e-4664-abb3-ff2daace89a2",
+    "question_id": "p5-skills",
+    "tier": 0,
+    "label": "Hasn't tried it.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "f826680e-0142-4acb-bda4-35087c62d726",
+    "question_id": "p5-skills",
+    "tier": 1,
+    "label": "Has typed into ChatGPT once or twice.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "84258cb5-5ec9-451b-b7d9-d7cf8057abf6",
+    "question_id": "p5-skills",
+    "tier": 2,
+    "label": "Uses it weekly for ad-hoc tasks.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "0d13946c-2264-4da1-b37c-d2044615c1d5",
+    "question_id": "p5-skills",
+    "tier": 3,
+    "label": "Uses it daily, can iterate on prompts.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "480570ba-5da4-460f-918f-afb1addc639d",
+    "question_id": "p5-skills",
+    "tier": 4,
+    "label": "Builds reusable assets \u2014 prompts, templates, mini-tools.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "2906a638-3e9a-4501-bf0f-f0ce9072e917",
+    "question_id": "p5-skills",
+    "tier": 5,
+    "label": "Composes agents and ships them to colleagues.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "70809fb5-904f-48fd-88d0-3bf8d9400130",
+    "question_id": "p5-training",
+    "tier": 0,
+    "label": "Nothing. People figure it out alone.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "4fef4d6f-0957-4649-bbbe-9886e42b35a5",
+    "question_id": "p5-training",
+    "tier": 1,
+    "label": "An optional Lunch & Learn happened once.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "eed1cc4a-0978-4225-b464-e29941d968ee",
+    "question_id": "p5-training",
+    "tier": 2,
+    "label": "A self-serve library of links and recordings.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "0b79667a-c428-4190-ac84-8b925f255245",
+    "question_id": "p5-training",
+    "tier": 3,
+    "label": "Structured onboarding and a shared prompt library.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "d7a4368a-8f06-426e-8937-71a7b4cdea5e",
+    "question_id": "p5-training",
+    "tier": 4,
+    "label": "Role-specific training with ongoing peer review.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "fd16499d-2d8e-40a2-9550-2798f9a8eaf1",
+    "question_id": "p5-training",
+    "tier": 5,
+    "label": "AI fluency is a hiring and promotion criterion.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "a17bad9f-fea8-43a8-a606-b756b4b66260",
+    "question_id": "p6-governance",
+    "tier": 0,
+    "label": "None. We hope for the best.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "908aa9ee-4f40-4f08-ac02-75148df65fce",
+    "question_id": "p6-governance",
+    "tier": 1,
+    "label": "An informal 'don't paste customer data' rule.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "8aba6bde-44b6-4d65-b55a-cbdf66d3884b",
+    "question_id": "p6-governance",
+    "tier": 2,
+    "label": "A written policy nobody has read.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "9dc2955b-2ed6-405f-9236-4dc6162317d0",
+    "question_id": "p6-governance",
+    "tier": 3,
+    "label": "Policy plus an approved-tools list, lightly enforced.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "a20a13d5-c67b-4090-b57c-c3b752ce1796",
+    "question_id": "p6-governance",
+    "tier": 4,
+    "label": "Policy, tooling, audit trails, periodic reviews.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "bdecd8a6-4732-4bd9-945b-a9e19e0ba238",
+    "question_id": "p6-governance",
+    "tier": 5,
+    "label": "Live monitoring, model risk register, board-level oversight.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "93ea183b-637c-4cab-98cb-d3c32156a64a",
+    "question_id": "p6-review",
+    "tier": 0,
+    "label": "They aren't. Whatever the model said, ships.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "e1cf45cf-2c59-44f9-9a76-fd54ca8ce522",
+    "question_id": "p6-review",
+    "tier": 1,
+    "label": "The author eyeballs it.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "78078e04-96f2-4a9b-901c-2795c585ff94",
+    "question_id": "p6-review",
+    "tier": 2,
+    "label": "Peer review for anything customer-facing.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "7c7bd3d8-637e-400c-a658-47bddbef6028",
+    "question_id": "p6-review",
+    "tier": 3,
+    "label": "Documented review steps for risky outputs.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "bd496efe-6755-4c7f-bd70-0ed94f0a1761",
+    "question_id": "p6-review",
+    "tier": 4,
+    "label": "Tiered review with sign-off thresholds by risk.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "c5690ebe-3692-4a6f-addd-9ddd3f4e77ce",
+    "question_id": "p6-review",
+    "tier": 5,
+    "label": "Automated evals plus human-in-the-loop for high-stakes.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "062de8ab-6a5e-49f5-946f-fe0b4fb751fe",
+    "question_id": "p7-roi",
+    "tier": 0,
+    "label": "No, and we haven't tried to measure.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "48e7256d-8613-4003-b0b4-614de51c6b07",
+    "question_id": "p7-roi",
+    "tier": 1,
+    "label": "Anecdotes \u2014 'it saves me an hour a week'.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "97360d39-2e6e-4692-bfa0-328742d639cd",
+    "question_id": "p7-roi",
+    "tier": 2,
+    "label": "One pilot with a rough time-saving figure.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6092b19a-3754-4bc1-aabb-c4153afa0159",
+    "question_id": "p7-roi",
+    "tier": 3,
+    "label": "Two or three named workflows with hours-saved tracked.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "75fce12d-632c-4262-be04-6f35ad85d81a",
+    "question_id": "p7-roi",
+    "tier": 4,
+    "label": "Hours, quality and cycle time, reported quarterly.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "3a4c099a-1527-45c7-a409-d74458c77617",
+    "question_id": "p7-roi",
+    "tier": 5,
+    "label": "AI-attributable revenue or margin in the P&L.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "f50243c6-394c-4c2c-8f82-bbc857c4943c",
+    "question_id": "p7-baseline",
+    "tier": 0,
+    "label": "No baseline. No measurement.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "ceb35672-92bd-4a9c-9532-1b757364d872",
+    "question_id": "p7-baseline",
+    "tier": 1,
+    "label": "Gut feel from before vs after.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "c7c7594a-e92c-4e1e-b1f5-3020adc3f09d",
+    "question_id": "p7-baseline",
+    "tier": 2,
+    "label": "Rough baseline for one workflow.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6dd29df2-a06b-4547-912d-55a8b0f072b8",
+    "question_id": "p7-baseline",
+    "tier": 3,
+    "label": "Baselines for the workflows we've automated.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "462b4bc0-d596-4c1f-876f-8c3c7ba07253",
+    "question_id": "p7-baseline",
+    "tier": 4,
+    "label": "Baselines plus quarterly re-measurement.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6936b020-6fff-4a3b-820a-24f0972ccfba",
+    "question_id": "p7-baseline",
+    "tier": 5,
+    "label": "Continuous baselines feeding a live ROI dashboard.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "ec3ea8fa-d8f0-4831-8b9e-48bcae05c876",
+    "question_id": "p8-culture",
+    "tier": 0,
+    "label": "They don't.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "bd76f520-2e79-4d00-8f53-ecaa634dd039",
+    "question_id": "p8-culture",
+    "tier": 1,
+    "label": "Quietly, in case it looks like cheating.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "78b78362-b97e-4e6a-8d30-6701e6ee8db4",
+    "question_id": "p8-culture",
+    "tier": 2,
+    "label": "Curiously, in 1:1s but not standups.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "733e197b-b267-4078-856a-078cf59ad6cd",
+    "question_id": "p8-culture",
+    "tier": 3,
+    "label": "Openly, with the better users teaching the rest.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "10130474-425b-4353-883c-f15ea456ae30",
+    "question_id": "p8-culture",
+    "tier": 4,
+    "label": "It's expected \u2014 'have you tried with the model?' is normal.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "81d92ae8-4a9f-41ac-987a-00bd301cd46e",
+    "question_id": "p8-culture",
+    "tier": 5,
+    "label": "Not using it for a task is the thing that needs explaining.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "9c181ba2-aaab-4d71-a092-35c539766411",
+    "question_id": "p8-leadership",
+    "tier": 0,
+    "label": "They don't, and don't pretend to.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "fd9e1f0c-25e7-41f3-90b2-9ec5f0588a09",
+    "question_id": "p8-leadership",
+    "tier": 1,
+    "label": "A curious exec or two in private.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "6efc1f73-bb9c-40ed-8250-f565adfed09c",
+    "question_id": "p8-leadership",
+    "tier": 2,
+    "label": "The function head dabbles, talks about it sometimes.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "792aa170-2a58-416d-a3d2-eba57c875cc3",
+    "question_id": "p8-leadership",
+    "tier": 3,
+    "label": "Leadership demos AI use in team meetings.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "1c055e46-5617-4b1f-b8e5-cc0b2bae40e6",
+    "question_id": "p8-leadership",
+    "tier": 4,
+    "label": "Leaders ship AI-built artefacts as a matter of course.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "75ffcb85-773f-4bd3-8af3-00b89871c919",
+    "question_id": "p8-leadership",
+    "tier": 5,
+    "label": "Leadership operates AI-first; the team follows the example.",
+    "detail": null,
+    "created_at": "2026-04-20T00:45:44.125978+00:00"
+  },
+  {
+    "id": "0b326c1c-09dc-456c-8616-ad5037334745",
+    "question_id": "f-p1-owner",
+    "tier": 0,
+    "label": "Nobody. It hasn't really come up.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "1276ef5d-8e19-4316-8aa6-218a257d809c",
+    "question_id": "f-p1-owner",
+    "tier": 1,
+    "label": "Whoever shouts loudest in a given week.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "e7183bf1-c027-4d53-aba2-45e736d5ad92",
+    "question_id": "f-p1-owner",
+    "tier": 2,
+    "label": "An interested deputy, on the side of their desk.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "4f1e1db4-17cf-4b58-8b26-2f922ffd990d",
+    "question_id": "f-p1-owner",
+    "tier": 3,
+    "label": "A named lead with a remit, no budget.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "5c398b90-e9e6-48f2-a5b8-f9a235c66eb9",
+    "question_id": "f-p1-owner",
+    "tier": 4,
+    "label": "A named lead with a remit and a budget.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "6f7e7747-f62e-4faa-9c98-a457ef8515ec",
+    "question_id": "f-p1-owner",
+    "tier": 5,
+    "label": "It's the function head's first agenda item, every week.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "2fe583b9-23cb-4539-a29d-ca544fb7fd10",
+    "question_id": "f-p1-strategy",
+    "tier": 0,
+    "label": "No, and nobody has asked for one.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "6f39a5eb-1c7d-40bf-ac37-4aa6638066bb",
+    "question_id": "f-p1-strategy",
+    "tier": 1,
+    "label": "A few slides someone made for an offsite.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "91463bd8-8242-47d6-bcd3-1661773966b4",
+    "question_id": "f-p1-strategy",
+    "tier": 2,
+    "label": "A draft we keep meaning to finish.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "a8add6e7-ede6-44c1-ad4a-a348bd430405",
+    "question_id": "f-p1-strategy",
+    "tier": 3,
+    "label": "A one-pager with goals, owned by the lead.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "15572a5d-9cc1-4b98-a550-3faabb367d1d",
+    "question_id": "f-p1-strategy",
+    "tier": 4,
+    "label": "A plan with quarterly milestones tied to OKRs.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "9d16fb9e-f3e7-4378-9bec-35daea65eee9",
+    "question_id": "f-p1-strategy",
+    "tier": 5,
+    "label": "AI is the operating model. The plan is the plan.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "460cc932-e7f0-4193-9aab-781d11fce0f2",
+    "question_id": "f-p2-data",
+    "tier": 0,
+    "label": "PDFs, inboxes and Slack threads.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "52e1ae95-97dd-4a9d-8be3-4b3c605158b1",
+    "question_id": "f-p2-data",
+    "tier": 1,
+    "label": "A few shared drives and a battered spreadsheet.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "895ac586-d7fc-42cc-aef2-7680c02b6a36",
+    "question_id": "f-p2-data",
+    "tier": 2,
+    "label": "A CRM or warehouse, half-populated.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "f9f6682a-c357-4f3b-87da-2e08aae8b1ea",
+    "question_id": "f-p2-data",
+    "tier": 3,
+    "label": "Clean tables for the core entities, gaps elsewhere.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "1251bc8c-1491-4f86-bdf0-67e3c2e6289c",
+    "question_id": "f-p2-data",
+    "tier": 4,
+    "label": "A documented schema engineering trusts.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "64273a02-ed1b-4131-87d3-6fcf088d22f6",
+    "question_id": "f-p2-data",
+    "tier": 5,
+    "label": "Versioned, governed, queryable by a tool today.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "0a751820-e230-4a67-8e99-26445b5f3499",
+    "question_id": "f-p2-access",
+    "tier": 0,
+    "label": "They ask in Slack and hope.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "802747f1-3a6c-4564-b486-c9b81e10774c",
+    "question_id": "f-p2-access",
+    "tier": 1,
+    "label": "Someone in BI runs it on request, eventually.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "f90f26f4-57d1-4107-8ce9-fd9599519afc",
+    "question_id": "f-p2-access",
+    "tier": 2,
+    "label": "Self-serve dashboards for the obvious questions.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "df82169e-1c0a-447a-8555-afb6d624b621",
+    "question_id": "f-p2-access",
+    "tier": 3,
+    "label": "Self-serve for most things, BI for the long tail.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "08104613-82a5-4ec0-a86c-fda35efb89fc",
+    "question_id": "f-p2-access",
+    "tier": 4,
+    "label": "Natural-language queries on a governed warehouse.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "787d20e5-d00e-446f-8d3e-fa8728202f85",
+    "question_id": "f-p2-access",
+    "tier": 5,
+    "label": "Tools fetch and join data across systems on their own.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "e9eeaba3-b885-483f-8d5e-d10a7c49fb76",
+    "question_id": "f-p3-tools",
+    "tier": 0,
+    "label": "None.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "19a90a56-a6ae-44d9-9d11-b5a0b5070468",
+    "question_id": "f-p3-tools",
+    "tier": 1,
+    "label": "Personal ChatGPT accounts on company cards.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ed8d76e2-694b-4a4d-b384-ef8c98038ad6",
+    "question_id": "f-p3-tools",
+    "tier": 2,
+    "label": "One team licence to Copilot or similar.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "20b0902b-7fe0-4998-a227-e4eed2d904d4",
+    "question_id": "f-p3-tools",
+    "tier": 3,
+    "label": "An approved stack with SSO and data controls.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "d4ed45c3-576c-4bd5-9862-22e7a917028d",
+    "question_id": "f-p3-tools",
+    "tier": 4,
+    "label": "Approved stack plus internal copilots wired into two workflows.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "30b295a5-b981-416a-b45e-06103d54670c",
+    "question_id": "f-p3-tools",
+    "tier": 5,
+    "label": "Bespoke tools in production, monitored, with fallbacks.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "af477783-90f9-45b6-a752-232d84ac6b6e",
+    "question_id": "f-p4-workflow",
+    "tier": 0,
+    "label": "Nowhere. It's a separate tab people open occasionally.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "5cb59e60-76ee-4d8d-9c5f-d8575f93443f",
+    "question_id": "f-p4-workflow",
+    "tier": 1,
+    "label": "A few people use it for first drafts, off-process.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "a072864d-ca18-4441-837c-f62ae2d5dc15",
+    "question_id": "f-p4-workflow",
+    "tier": 2,
+    "label": "It's part of one named workflow, owned by one team.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "184e0af9-c89a-46cf-a51c-5542a8c0f545",
+    "question_id": "f-p4-workflow",
+    "tier": 3,
+    "label": "Built into two or three workflows, with playbooks.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "533fb04f-a4bc-40fa-9afe-b1fd6348a3b0",
+    "question_id": "f-p4-workflow",
+    "tier": 4,
+    "label": "The default for most production work, with humans on review.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "e992ed7a-a4ea-4e0a-89df-96a6d4080dca",
+    "question_id": "f-p4-workflow",
+    "tier": 5,
+    "label": "Workflows are designed model-first; people handle exceptions.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ddc2e577-fd1b-4ccd-9030-a571a7a7a375",
+    "question_id": "f-p4-redesign",
+    "tier": 0,
+    "label": "No. Workflows are exactly as they were.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "a2e3695c-572f-432e-83f8-f7441d1a25d2",
+    "question_id": "f-p4-redesign",
+    "tier": 1,
+    "label": "We've talked about it. Nothing changed.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "aed2511e-4781-4ea0-ba8c-23dc2a976bd4",
+    "question_id": "f-p4-redesign",
+    "tier": 2,
+    "label": "One workflow has been tweaked to include AI steps.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "f72e12a0-cec3-4528-8cb4-3ce7d0f3c269",
+    "question_id": "f-p4-redesign",
+    "tier": 3,
+    "label": "Two or three workflows were redesigned around AI.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "f2c904fc-fc81-47e0-904c-db8d321ef853",
+    "question_id": "f-p4-redesign",
+    "tier": 4,
+    "label": "Most core workflows have been rebuilt model-first.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "394aeac4-b692-489e-aa65-a1d11e253eae",
+    "question_id": "f-p4-redesign",
+    "tier": 5,
+    "label": "New work is designed for AI by default; people handle exceptions.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ccfc74bc-9c3a-4d44-9e60-57cca9113312",
+    "question_id": "f-p5-fluency",
+    "tier": 0,
+    "label": "Hasn't really tried it.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ab183cb8-c2ea-4513-905b-f844f2d88daf",
+    "question_id": "f-p5-fluency",
+    "tier": 1,
+    "label": "Has typed into ChatGPT once or twice.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "db4db00b-6882-43f8-bc20-1bbb22c1be08",
+    "question_id": "f-p5-fluency",
+    "tier": 2,
+    "label": "Uses it weekly for ad-hoc tasks.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "623a2c10-3c7c-4cd4-add2-06f11e743e1c",
+    "question_id": "f-p5-fluency",
+    "tier": 3,
+    "label": "Uses it daily, can iterate on prompts.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "35cc6a6d-0753-4496-96a5-21656bd2dde9",
+    "question_id": "f-p5-fluency",
+    "tier": 4,
+    "label": "Builds prompts, templates and small tools they reuse.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "d4a8bb83-e0c5-4dc5-87a9-659b66fc9bf7",
+    "question_id": "f-p5-fluency",
+    "tier": 5,
+    "label": "Builds small tools and ships them to colleagues.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ef05915c-0fbd-42d7-9d4f-a9c1e73b2585",
+    "question_id": "f-p5-growth",
+    "tier": 0,
+    "label": "Nothing. People figure it out alone.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ce0b110e-10f7-4eee-98da-623430c66415",
+    "question_id": "f-p5-growth",
+    "tier": 1,
+    "label": "An optional Lunch & Learn happened once.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "c6b46da2-9c06-4f46-9188-91a0f0fdc748",
+    "question_id": "f-p5-growth",
+    "tier": 2,
+    "label": "A self-serve library of links and recordings.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "7e695e66-ee8d-4545-9bb8-9404e3036657",
+    "question_id": "f-p5-growth",
+    "tier": 3,
+    "label": "Structured onboarding and a shared prompt library.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "3f4fe212-ad32-4337-b92d-ee823882506a",
+    "question_id": "f-p5-growth",
+    "tier": 4,
+    "label": "Role-specific training with ongoing peer review.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "03d17919-97f3-41a1-a2dd-ef2b392a68af",
+    "question_id": "f-p5-growth",
+    "tier": 5,
+    "label": "AI fluency is a hiring and promotion criterion.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "5675fa63-9f08-43da-9936-2c9abe3c3ca9",
+    "question_id": "f-p6-policy",
+    "tier": 0,
+    "label": "None. We hope for the best.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "a5a87174-1352-4cab-a529-55eeb50168aa",
+    "question_id": "f-p6-policy",
+    "tier": 1,
+    "label": "An informal \"don't paste customer data\" rule.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "06b2c5f3-3b5c-4765-a8b4-b97169b16566",
+    "question_id": "f-p6-policy",
+    "tier": 2,
+    "label": "A written policy nobody has read.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "06ed1081-09fa-48b2-aa42-92db402660c2",
+    "question_id": "f-p6-policy",
+    "tier": 3,
+    "label": "Policy plus an approved-tools list, lightly enforced.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "cc25a6ff-e5bb-408e-a90f-2cd540f17eda",
+    "question_id": "f-p6-policy",
+    "tier": 4,
+    "label": "Policy, tooling, audit trails and periodic reviews.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "d1339447-a0a2-4013-8e23-f640e5a12217",
+    "question_id": "f-p6-policy",
+    "tier": 5,
+    "label": "Live monitoring, model risk register, board-level oversight.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "7e15f31d-7196-4283-862c-9f8d7f384cd3",
+    "question_id": "f-p7-roi",
+    "tier": 0,
+    "label": "No, and we haven't tried to measure.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "0d6f318e-24a0-4bfe-bb84-14e75f2920fc",
+    "question_id": "f-p7-roi",
+    "tier": 1,
+    "label": "Anecdotes. \"It saves me an hour a week.\"",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "9d26fc52-683b-4dc6-9904-1fa8925400ad",
+    "question_id": "f-p7-roi",
+    "tier": 2,
+    "label": "One pilot with a rough time-saving figure.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "1dcafba3-dd8f-4e93-ab3a-0b1c0472fc09",
+    "question_id": "f-p7-roi",
+    "tier": 3,
+    "label": "Two or three named workflows with hours-saved tracked.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "e1b3de9e-22fd-46c0-9bd7-5d57c96ace6a",
+    "question_id": "f-p7-roi",
+    "tier": 4,
+    "label": "Hours, quality and cycle time, reported quarterly.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "2ad622b8-dfca-4592-9246-5d0a432280f0",
+    "question_id": "f-p7-roi",
+    "tier": 5,
+    "label": "AI-attributable revenue or margin in the P&L.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "9abd3eb4-000f-43bd-8742-73c657539e71",
+    "question_id": "f-p8-talk",
+    "tier": 0,
+    "label": "They don't.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "4dfa8d56-84fb-4ed3-870a-d7ede7f56d0c",
+    "question_id": "f-p8-talk",
+    "tier": 1,
+    "label": "Quietly, in case it looks like cheating.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "4f158d36-ebbf-45a6-ba2d-6a45ff7de1cb",
+    "question_id": "f-p8-talk",
+    "tier": 2,
+    "label": "Curiously, in 1:1s but not standups.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "cc4d984c-afeb-4a49-9a6b-de1d3da8bba9",
+    "question_id": "f-p8-talk",
+    "tier": 3,
+    "label": "Openly, with the better users teaching the rest.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "65d43622-e9d7-48e6-acd2-5b714592ed04",
+    "question_id": "f-p8-talk",
+    "tier": 4,
+    "label": "It's expected. \"Have you tried it with the model?\" is normal.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "4eeadb9d-534e-4c9f-941f-fb44d8ca5b53",
+    "question_id": "f-p8-talk",
+    "tier": 5,
+    "label": "Not using it for a task is the thing that needs explaining.",
+    "detail": null,
+    "created_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "bb4b35e0-d2ed-48d3-881a-fd16be43bbd9",
+    "question_id": "qs-c-p3-agents",
+    "tier": 0,
+    "label": "None. We haven\u2019t built any.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "8cd7a266-b4d8-471a-9015-93a54febd962",
+    "question_id": "qs-c-p3-agents",
+    "tier": 1,
+    "label": "We\u2019ve piloted something. Nothing in production.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "0cd6bb17-1fb6-4e9a-9e6f-6c4d2b20a318",
+    "question_id": "qs-c-p3-agents",
+    "tier": 2,
+    "label": "One or two agents live. Ownership is informal.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "299e2e91-2096-476b-8e75-2c133b6250c9",
+    "question_id": "qs-c-p3-agents",
+    "tier": 3,
+    "label": "Several live agents, each with a named owner, scope, and guardrails.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "7448e05a-1c25-418c-8b1d-7971a83bb534",
+    "question_id": "qs-c-p3-agents",
+    "tier": 4,
+    "label": "Agents sit in the critical path of core workflows, with supervision and evals.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "b31a1d0c-b93d-404a-aa86-8a014e9f3e08",
+    "question_id": "qs-c-p3-agents",
+    "tier": 5,
+    "label": "Multi-agent orchestration is standard. Agents are reviewed weekly like any production system.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "419f374a-f755-4f56-b279-68e15254d287",
+    "question_id": "c-p3-orchestration",
+    "tier": 0,
+    "label": "Nothing. Everything is manual copy-paste.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "b2643b95-5009-4735-9094-17aed8713464",
+    "question_id": "c-p3-orchestration",
+    "tier": 1,
+    "label": "A few Zapier or Make flows, owned informally.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "4d3ea8ca-617b-4ab4-9947-73511849de62",
+    "question_id": "c-p3-orchestration",
+    "tier": 2,
+    "label": "n8n, Temporal, or similar is in use for a handful of workflows.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "43bab161-493f-4795-be2c-5638affe01bc",
+    "question_id": "c-p3-orchestration",
+    "tier": 3,
+    "label": "A workflow engine is in production with named owners and failure handling.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "c530707f-674c-4c9a-b1d1-8c371ed682bf",
+    "question_id": "c-p3-orchestration",
+    "tier": 4,
+    "label": "Event-driven orchestration feeds AI with fresh context. Memory and vector stores are deliberate.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "4dc2ac28-970d-4662-a4a5-1594b6770378",
+    "question_id": "c-p3-orchestration",
+    "tier": 5,
+    "label": "Orchestration, memory, and retrieval are a first-class discipline with cost telemetry.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "959f8712-dbff-4318-a6e3-dc7034e49d46",
+    "question_id": "c-p3-observability",
+    "tier": 0,
+    "label": "We don\u2019t.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "7b34df70-ba80-46ae-9d15-626252977110",
+    "question_id": "c-p3-observability",
+    "tier": 1,
+    "label": "We see errors when customers complain.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "6f0347c9-05ab-4a82-a538-365f540c0ff0",
+    "question_id": "c-p3-observability",
+    "tier": 2,
+    "label": "We log model calls somewhere we can query.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "fee5464d-bcd6-4f7d-a4ad-cf1666c97b28",
+    "question_id": "c-p3-observability",
+    "tier": 3,
+    "label": "We track latency, cost, and failure rates per agent or workflow.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "ac5650a3-2e87-4a8f-8c70-26f440094760",
+    "question_id": "c-p3-observability",
+    "tier": 4,
+    "label": "Traces and evals run on live traffic with alerts.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "88ff6a29-42a8-4843-8668-f8ebdc6869a4",
+    "question_id": "c-p3-observability",
+    "tier": 5,
+    "label": "Observability drives routing, retries, and model swaps automatically.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "a712cc65-cd8e-4958-a3f5-8bce495632dc",
+    "question_id": "c-p3-toolconnect",
+    "tier": 0,
+    "label": "They aren\u2019t. Agents exist only in chat windows.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "d74fb098-67fb-42c9-a120-239b7b5c3e70",
+    "question_id": "c-p3-toolconnect",
+    "tier": 1,
+    "label": "Agents use vendor-native integrations.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "0ca918ce-355f-4569-8e00-4dfe165f4fb0",
+    "question_id": "c-p3-toolconnect",
+    "tier": 2,
+    "label": "Agents call named APIs through custom glue code.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "7275e081-a5ad-4bb6-95c1-e2581815e40c",
+    "question_id": "c-p3-toolconnect",
+    "tier": 3,
+    "label": "Agents use MCP or an equivalent shared tool registry.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "df583f4b-1477-4a7c-8287-30461f70154b",
+    "question_id": "c-p3-toolconnect",
+    "tier": 4,
+    "label": "A shared tool registry and skill library is used across all agents.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "d9655e0c-7cd0-46a8-9d46-8021c9e58e78",
+    "question_id": "c-p3-toolconnect",
+    "tier": 5,
+    "label": "Tool-use and skills are governed, versioned, and eval-tested as IP.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "d5fff2b7-96e9-4f01-95c0-0ea5382473fd",
+    "question_id": "c-p2-corpus",
+    "tier": 0,
+    "label": "Whatever we point it at.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "a185f6b1-e84d-466c-8512-baa2f072eb18",
+    "question_id": "c-p2-corpus",
+    "tier": 1,
+    "label": "Some documents have been selected, mostly ad hoc.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "bfb01e8d-f2f8-4c74-a1ae-dec17b3e7941",
+    "question_id": "c-p2-corpus",
+    "tier": 2,
+    "label": "A curated set of references per use case, refreshed irregularly.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "047c7556-1b08-40ff-b5e7-6c28d6d69ecb",
+    "question_id": "c-p2-corpus",
+    "tier": 3,
+    "label": "Governed RAG corpus with named owners and refresh cadence.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "4ce06632-859d-4aa9-b822-1cf37d40c44a",
+    "question_id": "c-p2-corpus",
+    "tier": 4,
+    "label": "Live quality signals feed refresh decisions.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "5f762ba6-1cfd-4c66-bf80-8ec5574e7d81",
+    "question_id": "c-p2-corpus",
+    "tier": 5,
+    "label": "Corpus quality is measured continuously and tied to output evals.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "8537abe9-56e1-4dd2-bbcd-792ad1cc2827",
+    "question_id": "c-p2-memory",
+    "tier": 0,
+    "label": "None. Every session starts cold.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "375e9b66-ff02-485b-a1ae-fa26b4b5c132",
+    "question_id": "c-p2-memory",
+    "tier": 1,
+    "label": "Per-session memory only.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "d9dcad0f-b427-41ab-b9f4-d87777f39502",
+    "question_id": "c-p2-memory",
+    "tier": 2,
+    "label": "Some shared context passed between steps, uncurated.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "db33dc73-b16b-44d0-a70c-8da3704d7cb3",
+    "question_id": "c-p2-memory",
+    "tier": 3,
+    "label": "A deliberate memory architecture for the main agents.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "2610335b-c686-4ff4-ae37-774a1b6133ec",
+    "question_id": "c-p2-memory",
+    "tier": 4,
+    "label": "Memory is governed, versioned, and reviewed.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "6bfde065-2913-4aea-b161-51ec5d1d21ff",
+    "question_id": "c-p2-memory",
+    "tier": 5,
+    "label": "Memory is treated as an IP asset with evals on retrieval quality.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "a6603358-0ab8-4834-a001-aecd99ad462c",
+    "question_id": "c-p5-prompts",
+    "tier": 0,
+    "label": "In people\u2019s heads or private chat histories.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "5079a779-6873-49e6-92a4-b95a040e9277",
+    "question_id": "c-p5-prompts",
+    "tier": 1,
+    "label": "Pasted into Slack, lost within days.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "03768046-5e8f-4598-9907-3b0bba6eced1",
+    "question_id": "c-p5-prompts",
+    "tier": 2,
+    "label": "In a shared Notion or Google Doc library, lightly organised.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "6fa19c34-8f9b-4153-aee0-f28145a05488",
+    "question_id": "c-p5-prompts",
+    "tier": 3,
+    "label": "In a versioned prompt or skills library with named owners.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "a9218171-bb21-4c4c-8806-69e47b218821",
+    "question_id": "c-p5-prompts",
+    "tier": 4,
+    "label": "In Git or a dedicated platform with change history.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "f3433c66-822c-4008-9100-0107331ef5ef",
+    "question_id": "c-p5-prompts",
+    "tier": 5,
+    "label": "Prompts and skills are treated as IP, with evals and reuse metrics.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "a1df1cbd-4e8b-428b-a9a2-7a15a404c86b",
+    "question_id": "c-p5-evals",
+    "tier": 0,
+    "label": "We don\u2019t.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "efda7fe1-72ed-4136-96c7-34c1f1cd5453",
+    "question_id": "c-p5-evals",
+    "tier": 1,
+    "label": "Someone tries it and eyeballs the output.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "64c8d8e7-3a8f-494b-853c-43c49fcf8a8a",
+    "question_id": "c-p5-evals",
+    "tier": 2,
+    "label": "A second person reviews sample outputs before rollout.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "52af3b78-14db-455e-aac4-35320c8d6732",
+    "question_id": "c-p5-evals",
+    "tier": 3,
+    "label": "A test set with known-good outputs is run manually.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "3d29d82b-c356-4ded-be8a-9135c43e4703",
+    "question_id": "c-p5-evals",
+    "tier": 4,
+    "label": "Automated evals gate deployment.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "3592d247-a7c7-430c-b1f5-e35de0234fb2",
+    "question_id": "c-p5-evals",
+    "tier": 5,
+    "label": "Evals run on live traffic and trigger rollback on regression.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "4c2bef1e-0254-4594-8379-3a095fda1507",
+    "question_id": "f-p3-agents",
+    "tier": 0,
+    "label": "No.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "c0087008-120f-48c1-996d-1070e4857793",
+    "question_id": "f-p3-agents",
+    "tier": 1,
+    "label": "Someone has experimented with an agent on their own time.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "8ac25793-aff4-473c-82be-ca7783870e12",
+    "question_id": "f-p3-agents",
+    "tier": 2,
+    "label": "One agent is running for a specific task, with informal oversight.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "2ad7a413-480a-433f-9c1e-f869b5a5d7fa",
+    "question_id": "f-p3-agents",
+    "tier": 3,
+    "label": "Two or three agents live, each with a named owner and review cadence.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "36896c05-48b2-4d2c-9487-fdb93571c895",
+    "question_id": "f-p3-agents",
+    "tier": 4,
+    "label": "Agents handle the default first pass on production work; humans review.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "49eb4c00-62f6-498f-b962-cde4d66f5456",
+    "question_id": "f-p3-agents",
+    "tier": 5,
+    "label": "Function workflows are designed agent-first; people handle the hard judgment calls.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "9e4842a9-8e2f-4d3b-87d8-49abf400ba86",
+    "question_id": "f-p5-prompts",
+    "tier": 0,
+    "label": "They aren\u2019t. Everyone starts fresh.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "102d2323-bf6d-407c-9701-ab10a50a7b83",
+    "question_id": "f-p5-prompts",
+    "tier": 1,
+    "label": "A couple of people swap prompts in Slack.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "7e270041-6fe3-4c3b-91c6-f18509fa2fc5",
+    "question_id": "f-p5-prompts",
+    "tier": 2,
+    "label": "A shared document most of the team has read once.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "c344864b-705c-4e09-8e03-9e3e9ed2bb2e",
+    "question_id": "f-p5-prompts",
+    "tier": 3,
+    "label": "An active prompt library used weekly, with named contributors.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "beb80a74-ec02-4977-bb78-4d9d7a65a2a9",
+    "question_id": "f-p5-prompts",
+    "tier": 4,
+    "label": "Versioned skills library with reuse tracked.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "cd61ceab-b1d8-4230-aa66-35ed5fb83220",
+    "question_id": "f-p5-prompts",
+    "tier": 5,
+    "label": "Skills are function-owned IP, reviewed and eval-gated before deploy.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "d18fc6d9-b391-4340-848b-f413c6042fb2",
+    "question_id": "i-p3-agents",
+    "tier": 0,
+    "label": "No. Everything I use is manual.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "293a249d-b33f-400b-aca8-db29cd202097",
+    "question_id": "i-p3-agents",
+    "tier": 1,
+    "label": "I\u2019ve experimented but nothing runs on its own.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "b81e234c-93c2-45c2-9979-33a289d34bf6",
+    "question_id": "i-p3-agents",
+    "tier": 2,
+    "label": "One scheduled automation I built or configured.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "7b9795af-544e-40f9-88f8-3c2ea8a3ee38",
+    "question_id": "i-p3-agents",
+    "tier": 3,
+    "label": "A handful of agents or scripts handling routine work.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "8736eabc-96a6-46ae-946c-296e5544091d",
+    "question_id": "i-p3-agents",
+    "tier": 4,
+    "label": "Tools wired together act on my behalf across systems.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "88f36dc2-0875-4e0c-9d7d-5764db5cef69",
+    "question_id": "i-p3-agents",
+    "tier": 5,
+    "label": "Personal agents run my day-to-day in the background; I review outputs.",
+    "detail": null,
+    "created_at": "2026-04-22T13:07:29.104316+00:00"
+  },
+  {
+    "id": "745e25d8-d4a4-4093-bab2-ccc826c5ac68",
+    "question_id": "i-p5-learning",
+    "tier": 0,
+    "label": "I don't.",
+    "detail": null,
+    "created_at": "2026-04-23T15:46:30.25711+00:00"
+  },
+  {
+    "id": "8982fe8d-5c89-45eb-8564-a03f13bfea9b",
+    "question_id": "i-p5-learning",
+    "tier": 1,
+    "label": "I scroll posts when they appear.",
+    "detail": null,
+    "created_at": "2026-04-23T15:46:30.25711+00:00"
+  },
+  {
+    "id": "9797f082-53ff-46c3-97c9-efac2b026f1e",
+    "question_id": "i-p5-learning",
+    "tier": 2,
+    "label": "I follow a couple of newsletters.",
+    "detail": null,
+    "created_at": "2026-04-23T15:46:30.25711+00:00"
+  },
+  {
+    "id": "7aec2418-5789-488b-8381-08371a4766af",
+    "question_id": "i-p5-learning",
+    "tier": 3,
+    "label": "I block time weekly to try new tools and patterns.",
+    "detail": null,
+    "created_at": "2026-04-23T15:46:30.25711+00:00"
+  },
+  {
+    "id": "3a8c9106-9852-45cd-ae67-c6140c8b5109",
+    "question_id": "i-p5-learning",
+    "tier": 4,
+    "label": "I run small experiments and write up what worked.",
+    "detail": null,
+    "created_at": "2026-04-23T15:46:30.25711+00:00"
+  },
+  {
+    "id": "390fd9a8-7761-4352-b8b2-054a9229e41b",
+    "question_id": "i-p5-learning",
+    "tier": 5,
+    "label": "I publish or teach what I learn.",
+    "detail": null,
+    "created_at": "2026-04-23T15:46:30.25711+00:00"
+  }
+]

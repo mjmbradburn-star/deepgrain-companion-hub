@@ -1,0 +1,410 @@
+[
+  {
+    "id": "47da0ea8-021c-4004-8f20-e665d8e50532",
+    "question_id": "f-p4-workflow",
+    "function": "sales",
+    "prompt": "Where does AI sit in the actual sales day, beyond the demo?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "Nowhere. Reps open ChatGPT in a separate tab now and then."
+      },
+      {
+        "tier": 1,
+        "label": "A few reps use it for first-draft emails, off-process."
+      },
+      {
+        "tier": 2,
+        "label": "Built into prospecting or follow-ups for one team."
+      },
+      {
+        "tier": 3,
+        "label": "In two or three plays (research, drafting, summaries) with playbooks."
+      },
+      {
+        "tier": 4,
+        "label": "The default first pass for outbound and call notes, with reps on review."
+      },
+      {
+        "tier": 5,
+        "label": "Plays are designed model-first; reps handle the relationship moments."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "56ff9c4b-8820-491b-83cb-213850319415",
+    "question_id": "f-p4-workflow",
+    "function": "marketing",
+    "prompt": "Where does AI sit in the actual marketing day, beyond the demo?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "Nowhere. The team opens it in a tab now and then."
+      },
+      {
+        "tier": 1,
+        "label": "A few people use it for first-draft copy, off-process."
+      },
+      {
+        "tier": 2,
+        "label": "Built into one named workflow (briefing, drafting or research)."
+      },
+      {
+        "tier": 3,
+        "label": "In two or three workflows (briefs, drafts, asset variants) with playbooks."
+      },
+      {
+        "tier": 4,
+        "label": "The default first pass for most production work, with humans on review."
+      },
+      {
+        "tier": 5,
+        "label": "Campaigns are designed model-first; humans curate and approve."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "13c1ab47-bc0b-4561-ad31-40f578ba274b",
+    "question_id": "f-p4-workflow",
+    "function": "engineering-product",
+    "prompt": "Where does AI sit in the actual engineering and product day, beyond the demo?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "Nowhere. People open it in a separate tab occasionally."
+      },
+      {
+        "tier": 1,
+        "label": "A few engineers use Copilot for autocomplete, nothing structural."
+      },
+      {
+        "tier": 2,
+        "label": "Embedded in one workflow (PR review, test gen, or spec drafting)."
+      },
+      {
+        "tier": 3,
+        "label": "In two or three workflows (PRs, tests, design docs) with conventions."
+      },
+      {
+        "tier": 4,
+        "label": "The default first pass for code, tests and specs, with humans on review."
+      },
+      {
+        "tier": 5,
+        "label": "Workflows are designed agent-first; engineers handle the hard reviews."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "aed9a9ba-819f-46af-9187-70827b3e8887",
+    "question_id": "f-p4-workflow",
+    "function": "people-hr",
+    "prompt": "Where does AI sit in the actual People day, beyond the demo?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "Nowhere. The team opens it in a separate tab now and then."
+      },
+      {
+        "tier": 1,
+        "label": "A few people use it for first-draft comms or JD edits, off-process."
+      },
+      {
+        "tier": 2,
+        "label": "Built into one named workflow (screening, summaries, or comms)."
+      },
+      {
+        "tier": 3,
+        "label": "In two or three workflows (sourcing, screening, internal comms) with playbooks."
+      },
+      {
+        "tier": 4,
+        "label": "The default first pass for most production work, with humans on review."
+      },
+      {
+        "tier": 5,
+        "label": "Workflows are designed model-first; people handle the human moments."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "57db472d-8a0e-450c-9eb5-052378f9e9d2",
+    "question_id": "f-p4-workflow",
+    "function": "finance",
+    "prompt": "Where does AI sit in the actual finance day, beyond the demo?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "Nowhere. People open it in a separate tab occasionally."
+      },
+      {
+        "tier": 1,
+        "label": "A few analysts use it to draft commentary, off-process."
+      },
+      {
+        "tier": 2,
+        "label": "Built into one workflow (variance commentary, AP coding, or summaries)."
+      },
+      {
+        "tier": 3,
+        "label": "In two or three workflows (close, FP&A drafts, audit prep) with playbooks."
+      },
+      {
+        "tier": 4,
+        "label": "The default first pass for analysis and commentary, with humans on review."
+      },
+      {
+        "tier": 5,
+        "label": "Workflows are designed model-first; finance handles judgement calls."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "4c483376-565a-4f93-8ef2-e4d4c0375a96",
+    "question_id": "f-p4-workflow",
+    "function": "ops-cs",
+    "prompt": "Where does AI sit in the actual operations or customer success day, beyond the demo?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "Nowhere. People open it in a separate tab occasionally."
+      },
+      {
+        "tier": 1,
+        "label": "A few agents use it for first-draft replies, off-process."
+      },
+      {
+        "tier": 2,
+        "label": "Built into one workflow (triage, summaries, or knowledge-base draft)."
+      },
+      {
+        "tier": 3,
+        "label": "In two or three workflows (deflection, summaries, QBR prep) with playbooks."
+      },
+      {
+        "tier": 4,
+        "label": "The default first pass for tickets and comms, with humans on review."
+      },
+      {
+        "tier": 5,
+        "label": "Workflows are designed model-first; humans handle the trickiest cases."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "78a774ca-6199-48a6-9507-2277df7a774d",
+    "question_id": "f-p7-roi",
+    "function": "sales",
+    "prompt": "Can you point to the value AI has produced for sales?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "No, and we haven't tried to measure."
+      },
+      {
+        "tier": 1,
+        "label": "Anecdotes. \"It saves me an hour on prep.\""
+      },
+      {
+        "tier": 2,
+        "label": "One pilot with a rough time-saving figure."
+      },
+      {
+        "tier": 3,
+        "label": "Hours saved tracked across drafting and research."
+      },
+      {
+        "tier": 4,
+        "label": "Pipeline coverage, reply rates and cycle time, reported quarterly."
+      },
+      {
+        "tier": 5,
+        "label": "AI-attributable bookings or win-rate uplift in the forecast."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "51871dfa-984b-4ac6-8c91-c0de56c280ce",
+    "question_id": "f-p7-roi",
+    "function": "marketing",
+    "prompt": "Can you point to the value AI has produced for marketing?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "No, and we haven't tried to measure."
+      },
+      {
+        "tier": 1,
+        "label": "Anecdotes. \"It saves me an hour on each brief.\""
+      },
+      {
+        "tier": 2,
+        "label": "One pilot with a rough time-saving figure."
+      },
+      {
+        "tier": 3,
+        "label": "Hours saved tracked across briefs and asset production."
+      },
+      {
+        "tier": 4,
+        "label": "Output volume, quality scores and cycle time, reported quarterly."
+      },
+      {
+        "tier": 5,
+        "label": "AI-attributable pipeline contribution in the marketing P&L."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "15ef5231-ca89-410b-a548-769894aeff6f",
+    "question_id": "f-p7-roi",
+    "function": "engineering-product",
+    "prompt": "Can you point to the value AI has produced for engineering and product?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "No, and we haven't tried to measure."
+      },
+      {
+        "tier": 1,
+        "label": "Anecdotes. \"It saves me an hour on boilerplate.\""
+      },
+      {
+        "tier": 2,
+        "label": "One pilot with a rough time-saving figure."
+      },
+      {
+        "tier": 3,
+        "label": "Hours saved tracked across PRs, tests and docs."
+      },
+      {
+        "tier": 4,
+        "label": "Cycle time, defect rate and PR throughput, reported quarterly."
+      },
+      {
+        "tier": 5,
+        "label": "AI-attributable shipping velocity reflected in roadmap commitments."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "ce51d1a5-0f7a-4cf9-801f-20337328f44d",
+    "question_id": "f-p7-roi",
+    "function": "people-hr",
+    "prompt": "Can you point to the value AI has produced for People?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "No, and we haven't tried to measure."
+      },
+      {
+        "tier": 1,
+        "label": "Anecdotes. \"It saves an hour on each role.\""
+      },
+      {
+        "tier": 2,
+        "label": "One pilot with a rough time-saving figure."
+      },
+      {
+        "tier": 3,
+        "label": "Hours saved tracked across sourcing, screening and comms."
+      },
+      {
+        "tier": 4,
+        "label": "Time-to-hire, quality of hire and comms throughput, reported quarterly."
+      },
+      {
+        "tier": 5,
+        "label": "AI-attributable improvements in retention or time-to-productivity."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "529b8899-1fda-4d6e-bc19-2984c497d1d8",
+    "question_id": "f-p7-roi",
+    "function": "finance",
+    "prompt": "Can you point to the value AI has produced for finance?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "No, and we haven't tried to measure."
+      },
+      {
+        "tier": 1,
+        "label": "Anecdotes. \"It saves an hour on the close.\""
+      },
+      {
+        "tier": 2,
+        "label": "One pilot with a rough time-saving figure."
+      },
+      {
+        "tier": 3,
+        "label": "Hours saved tracked across close, AP and reporting drafts."
+      },
+      {
+        "tier": 4,
+        "label": "Days-to-close, error rate and analyst throughput, reported quarterly."
+      },
+      {
+        "tier": 5,
+        "label": "AI-attributable margin or working-capital improvement in the P&L."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  },
+  {
+    "id": "e938c4b1-b7f1-4b86-9ba3-78129e467594",
+    "question_id": "f-p7-roi",
+    "function": "ops-cs",
+    "prompt": "Can you point to the value AI has produced for operations or customer success?",
+    "options": [
+      {
+        "tier": 0,
+        "label": "No, and we haven't tried to measure."
+      },
+      {
+        "tier": 1,
+        "label": "Anecdotes. \"It saves an hour on each escalation.\""
+      },
+      {
+        "tier": 2,
+        "label": "One pilot with a rough time-saving figure."
+      },
+      {
+        "tier": 3,
+        "label": "Hours saved tracked across triage, replies and QBR prep."
+      },
+      {
+        "tier": 4,
+        "label": "Deflection rate, CSAT and handle time, reported quarterly."
+      },
+      {
+        "tier": 5,
+        "label": "AI-attributable retention or NRR uplift in the customer book."
+      }
+    ],
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-20T08:16:15.068447+00:00"
+  }
+]

@@ -47,12 +47,24 @@ export default function AssessResult() {
     setSaveError("");
 
     try {
-      // Store email locally for now; in production this would trigger a signup + email
+      const answers = JSON.parse(localStorage.getItem("dg:archetype:last-answers") || "{}");
+      const level = (localStorage.getItem("dg:archetype:last-level") || "company") as any;
+      
+      // Save to Supabase so Lovable's email system can pick it up
+      await import("@/lib/archetype-storage").then(({ saveEmailCapture }) =>
+        saveEmailCapture({
+          email,
+          archetype_index: archetype.index,
+          answers,
+          level,
+        })
+      );
+      
       localStorage.setItem("dg:archetype:email", email);
       trackEvent("archetype_email_captured", { archetype: archetype.index });
       setSaved(true);
     } catch (err: any) {
-      setSaveError(err.message || "Something went wrong.");
+      setSaveError(err.message || "Something went wrong. Try again.");
     } finally {
       setSaving(false);
     }

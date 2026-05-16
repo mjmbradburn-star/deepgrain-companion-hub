@@ -19,6 +19,7 @@ export function SiteNav() {
 
   const links = [
     { href: "/assess", label: "Assessment" },
+    ...(user ? [{ href: "/reports", label: "My results" }] : []),
     { href: "/privacy", label: "Privacy" },
   ];
 

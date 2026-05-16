@@ -1,0 +1,682 @@
+[
+  {
+    "id": "i-p5-learning",
+    "level": "individual",
+    "pillar": 5,
+    "position": 52,
+    "prompt": "How do you keep learning?",
+    "active": true,
+    "created_at": "2026-04-23T15:46:30.25711+00:00",
+    "updated_at": "2026-04-23T15:46:30.25711+00:00",
+    "detail": {
+      "trap": "Passive scrolling is not the same as deliberate practice. Regular experiments are the real threshold.",
+      "rationale": "Learning cadence is what separates occasional AI users from operators who compound gains over time.",
+      "crosscheck": "Learning should stay close to the respondent's fluency and workflow maturity."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "f-p1-strategy",
+    "level": "function",
+    "pillar": 1,
+    "position": 2,
+    "prompt": "Is there a written plan for what AI should do here?",
+    "active": true,
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "f-p2-access",
+    "level": "function",
+    "pillar": 2,
+    "position": 4,
+    "prompt": "How easily can the team get the data they need to answer a question?",
+    "active": true,
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "f-p4-redesign",
+    "level": "function",
+    "pillar": 4,
+    "position": 7,
+    "prompt": "Have you redesigned any work around AI, rather than bolting it on?",
+    "active": true,
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p3-agents",
+    "level": "company",
+    "pillar": 3,
+    "position": 4,
+    "prompt": "How many AI agents are live in production with a named owner?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "We use Copilot is Tier 1 on this question, not Tier 3. Copilot is assistive autocomplete, not an agent. Tier 3+ requires naming the agent and its owner.",
+      "rationale": "The single biggest gap in the live instrument. Named owner is the gate between Tier 2 and Tier 3 because an unowned agent is a liability, not an asset.",
+      "crosscheck": "Agent tier cannot exceed Tooling infrastructure tier (qs-c-p3) by more than 1."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p3-orchestration",
+    "level": "company",
+    "pillar": 3,
+    "position": 32,
+    "prompt": "What orchestrates your AI workflows?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "Some Zapier flows often gets claimed as Tier 2 or 3. If nobody can be named as the owner of each flow, it is Tier 1.",
+      "rationale": "The plumbing underneath agents is what makes them compound or fail. Named owners at Tier 3 is non-negotiable.",
+      "crosscheck": "Orchestration should be within 1 tier of the agent question (qs-c-p3-agents). Agents without orchestration is a toy, orchestration without agents is waste."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p3-observability",
+    "level": "company",
+    "pillar": 3,
+    "position": 33,
+    "prompt": "How do you observe AI in production?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "Tier 2 We log model calls is the most common overclaim. If nobody can open a dashboard and show cost per workflow, it is Tier 1.",
+      "rationale": "If you cannot see it, you cannot trust it. Tier 3 is the point at which AI becomes a first-class production system.",
+      "crosscheck": "Observability tier cannot exceed the Orchestration tier (c-p3-orchestration). You can only observe what you can orchestrate."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p3-toolconnect",
+    "level": "company",
+    "pillar": 3,
+    "position": 34,
+    "prompt": "How are your agents connected to tools and data?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "Custom API calls is Tier 2, not Tier 3. MCP or a shared registry is the gate. Without it, every agent reinvents the connection.",
+      "rationale": "Tool connection is where agent quality actually lives. MCP adoption at Tier 3 is the April 2026 benchmark for a serious implementation.",
+      "crosscheck": "Cannot exceed the agent tier (qs-c-p3-agents) by more than 1. Sophisticated connections on no agents is wasted infra."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p2-corpus",
+    "level": "company",
+    "pillar": 2,
+    "position": 22,
+    "prompt": "How curated is the corpus your AI actually reads?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "Putting docs in a vector store is Tier 1 or 2, not 3. Governance and ownership are what shift the tier.",
+      "rationale": "Most RAG implementations fail at the corpus, not the model. Named ownership is the step-change at Tier 3.",
+      "crosscheck": "Cannot exceed the Data Foundations score (qs-c-p2) by more than 1."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p2-memory",
+    "level": "company",
+    "pillar": 2,
+    "position": 23,
+    "prompt": "What does memory look like for your agents and workflows?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "Vendor-provided memory features count as Tier 1 unless there is a deliberate architecture on top.",
+      "rationale": "Memory is the quiet differentiator. Most companies have not thought about it at all, which is Tier 0. Acknowledging the gap puts you at Tier 1.",
+      "crosscheck": "Memory tier cannot exceed Agents tier (qs-c-p3-agents). Memory for agents you do not have is not a real answer."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p5-prompts",
+    "level": "company",
+    "pillar": 5,
+    "position": 52,
+    "prompt": "Where do your organisation\u2019s best prompts actually live?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "A big Notion library nobody has opened in a month is Tier 1, not Tier 2. Shared means actively referenced, not technically exists.",
+      "rationale": "Prompt storage reveals whether skills are treated as craft or disposable. The presence of version control at Tier 4 is the first serious sign.",
+      "crosscheck": "Cannot exceed Skills & Fluency median score (qs-c-p5) by more than 1. Sophisticated prompt storage without capable users is cargo culting."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "c-p5-evals",
+    "level": "company",
+    "pillar": 5,
+    "position": 53,
+    "prompt": "How do you evaluate prompt and skill changes before deploying?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "I ran it a few times and it seemed better is Tier 1, not Tier 3. A test set means written expectations, not gut feel.",
+      "rationale": "Most prompt improvements are vibes-based. An eval discipline is what separates teams shipping real craft from teams generating churn.",
+      "crosscheck": "Cannot exceed Observability tier (c-p3-observability) by more than 1. You cannot run evals you cannot observe."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "f-p3-agents",
+    "level": "function",
+    "pillar": 3,
+    "position": 32,
+    "prompt": "Does this function have agents of its own, running day to day?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "Built-in vendor AI features in a CRM, ATS or similar are Tier 1. Vendor features are not owned agents.",
+      "rationale": "Functions without agents are functions still paying full operational debt. Named ownership is the Tier 3 gate.",
+      "crosscheck": "Cannot exceed the company-level agent tier (qs-c-p3-agents) by more than 1."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "f-p5-prompts",
+    "level": "function",
+    "pillar": 5,
+    "position": 52,
+    "prompt": "How are prompts and skills shared across this function?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "A Notion page of prompts from six months ago is Tier 1, not Tier 2. Active means in the last fortnight.",
+      "rationale": "Prompt reuse is the lead indicator of function-level craft. Solo use with no sharing is Tier 0, regardless of how sophisticated the individual is.",
+      "crosscheck": "Should not exceed the company-level prompts tier (c-p5-prompts) by more than 1."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "i-p3-agents",
+    "level": "individual",
+    "pillar": 3,
+    "position": 32,
+    "prompt": "Have you built any personal agents or automations that run without you triggering them?",
+    "active": true,
+    "created_at": "2026-04-22T13:07:29.104316+00:00",
+    "updated_at": "2026-04-22T13:07:29.104316+00:00",
+    "detail": {
+      "trap": "ChatGPT scheduled tasks is Tier 2, not Tier 3. Multiple workflows is the gate.",
+      "rationale": "Builder density starts at the individual level. Someone who has shipped one personal automation is already Tier 2, which is more common than people admit.",
+      "crosscheck": "Personal agent tier cannot exceed the Individual skills tier (qs-i-p5) by more than 1."
+    },
+    "version": "v1.1",
+    "status": "active"
+  },
+  {
+    "id": "f-p5-growth",
+    "level": "function",
+    "pillar": 5,
+    "position": 9,
+    "prompt": "What's in place to help people get better at this?",
+    "active": true,
+    "created_at": "2026-04-20T08:16:15.068447+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p1",
+    "level": "company",
+    "pillar": 1,
+    "position": 1,
+    "prompt": "Who, at board or exec level, owns AI for the company?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p2",
+    "level": "company",
+    "pillar": 2,
+    "position": 2,
+    "prompt": "What state is the company's data in?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p3",
+    "level": "company",
+    "pillar": 3,
+    "position": 3,
+    "prompt": "What AI tooling is sanctioned company-wide?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p4",
+    "level": "company",
+    "pillar": 4,
+    "position": 4,
+    "prompt": "Where does AI sit in real cross-company workflows?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p5",
+    "level": "company",
+    "pillar": 5,
+    "position": 5,
+    "prompt": "How fluent is the median employee?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p6",
+    "level": "company",
+    "pillar": 6,
+    "position": 6,
+    "prompt": "What governance is in place company-wide?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p7",
+    "level": "company",
+    "pillar": 7,
+    "position": 7,
+    "prompt": "Can the company point to AI's value in the P&L?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-c-p8",
+    "level": "company",
+    "pillar": 8,
+    "position": 8,
+    "prompt": "How do people across the company talk about using AI?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p1",
+    "level": "function",
+    "pillar": 1,
+    "position": 1,
+    "prompt": "Who actually owns AI in your function?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p2",
+    "level": "function",
+    "pillar": 2,
+    "position": 2,
+    "prompt": "If a tool tried to read your function's data tomorrow, what would it find?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p3",
+    "level": "function",
+    "pillar": 3,
+    "position": 3,
+    "prompt": "What AI tooling is actually in use here, day to day?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p4",
+    "level": "function",
+    "pillar": 4,
+    "position": 4,
+    "prompt": "Where does AI sit in the actual day to day?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p5",
+    "level": "function",
+    "pillar": 5,
+    "position": 5,
+    "prompt": "How fluent is the average person in your function, not the keenest?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p6",
+    "level": "function",
+    "pillar": 6,
+    "position": 6,
+    "prompt": "What governance is in place?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p7",
+    "level": "function",
+    "pillar": 7,
+    "position": 7,
+    "prompt": "Can you point to the value AI has produced for this function?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-f-p8",
+    "level": "function",
+    "pillar": 8,
+    "position": 8,
+    "prompt": "How do colleagues talk about using AI in their work?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p1",
+    "level": "individual",
+    "pillar": 1,
+    "position": 1,
+    "prompt": "How deliberate are you about AI in your own work?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p2",
+    "level": "individual",
+    "pillar": 2,
+    "position": 2,
+    "prompt": "How well-organised is the context you feed your tools?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p3",
+    "level": "individual",
+    "pillar": 3,
+    "position": 3,
+    "prompt": "What does your personal AI stack look like?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p4",
+    "level": "individual",
+    "pillar": 4,
+    "position": 4,
+    "prompt": "Where does AI sit in your day-to-day work?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p5",
+    "level": "individual",
+    "pillar": 5,
+    "position": 5,
+    "prompt": "How would you rate your own fluency?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p6",
+    "level": "individual",
+    "pillar": 6,
+    "position": 6,
+    "prompt": "How careful are you with sensitive data and AI outputs?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p7",
+    "level": "individual",
+    "pillar": 7,
+    "position": 7,
+    "prompt": "Can you point to time AI saves you?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  },
+  {
+    "id": "qs-i-p8",
+    "level": "individual",
+    "pillar": 8,
+    "position": 8,
+    "prompt": "How openly do you share what you do with AI?",
+    "active": true,
+    "created_at": "2026-04-21T18:36:35.193929+00:00",
+    "updated_at": "2026-04-22T13:50:04.701843+00:00",
+    "detail": {
+      "trap": "Respondents often overstate maturity based on one-off examples. Score what happens reliably.",
+      "rationale": "This question tests whether AI is embedded in real operating practice, not just discussed or trialled.",
+      "crosscheck": "The answer should be consistent with adjacent pillars and the respondent's operating reality."
+    },
+    "version": "v1.0",
+    "status": "active"
+  }
+]
