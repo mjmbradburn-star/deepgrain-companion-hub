@@ -1,288 +1,102 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
 
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
-import { PillarChip } from "@/components/aioi/PillarChip";
-import { ProgressBar } from "@/components/aioi/ProgressBar";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  PILLAR_NAMES,
-  FUNCTIONS,
-  REGIONS,
   loadDraft,
-  type BusinessFunction,
   type Level,
-  type Region,
 } from "@/lib/assessment";
 import {
   getQuickscanQuestions,
   loadScan,
   saveScan,
   clearScan,
+  calculateArchetype,
 } from "@/lib/quickscan";
-import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import { seoRoutes } from "@/lib/seo";
 
 const VALID_LEVELS: Level[] = ["company", "function", "individual"];
 
-type ErrorKind = "timeout" | "offline" | "network" | "server" | "validation" | "unknown";
-interface SubmitError {
-  kind: ErrorKind;
-  title: string;
-  detail: string;
-  hint: string;
-}
-
-const SUBMIT_TIMEOUT_MS = 25_000;
-
-/**
- * Classify a submit failure into something we can speak about plainly.
- *
- * The supabase-js `functions.invoke` call surfaces three meaningfully
- * different shapes: a `FunctionsHttpError` for non-2xx responses (the
- * function ran but returned an error), a `FunctionsRelayError` when the
- * gateway can't reach the function, and a `FunctionsFetchError` when the
- * fetch itself fails. We also handle our own `AbortError` (timeout) and
- * the browser's `navigator.onLine` flag for offline detection.
- */
-function classifyError(err: unknown, ctx: { offline: boolean; payloadError?: string }): SubmitError {
-  // 1. Server returned a structured error from the function body
-  if (ctx.payloadError) {
-    return {
-      kind: "validation",
-      title: "We couldn't accept those answers",
-      detail: ctx.payloadError,
-      hint: "Review your answers below. One of them may be incomplete. If it looks right, try again.",
-    };
-  }
-
-  // 2. Browser is offline
-  if (ctx.offline || (typeof navigator !== "undefined" && !navigator.onLine)) {
-    return {
-      kind: "offline",
-      title: "You're offline",
-      detail: "Your device isn't connected to the internet right now.",
-      hint: "Check your connection. Your answers are safe on this device. Hit Try again once you're back online.",
-    };
-  }
-
-  const name = err instanceof Error ? err.name : "";
-  const message = err instanceof Error ? err.message : String(err ?? "");
-
-  // 3. Our own timeout (AbortController) — the request didn't come back in time
-  if (name === "AbortError" || /timeout|timed out|aborted/i.test(message)) {
-    return {
-      kind: "timeout",
-      title: "That took too long",
-      detail: "The scoring service didn't respond within 25 seconds.",
-      hint: "Usually a one-off. Wait a few seconds and hit Try again. If it keeps timing out, refresh the page.",
-    };
-  }
-
-  // 4. Server-side error (function ran, returned non-2xx) — supabase wraps as FunctionsHttpError
-  if (name === "FunctionsHttpError" || /\b5\d\d\b/.test(message) || /server/i.test(message)) {
-    return {
-      kind: "server",
-      title: "Our scoring service hiccupped",
-      detail: message || "The function ran but returned an error.",
-      hint: "We've logged it. Try again in a moment. Your answers are saved.",
-    };
-  }
-
-  // 5. Network / relay failure — couldn't reach the function at all
-  if (
-    name === "FunctionsRelayError" ||
-    name === "FunctionsFetchError" ||
-    name === "TypeError" ||
-    /failed to fetch|network|relay|load failed/i.test(message)
-  ) {
-    return {
-      kind: "network",
-      title: "Couldn't reach the scoring service",
-      detail: "We couldn't make it to the server. Could be your connection or ours.",
-      hint: "Check your connection and try again. If it persists, refresh and we'll resume from your last answer.",
-    };
-  }
-
-  return {
-    kind: "unknown",
-    title: "Something snagged",
-    detail: message || "An unexpected error occurred.",
-    hint: "Try again. Your answers are safe on this device.",
-  };
-}
-
 export default function AssessScan() {
   const navigate = useNavigate();
 
-  // Resolve level from the previous picker (or fall back to function-level).
   const initialScan = loadScan();
   const draftLevel = initialScan.level ?? loadDraft().level;
-  const level: Level = draftLevel && VALID_LEVELS.includes(draftLevel) ? draftLevel : "function";
+  const level: Level = draftLevel && VALID_LEVELS.includes(draftLevel) ? draftLevel : "company";
 
-  const [fn, setFn] = useState<BusinessFunction | undefined>(initialScan.function);
-  const [region, setRegion] = useState<Region | undefined>(initialScan.region as Region | undefined);
   const [answers, setAnswers] = useState<Record<string, number>>(initialScan.answers ?? {});
-  // Resume at the first unanswered question if a draft exists. We compute the
-  // initial step against the question list for the level + function we just
-  // restored, so a refresh mid-scan drops the user back exactly where they left.
+  const questions = getQuickscanQuestions();
   const [step, setStep] = useState(() => {
-    const initialQs = getQuickscanQuestions(
-      level,
-      level === "function" ? initialScan.function : undefined,
-    );
     const restored = initialScan.answers ?? {};
-    const firstUnanswered = initialQs.findIndex((q) => restored[q.id] === undefined);
-    if (firstUnanswered === -1) return Math.max(1, initialQs.length);
+    const firstUnanswered = questions.findIndex((q) => restored[q.id] === undefined);
+    if (firstUnanswered === -1) return Math.max(1, questions.length);
     return firstUnanswered + 1;
   });
   const [resumed] = useState(() => Object.keys(initialScan.answers ?? {}).length > 0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<SubmitError | null>(null);
-  const [lastAttempt, setLastAttempt] = useState<Record<string, number> | null>(null);
-
-  // Persist + recompute prompts whenever function changes (level-=function only).
-  const questions = useMemo(
-    () => getQuickscanQuestions(level, level === "function" ? fn : undefined),
-    [level, fn],
-  );
 
   // Persist on every meaningful change
   useEffect(() => {
-    saveScan({ level, function: fn, region, answers, startedAt: initialScan.startedAt ?? new Date().toISOString() });
+    saveScan({ level, answers, startedAt: initialScan.startedAt ?? new Date().toISOString() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level, fn, region, answers]);
+  }, [level, answers]);
 
-  // Telemetry: scan started
+  // Telemetry: scan started or resumed
   useEffect(() => {
-    trackEvent("quickscan_started", { level });
+    if (resumed) {
+      trackEvent("quickscan_resumed", { level, answeredCount: Object.keys(answers).length });
+    } else {
+      trackEvent("quickscan_started", { level });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Telemetry: abandon detection
+  useEffect(() => {
+    const handler = () => {
+      const answeredCount = Object.keys(answers).length;
+      if (answeredCount < questions.length) {
+        trackEvent("quickscan_abandoned", { level, answeredCount, totalQuestions: questions.length });
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, level, questions.length]);
 
   const idx = step - 1;
   const question = questions[idx];
   const selected = question ? answers[question.id] : undefined;
 
-  const segments = useMemo(
-    () =>
-      questions.map((q, i) => ({
-        pillar: q.pillar,
-        filled: i <= idx && answers[q.id] !== undefined,
-      })),
-    [idx, answers, questions],
-  );
-
-  // Re-entry guard. `submitting` lives in state and won't be visible to a
-  // second call that arrives in the same React tick — a ref gives us a
-  // synchronous lock so a fast double-click or an Enter+button race can't
-  // fire two report-generation requests in parallel.
-  const inflight = useRef(false);
-
   const submit = useCallback(
     async (finalAnswers: Record<string, number>) => {
-      if (inflight.current) return;
-      inflight.current = true;
       setSubmitting(true);
-      setSubmitError(null);
-      setLastAttempt(finalAnswers);
-
-      // Snapshot the connectivity state before kicking off the call so the
-      // classifier can describe the right failure even if the browser comes
-      // back online during the timeout window.
-      const wasOffline = typeof navigator !== "undefined" && !navigator.onLine;
-
-      // Race the invoke against a timeout so a hung request surfaces as an
-      // explicit `timeout` error instead of spinning forever. supabase-js
-      // doesn't expose an AbortSignal pass-through, so Promise.race is the
-      // cleanest way to bound this.
-      let timeout: number | undefined;
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeout = window.setTimeout(() => {
-          const err = new Error("Request timed out");
-          err.name = "AbortError";
-          reject(err);
-        }, SUBMIT_TIMEOUT_MS);
-      });
-
-      try {
-        const payload = {
-          level,
-          function: level === "function" ? fn ?? null : null,
-          region: region ?? null,
-          answers: questions.map((q) => ({
-            question_id: q.id,
-            tier: finalAnswers[q.id],
-          })).filter((a) => typeof a.tier === "number"),
-        };
-        const { data, error } = await Promise.race([
-          supabase.functions.invoke("submit-quickscan", { body: payload }),
-          timeoutPromise,
-        ]);
-        if (error) {
-          console.error("[scan] submit failed", error, data);
-          setSubmitting(false);
-          setSubmitError(
-            classifyError(error, {
-              offline: wasOffline,
-              payloadError: typeof data === "object" && data && "error" in data
-                ? String((data as { error?: unknown }).error ?? "")
-                : undefined,
-            }),
-          );
-          return;
-        }
-        if (!data?.slug) {
-          console.error("[scan] submit returned no slug", data);
-          setSubmitting(false);
-          setSubmitError(
-            classifyError(new Error("Missing slug in response"), {
-              offline: wasOffline,
-              payloadError:
-                typeof data === "object" && data && "error" in data
-                  ? String((data as { error?: unknown }).error ?? "")
-                  : undefined,
-            }),
-          );
-          return;
-        }
-        saveScan({ ...loadScan(), slug: data.slug });
-        trackEvent("quickscan_completed", { level, slug: data.slug });
-        clearScan();
-        navigate(`/assess/r/${data.slug}`);
-      } catch (err) {
-        console.error("[scan] submit threw", err);
-        setSubmitting(false);
-        setSubmitError(classifyError(err, { offline: wasOffline }));
-      } finally {
-        window.clearTimeout(timeout);
-        inflight.current = false;
-      }
+      const archetypeIndex = calculateArchetype(finalAnswers);
+      // Small delay so the user sees a transition
+      await new Promise((r) => setTimeout(r, 400));
+      clearScan();
+      trackEvent("quickscan_completed", { level, archetype: archetypeIndex });
+      navigate(`/assess/result?a=${archetypeIndex}`);
     },
-    [level, fn, region, questions, navigate],
+    [level, navigate],
   );
 
-  const retry = useCallback(() => {
-    if (submitting || inflight.current) return;
-    if (lastAttempt) void submit(lastAttempt);
-    else void submit(answers);
-  }, [lastAttempt, answers, submit, submitting]);
-
   const select = useCallback(
-    (tier: number) => {
+    (optionIndex: number) => {
       if (!question) return;
-      const next = { ...answers, [question.id]: tier };
+      trackEvent("quickscan_question_answered", {
+        questionId: question.id,
+        questionNumber: step,
+        optionIndex,
+        optionLabel: question.options[optionIndex]?.label,
+      });
+      const next = { ...answers, [question.id]: optionIndex };
       setAnswers(next);
       window.setTimeout(() => {
         if (step < questions.length) {
@@ -297,6 +111,7 @@ export default function AssessScan() {
   );
 
   const goBack = useCallback(() => {
+    trackEvent("quickscan_back_clicked", { fromQuestion: step });
     if (step > 1) {
       setDirection("back");
       setStep(step - 1);
@@ -308,17 +123,14 @@ export default function AssessScan() {
   // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // While the loading or retry UI is up, swallow all shortcuts so a
-      // stray Enter/digit can't trigger a duplicate submit or change the
-      // answer underneath the spinner.
-      if (submitting || submitError || inflight.current) return;
+      if (submitting) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (!question) return;
-      if (/^[1-6]$/.test(e.key)) {
+      if (/^[1-5]$/.test(e.key)) {
         e.preventDefault();
-        const tier = parseInt(e.key, 10) - 1;
-        if (tier >= 0 && tier < question.options.length) select(question.options[tier].tier);
+        const optionIndex = parseInt(e.key, 10) - 1;
+        if (optionIndex >= 0 && optionIndex < question.options.length) select(optionIndex);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         goBack();
@@ -334,76 +146,19 @@ export default function AssessScan() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [question, selected, step, questions.length, select, goBack, submit, answers, submitting, submitError]);
+  }, [question, selected, step, questions.length, select, goBack, submit, answers, submitting]);
 
-  if (submitting || submitError) {
+  if (submitting) {
     return (
-      <AssessChrome ariaLabel={submitError ? "Report generation failed" : "Building your report"}>
+      <AssessChrome ariaLabel="Building your result">
         <Seo {...seoRoutes.flow} path="/assess/scan" />
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center max-w-md">
-            {submitting ? (
-              <>
-                <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
-                <p className="mt-6 font-display text-2xl text-cream/85">Scoring your scan…</p>
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-                  A few seconds.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass-bright">
-                  {submitError?.kind === "offline"
-                    ? "No connection"
-                    : submitError?.kind === "timeout"
-                    ? "Request timed out"
-                    : submitError?.kind === "server"
-                    ? "Server error"
-                    : submitError?.kind === "validation"
-                    ? "Couldn't accept answers"
-                    : submitError?.kind === "network"
-                    ? "Network error"
-                    : "Something snagged"}
-                </p>
-                <p className="mt-4 font-display text-2xl text-cream/90">
-                  {submitError?.title ?? "We couldn't build your report."}
-                </p>
-                <p className="mt-3 font-display text-sm text-cream/65 leading-relaxed">
-                  {submitError?.detail}
-                </p>
-                <div className="mt-5 mx-auto max-w-sm rounded-sm border border-brass/25 bg-brass/5 px-4 py-2.5">
-                  <p className="font-ui text-xs text-cream/75 leading-relaxed">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass-bright/85 mr-1.5">Tip ·</span>
-                    {submitError?.hint}
-                  </p>
-                </div>
-                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/35">
-                  Your answers are safe on this device.
-                </p>
-                <div className="mt-8 flex items-center justify-center gap-4">
-                  <Button
-                    onClick={retry}
-                    disabled={
-                      submitting ||
-                      (submitError?.kind === "offline" && typeof navigator !== "undefined" && !navigator.onLine)
-                    }
-                    className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    {submitting
-                      ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Retrying…</>
-                      : submitError?.kind === "offline"
-                      ? "Try again when online"
-                      : "Try again"}
-                  </Button>
-                  <button
-                    onClick={() => { setSubmitError(null); }}
-                    className="font-ui text-xs uppercase tracking-[0.16em] text-cream/55 hover:text-cream"
-                  >
-                    Review answers
-                  </button>
-                </div>
-              </>
-            )}
+            <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
+            <p className="mt-6 font-display text-2xl text-cream/85">Finding your archetype…</p>
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
+              Just a moment.
+            </p>
           </div>
         </main>
       </AssessChrome>
@@ -421,14 +176,6 @@ export default function AssessScan() {
     >
       <Seo {...seoRoutes.flow} path="/assess/scan" />
       <main className="w-full flex flex-col">
-        <div className="container pt-6">
-          <ProgressBar
-            segments={segments}
-            currentPillar={question.pillar}
-            currentPillarLabel={PILLAR_NAMES[question.pillar]}
-          />
-        </div>
-
         <div
           key={question.id}
           className={`container max-w-3xl flex-1 py-8 sm:py-14 ${
@@ -437,97 +184,7 @@ export default function AssessScan() {
               : "animate-fade-in"
           }`}
         >
-          {/* Inline picker on Q1 — function (function-level only) + region.
-              Skippable; both default to "—". */}
-          {step === 1 && (
-            <div
-              className={`mb-10 rounded-md border border-cream/10 bg-surface-1/50 p-5 grid grid-cols-1 ${
-                level === "function" ? "sm:grid-cols-2" : ""
-              } gap-x-4 gap-y-2 sm:[grid-template-rows:auto_auto] items-end`}
-            >
-              {level === "function" && (
-                <>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 sm:row-start-1">
-                    Function (optional)
-                  </span>
-                  <div className="sm:row-start-2">
-                    <Select
-                      value={fn ?? "__skip"}
-                      onValueChange={(v) =>
-                        setFn(v === "__skip" ? undefined : (v as BusinessFunction))
-                      }
-                    >
-                      <SelectTrigger
-                        aria-label="Function"
-                        className="w-full h-10 rounded-sm bg-surface-0 border-cream/15 text-cream font-ui text-sm hover:border-cream/30 focus:ring-brass focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-0 transition-colors [&>svg]:text-cream/55 [&>svg]:opacity-100"
-                      >
-                        <SelectValue placeholder="Skip" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-walnut border-cream/15 text-cream font-ui">
-                        <SelectItem value="__skip" className="focus:bg-cream/10 focus:text-cream">
-                          Skip
-                        </SelectItem>
-                        {FUNCTIONS.map((f) => (
-                          <SelectItem
-                            key={f.id}
-                            value={f.id}
-                            className="focus:bg-cream/10 focus:text-cream"
-                          >
-                            {f.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              <span
-                className={`font-mono text-[10px] uppercase tracking-[0.2em] text-cream/45 sm:row-start-1 ${
-                  level !== "function" ? "sm:col-span-2" : ""
-                }`}
-              >
-                Region (optional · sharpens the benchmark)
-              </span>
-              <div
-                className={`sm:row-start-2 ${
-                  level !== "function" ? "sm:col-span-2" : ""
-                }`}
-              >
-                <Select
-                  value={region ?? "__skip"}
-                  onValueChange={(v) =>
-                    setRegion(v === "__skip" ? undefined : (v as Region))
-                  }
-                >
-                  <SelectTrigger
-                    aria-label="Region"
-                    className="w-full h-10 rounded-sm bg-surface-0 border-cream/15 text-cream font-ui text-sm hover:border-cream/30 focus:ring-brass focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-0 transition-colors [&>svg]:text-cream/55 [&>svg]:opacity-100"
-                  >
-                    <SelectValue placeholder="Skip" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-walnut border-cream/15 text-cream font-ui">
-                    <SelectItem value="__skip" className="focus:bg-cream/10 focus:text-cream">
-                      Skip
-                    </SelectItem>
-                    {REGIONS.map((r) => (
-                      <SelectItem
-                        key={r}
-                        value={r}
-                        className="focus:bg-cream/10 focus:text-cream"
-                      >
-                        {r}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {/* Resume banner — shown above the question whenever there's a
-              restored draft, on every step until the user starts over or
-              completes the scan. */}
+          {/* Resume banner */}
           {resumed && (
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-brass/30 bg-brass/5 px-4 py-2.5">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-bright/85">
@@ -536,11 +193,10 @@ export default function AssessScan() {
               <button
                 type="button"
                 onClick={() => {
+                  trackEvent("quickscan_restart_clicked", { answeredCount: Object.keys(answers).length });
                   if (typeof window !== "undefined" && !window.confirm("Clear your saved answers and start the scan over?")) return;
                   clearScan();
                   setAnswers({});
-                  setFn(undefined);
-                  setRegion(undefined);
                   setStep(1);
                   setDirection("forward");
                 }}
@@ -552,7 +208,6 @@ export default function AssessScan() {
           )}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-7">
-            <PillarChip index={question.pillar} label={PILLAR_NAMES[question.pillar]} />
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
               Question {step} of {questions.length}
             </span>
@@ -568,8 +223,8 @@ export default function AssessScan() {
                 key={opt.label}
                 index={i + 1}
                 title={opt.label}
-                selected={selected === opt.tier}
-                onClick={() => select(opt.tier)}
+                selected={selected === i}
+                onClick={() => select(i)}
               />
             ))}
           </div>
@@ -585,7 +240,7 @@ export default function AssessScan() {
 
             <div className="flex items-center gap-4">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/30 hidden sm:inline">
-                Press 1–6 · ← back · → next
+                Press 1–5 · ← back · → next
               </span>
               {selected !== undefined && step < questions.length && (
                 <Button
@@ -602,7 +257,7 @@ export default function AssessScan() {
                   onClick={() => void submit(answers)}
                   className="rounded-sm bg-brass text-walnut hover:bg-brass-bright font-ui text-xs tracking-wider uppercase"
                 >
-                  See my score <ArrowRight className="h-3.5 w-3.5" />
+                  See my archetype <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>

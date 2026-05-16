@@ -30,18 +30,18 @@ export interface SeoConfig {
 
 export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
   home: {
-    title: "AI Maturity Assessment | AI Operating Index",
-    description: "Take the free 3-minute AI maturity assessment from Deepgrain. Score AI readiness across eight operating pillars and compare against peer benchmarks.",
+    title: "AI Operating Archetype | AI Operating Index",
+    description: "Take the free 60-second AI archetype scan from Deepgrain. Discover your AI Operating Archetype across five profiles and find your leverage point.",
     path: "/",
     image: `${SITE_URL}/og/home.png`,
-    imageAlt: "AI Operating Index maturity assessment share card",
+    imageAlt: "AI Operating Archetype scan share card",
   },
   assess: {
-    title: "Free AI Readiness Assessment | AIOI",
-    description: "Start the 3-minute AI readiness scan for companies, functions, or individuals. Get an AIOI score, maturity tier, hotspots, and benchmark context.",
+    title: "Free AI Archetype Scan | AIOI",
+    description: "Start the 60-second AI archetype scan for companies, functions, or individuals. Get your AI Operating Archetype and a clear leverage point instantly.",
     path: "/assess",
     image: `${SITE_URL}/og/assess.png`,
-    imageAlt: "Free AI readiness scan share card",
+    imageAlt: "Free AI archetype scan share card",
   },
   pillars: {
     title: "Eight AI Operating Model Pillars | AIOI",
@@ -91,14 +91,14 @@ export const seoRoutes: Record<SeoRouteKey, SeoConfig> = {
     noindex: true,
   },
   report: {
-    title: "Private AI Maturity Report | AI Operating Index",
-    description: "A private AIOI report link with AI maturity score, tier, hotspots, recommendations, and benchmark context.",
-    path: "/assess/r/",
+    title: "AI Operating Archetype Result | AI Operating Index",
+    description: "Your AI Operating Archetype result page with profile definition, leverage point, and next steps.",
+    path: "/assess/result",
     noindex: true,
   },
   flow: {
-    title: "Assessment in Progress | AI Operating Index",
-    description: "AIOI assessment flow in progress.",
+    title: "Archetype Scan in Progress | AI Operating Index",
+    description: "AI Operating Archetype scan in progress.",
     path: "/assess/scan",
     noindex: true,
   },
@@ -148,7 +148,7 @@ export function websiteJsonLd() {
     publisher: { "@type": "Organization", name: "Deepgrain" },
     potentialAction: {
       "@type": "Action",
-      name: "Start the 3-minute AI maturity scan",
+      name: "Start the 60-second AI archetype scan",
       target: canonicalUrl("/assess"),
     },
   };
@@ -165,7 +165,7 @@ export function applicationJsonLd() {
     url: SITE_URL,
     description: seoRoutes.home.description,
     isAccessibleForFree: true,
-    keywords: ["AI maturity assessment", "AI readiness assessment", "AI adoption benchmark", "AI operating model", "AI governance maturity"],
+    keywords: ["AI archetype scan", "AI operating archetype", "AI readiness assessment", "AI operating model", "AI team profile"],
     audience: [
       { "@type": "BusinessAudience", audienceType: "Companies" },
       { "@type": "BusinessAudience", audienceType: "Functions" },
@@ -191,32 +191,28 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
 
 export const faqItems = [
   {
-    question: "What is an AI maturity assessment?",
-    answer: "An AI maturity assessment measures how ready an organisation, function, or individual is to use AI in day-to-day operating work, not just whether tools have been purchased.",
+    question: "What is an AI Operating Archetype?",
+    answer: "An AI Operating Archetype is a profile that describes how your team handles work, where the bottleneck is, and what to change first. There are five: Operator, Fragment, Explorer, Integrator, and Architect.",
   },
   {
     question: "How long does the AI Operating Index take?",
-    answer: "The quickscan takes about three minutes: eight questions, one per pillar. A deeper follow-up can refine the report after the first score.",
+    answer: "The archetype scan takes about sixty seconds: three questions, five options each. Your result is shown instantly with no email required.",
   },
   {
-    question: "What are the eight AIOI pillars?",
-    answer: "The eight pillars are Strategy & Mandate, Data Foundations, Tooling & Infrastructure, Workflow Integration, Skills & Fluency, Governance & Risk, Measurement & ROI, and Culture & Adoption.",
+    question: "What are the five AI Operating Archetypes?",
+    answer: "The five archetypes are The Operator (manual, people-dependent), The Fragment (tools everywhere, nothing connects), The Explorer (individual experiments, no system), The Integrator (partially connected, partially fragile), and The Architect (designed for scale).",
   },
   {
     question: "Do I need to enter an email?",
-    answer: "No email is required for the first quickscan score. Email is used only when you want to save the report, receive a secure link, or unlock the Deep Dive.",
-  },
-  {
-    question: "How are AIOI benchmarks calculated?",
-    answer: "Benchmarks use opted-in assessment data, grouped by level, function, sector, region, and organisation size. When a precise cohort is thin, AIOI shows the closest available cohort and explains confidence.",
+    answer: "No email is required for the archetype result. Email is used only when you want to save the result, book a follow-up call, or receive updates.",
   },
   {
     question: "Who is Deepgrain?",
     answer: "Deepgrain is the studio behind the AI Operating Index, building diagnostic and operating tools for AI enablement and transformation.",
   },
   {
-    question: "What does the AIOI score include?",
-    answer: "The AIOI score includes a weighted readout across eight pillars, a maturity tier, weakest-pillar hotspots, recommended next actions, and peer benchmark context where available.",
+    question: "What does the archetype result include?",
+    answer: "Your archetype result includes a profile definition, why it matters, a leverage point to act on first, and a description of what good looks like for your next stage.",
   },
   {
     question: "Is AIOI for companies or individuals?",

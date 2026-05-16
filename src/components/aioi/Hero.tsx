@@ -64,24 +64,24 @@ export function Hero() {
 
       {/* Headline block */}
       <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-8 sm:pt-12 lg:pt-14">
-        <p className="eyebrow mb-6 sm:mb-5 motion-safe:animate-fade-up-soft">Issue 01 · A diagnostic</p>
+        <p className="eyebrow mb-6 sm:mb-5 motion-safe:animate-fade-up-soft">Issue 01 · Archetype scan</p>
         <h1
           className="font-display font-light text-cream max-w-[14ch] sm:max-w-[12ch] text-[clamp(3.5rem,18vw,5.75rem)] sm:text-[5.5rem] md:text-[7rem] lg:text-[8rem] xl:text-[9.5rem] leading-[0.95] sm:leading-[0.9] tracking-[-0.02em]"
           style={{ perspective: "1000px" }}
         >
           <span className="block overflow-hidden">
             <span className="block motion-safe:animate-slide-up-mask [animation-delay:120ms]">
-              Measure
+              Find your
             </span>
           </span>
           <span className="block overflow-hidden">
             <span className="block motion-safe:animate-slide-up-mask [animation-delay:220ms]">
-              your
+              AI
             </span>
           </span>
           <span className="block overflow-hidden">
             <span className="block italic font-normal text-brass motion-safe:animate-slide-up-mask [animation-delay:340ms] text-left">
-              AI Capability
+              Archetype
             </span>
           </span>
         </h1>
@@ -92,8 +92,8 @@ export function Hero() {
       <div className="container px-6 sm:px-8 lg:px-12 relative z-10 pt-8 sm:pt-12 lg:pt-14 pb-10 sm:pb-20 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 text-left">
         <p className="md:col-span-6 md:col-start-7 font-display sm:text-2xl text-cream/80 leading-[1.45] sm:leading-[1.35] text-pretty motion-safe:animate-fade-up-soft [animation-delay:680ms]">
           <span className="block">For companies, functions and individuals.</span>
-          <span className="block">Three minutes.</span>
-          <span className="block">Eight pillars, one question each, from <span className="italic">Dormant</span> to <span className="italic">AI-Native</span>.</span>
+          <span className="block">Sixty seconds.</span>
+          <span className="block">Three questions, five options each, from <span className="italic">The Operator</span> to <span className="italic">The Architect</span>.</span>
         </p>
 
         <div className="md:col-span-6 md:col-start-7 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 sm:gap-x-6 sm:gap-y-3 motion-safe:animate-fade-up-soft [animation-delay:820ms]">
@@ -102,19 +102,13 @@ export function Hero() {
             size="lg"
             className="h-14 sm:h-12 px-7 rounded-sm font-ui text-sm tracking-wider uppercase w-full sm:w-auto inline-flex items-center justify-center gap-2 leading-none shrink-0 motion-tap"
           >
-            <a href="/assess" onClick={() => trackEvent("primary_cta_clicked", { location: "home_hero", label: "3-minute AI maturity scan" }, { optional: true })}>
-              <span>3-minute AI maturity scan</span>
+            <a href="/assess" onClick={() => trackEvent("primary_cta_clicked", { location: "home_hero", label: "60-second archetype scan" }, { optional: true })}>
+              <span>60-second archetype scan</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </a>
           </Button>
-          <a
-            href="/pillars"
-            className="story-link font-ui text-sm text-cream/70 hover:text-cream transition-colors text-center sm:text-left leading-none py-1"
-          >
-            See the eight pillars
-          </a>
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-cream/45 text-center sm:text-left leading-none w-full sm:w-auto sm:basis-full">
-            ~3 min · 8 questions · no email
+            ~60 sec · 3 questions · no email
           </span>
         </div>
       </div>
@@ -128,7 +122,7 @@ export function Hero() {
       >
         <span className="h-8 w-px bg-cream/30 origin-top motion-safe:animate-scroll-bob" />
         <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-cream/50">
-          Scroll · Eight pillars
+          Scroll · Five archetypes
         </span>
       </div>
     </section>
