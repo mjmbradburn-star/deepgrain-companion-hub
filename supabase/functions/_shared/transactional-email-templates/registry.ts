@@ -12,7 +12,9 @@ export interface TemplateEntry {
 }
 
 import { template as reportPdfReady } from './report-pdf-ready.tsx'
+import { template as archetypeResult } from './archetype-result.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'report-pdf-ready': reportPdfReady,
+  'archetype-result': archetypeResult,
 }
