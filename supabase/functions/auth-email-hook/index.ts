@@ -17,12 +17,12 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email to continue your AI Operating Index report',
-  invite: "You've been invited",
-  magiclink: 'Your secure sign-in link for AI Operating Index',
-  recovery: 'Reset your password',
+  signup: 'Confirm your AI Operating Archetype',
+  invite: "You've been invited to the AI Operating Index",
+  magiclink: 'Your sign-in link · AI Operating Index',
+  recovery: 'Reset your AIOI password',
   email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  reauthentication: 'Your AIOI verification code',
 }
 
 // Template mapping

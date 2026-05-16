@@ -13,16 +13,10 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_NAME = 'Deepgrain · AIOI'
-
 interface ReportPdfReadyProps {
-  /** Numeric AIOI score 0–100 */
   score?: number
-  /** Tier label, e.g. "Deployed" */
   tier?: string
-  /** Short-lived signed URL to the PDF in the private report-pdfs bucket. */
   pdfUrl?: string
-  /** Canonical app URL back to the live report (no secrets). */
   reportUrl?: string
 }
 
@@ -39,7 +33,17 @@ const ReportPdfReadyEmail = ({
     </Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your AIOI report is ready.</Heading>
+        <table width="100%" style={{ borderCollapse: 'collapse' }}>
+          <tr>
+            <td style={mastheadLeft}>DEEPGRAIN · AIOI</td>
+            <td style={mastheadRight}>VOLUME I · MMXXVI</td>
+          </tr>
+        </table>
+        <Hr style={brassRule} />
+
+        <Text style={eyebrow}>Issue 01 · Report</Text>
+        <Heading style={h1}>Your AIOI report.</Heading>
+        <Hr style={brassUnderline} />
 
         {typeof score === 'number' && (
           <Section style={scoreBox}>
@@ -50,12 +54,11 @@ const ReportPdfReadyEmail = ({
         )}
 
         <Text style={text}>
-          We've packaged your lite report as a one-page PDF. Download it, share
-          it with a colleague, or keep it for your records.
+          We've packaged your lite report as a one-page PDF. Download it, share it with a colleague, or keep it for your records.
         </Text>
 
         {pdfUrl && (
-          <Section style={{ textAlign: 'center', margin: '28px 0' }}>
+          <Section style={{ textAlign: 'left', margin: '28px 0 24px' }}>
             <Button href={pdfUrl} style={primaryButton}>
               Download PDF
             </Button>
@@ -65,18 +68,13 @@ const ReportPdfReadyEmail = ({
         {reportUrl && (
           <Text style={text}>
             Prefer the interactive version?{' '}
-            <a href={reportUrl} style={link}>
-              Open your report online
-            </a>
-            .
+            <a href={reportUrl} style={link}>Open your report online</a>.
           </Text>
         )}
 
-        <Hr style={hr} />
-
+        <Hr style={hairline} />
         <Text style={footer}>
-          Sent by {SITE_NAME}. Your report stays private — only people with the
-          link can view it.
+          aioi.deepgrain.ai · only people with the link can view your report
         </Text>
       </Container>
     </Body>
@@ -100,85 +98,26 @@ export const template = {
   },
 } satisfies TemplateEntry
 
-// ── Styles ────────────────────────────────────────────────────────────────
-const main = {
-  backgroundColor: '#ffffff',
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-}
-const container = {
-  maxWidth: '560px',
-  margin: '0 auto',
-  padding: '32px 28px',
-}
-const h1 = {
-  fontSize: '26px',
-  fontWeight: 600,
-  color: '#2a1a0f',
-  lineHeight: 1.2,
-  margin: '0 0 24px',
-  letterSpacing: '-0.01em',
-}
-const text = {
-  fontSize: '15px',
-  color: '#3d2a1a',
-  lineHeight: 1.6,
-  margin: '0 0 16px',
-}
-const scoreBox = {
-  backgroundColor: '#faf6ef',
-  border: '1px solid #e6dcc8',
-  borderRadius: '6px',
-  padding: '20px 24px',
-  margin: '0 0 24px',
-  textAlign: 'center' as const,
-}
-const scoreLabel = {
-  fontSize: '11px',
-  fontWeight: 600,
-  letterSpacing: '0.18em',
-  textTransform: 'uppercase' as const,
-  color: '#8a7355',
-  margin: '0 0 4px',
-}
-const scoreValue = {
-  fontSize: '52px',
-  fontWeight: 300,
-  color: '#2a1a0f',
-  lineHeight: 1,
-  margin: '0',
-  letterSpacing: '-0.02em',
-}
-const tierLabel = {
-  fontSize: '11px',
-  fontWeight: 600,
-  letterSpacing: '0.18em',
-  textTransform: 'uppercase' as const,
-  color: '#8a7355',
-  margin: '8px 0 0',
-}
-const primaryButton = {
-  backgroundColor: '#b08d3a',
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: 600,
-  letterSpacing: '0.04em',
-  textDecoration: 'none',
-  padding: '12px 28px',
-  borderRadius: '4px',
-  display: 'inline-block',
-}
-const link = {
-  color: '#8a6d2c',
-  textDecoration: 'underline',
-}
-const hr = {
-  borderColor: '#ece4d2',
-  margin: '32px 0 20px',
-}
-const footer = {
-  fontSize: '12px',
-  color: '#8a7355',
-  lineHeight: 1.5,
-  margin: '0',
-}
+const inkHex = 'hsl(152, 60%, 9%)'
+const mutedHex = 'hsl(152, 20%, 28%)'
+const brassHex = 'hsl(32, 60%, 36%)'
+const paperHex = '#F5EFE0'
+const hairlineHex = 'rgba(15, 36, 26, 0.14)'
+
+const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Helvetica, Arial, sans-serif", padding: '32px 0', margin: 0 }
+const container = { maxWidth: '600px', margin: '0 auto', padding: '40px 36px', backgroundColor: paperHex }
+const mastheadLeft = { fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: mutedHex, textAlign: 'left' as const }
+const mastheadRight = { ...mastheadLeft, textAlign: 'right' as const }
+const brassRule = { borderColor: brassHex, borderTopWidth: '1px', margin: '14px 0 28px', opacity: 0.7 }
+const eyebrow = { fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '11px', letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: brassHex, margin: '0 0 18px' }
+const h1 = { fontFamily: "'Cormorant Garamond', 'Times New Roman', Georgia, serif", fontSize: '44px', fontWeight: 400 as const, color: inkHex, letterSpacing: '-0.02em', lineHeight: 1, margin: '0' }
+const brassUnderline = { borderColor: brassHex, borderTopWidth: '1px', width: '96px', margin: '24px 0 28px', marginLeft: '0', opacity: 0.9 }
+const text = { fontFamily: "'Cormorant Garamond', 'Times New Roman', Georgia, serif", fontSize: '17px', color: inkHex, lineHeight: 1.55, margin: '0 0 18px' }
+const link = { color: brassHex, textDecoration: 'underline' }
+const scoreBox = { backgroundColor: '#ffffff', border: `1px solid ${hairlineHex}`, padding: '22px 24px', margin: '0 0 24px', textAlign: 'center' as const }
+const scoreLabel = { fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: mutedHex, margin: '0 0 4px' }
+const scoreValue = { fontFamily: "'Cormorant Garamond', 'Times New Roman', Georgia, serif", fontSize: '64px', fontWeight: 400 as const, color: inkHex, lineHeight: 1, margin: 0, letterSpacing: '-0.02em' }
+const tierLabel = { fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: brassHex, margin: '8px 0 0' }
+const primaryButton = { backgroundColor: inkHex, color: paperHex, fontFamily: "'Inter', Helvetica, Arial, sans-serif", fontSize: '12px', fontWeight: 500 as const, letterSpacing: '0.18em', textTransform: 'uppercase' as const, borderRadius: '2px', padding: '15px 32px', textDecoration: 'none', display: 'inline-block' }
+const hairline = { borderColor: hairlineHex, borderTopWidth: '1px', margin: '24px 0 16px' }
+const footer = { fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: mutedHex, margin: '0', lineHeight: 1.5 }

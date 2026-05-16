@@ -1,95 +1,119 @@
+## Why your survey email didn't send
 
-# Make the advice practical, and the voice yours
+There is no code path that actually sends an email when someone submits the archetype result form. `src/pages/AssessResult.tsx` (`handleEmailSubmit`) only writes the address to `localStorage` with a comment: *"in production this would trigger a signup + email"*. The transactional infra is healthy — the most recent sent emails in `email_send_log` are auth flows (signup / magic-link) up to early May — but nothing calls `send-transactional-email` from the archetype flow.
 
-The grounding work is done. The chat now only talks about the user's report. The next gap is the **shape and tone** of what it says. Today the assistant tends to give framing ("you should think about governance"). What you want is **what to put in the calendar on Monday morning**, in your voice.
+That is the first thing we fix. Then we refresh every template to the new site language.
 
-This plan does two things:
+---
 
-1. Force every chat reply into a concrete "do this tomorrow" shape.
-2. Lock the voice. One shared style guide, applied to chat output and to Move-copy generation, with a server-side sanitiser that strips em-dashes and AI tells before the user sees them.
+## What we'll build
 
-## 1. Practicality contract for every reply
+### 1. Wire the archetype "Send my report" flow (save + email)
 
-Edit the system prompt in `supabase/functions/report-chat/index.ts` so that, unless the user explicitly asks for something else (a one-pager, a brief, a sequence), the model must answer in this shape:
+In `AssessResult.handleEmailSubmit`:
 
+1. Call `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: <origin>/auth/callback?next=/assess/result?a=<idx> }})` so the user gets a magic-link / signup link and lands back on their saved result.
+2. In parallel, call `supabase.functions.invoke('send-transactional-email', { body: { templateName: 'archetype-result', recipientEmail: email, idempotencyKey: \`archetype-{idx}-{email}, templateData: { archetypeName, archetypeIndex, tagline, summary, strengths, watchouts, level, resultUrl } }})` to deliver the styled archetype summary immediately.
+3. Replace the silent `localStorage` stub with real loading/error/success states (we already render them — just hook them to the real promises).
+
+### 2. Refactor `send-transactional-email`
+
+- Change `SITE_NAME` from the project slug `"deepgrain-companion-hub"` to `**"AI Operating Index"**` so the From header reads `AI Operating Index <noreply@notify.www.deepgrain.ai>`.
+- No other logic changes — the function already enqueues correctly.
+- Allow anon callers: today it 401s unless the caller presents `SUPABASE_SERVICE_ROLE_KEY`. We'll keep that path (for server-to-server use from `email-report-pdf`) but **also accept the public anon key**, since the archetype send is client-triggered and there is no PII risk beyond the recipient's own address (rate-limited per-email by the existing idempotency + suppression checks).
+
+### 3. New transactional template — `archetype-result.tsx`
+
+Editorial card matching the Hero / AssessReport visual language:
+
+- Masthead row: `DEEPGRAIN · AIOI` left, `VOLUME I · MMXXVI` right, JetBrains Mono uppercase, brass hairline under.
+- Eyebrow: `ISSUE 01 · ARCHETYPE`
+- Display headline (Cormorant Garamond, light, brass italic accent): *"You are"* / **The Architect**.
+- Brass underline draw motif → static `<Hr>` 1px brass, 96px wide, left-aligned.
+- Tagline + 2-paragraph diagnosis in body Inter.
+- Two muted side-by-side panels: *Strengths* / *Where you'll feel friction*, brass labels.
+- Primary button (deep phthalo `hsl(152 60% 10%)` on cream, 2px radius, 0.18em tracked uppercase Inter): "Open your full result" → `resultUrl`.
+- Footer hairline + `aioi.deepgrain.ai · Lite report · 3-question archetype scan`.
+
+### 4. Rewrite the six auth templates in the same editorial language
+
+Files in `supabase/functions/_shared/email-templates/`:
+
+
+| File                   | New copy direction                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `signup.tsx`           | "Confirm your address to save your archetype." Masthead, brass hairline, primary button "Confirm & continue". |
+| `magic-link.tsx`       | "Your secure sign-in link." Mentions archetype + saved results.                                               |
+| `recovery.tsx`         | "Reset your password" — minimal, on-brand.                                                                    |
+| `invite.tsx`           | "You've been invited to Deepgrain · AIOI." Lightweight restyle only.                                          |
+| `email-change.tsx`     | "Confirm your new email." Lightweight restyle only.                                                           |
+| `reauthentication.tsx` | "Confirm reauthentication" — keeps OTP code block (brass border, JetBrains Mono numerals).                    |
+
+
+All six share a single internal style sheet (defined at the bottom of each file) so the typography, colours, button shape, masthead rule and footer treatment are identical to the transactional templates.
+
+### 5. Update the auth-email-hook subject lines
+
+In `supabase/functions/auth-email-hook/index.ts`, replace `EMAIL_SUBJECTS` so they match the new tone:
+
+- `signup`: "Confirm your AI Archetype result"
+- `magiclink`: "Your sign-in link · AI Operating Index"
+- `recovery`: "Reset your AIOI password"
+- `invite`: "You've been invited to AIOI"
+- `email_change`: "Confirm your new email"
+- `reauthentication`: "Your verification code"
+
+Also align `SITE_NAME` in the hook with the transactional function (already `"AI Operating Index"`, no change).
+
+### 6. Add `archetype-result` to the template registry
+
+Add to `supabase/functions/_shared/transactional-email-templates/registry.ts`:
+
+```ts
+import { template as archetypeResult } from './archetype-result.tsx'
+
+export const TEMPLATES: Record<string, TemplateEntry> = {
+  'report-pdf-ready': reportPdfReady,
+  'archetype-result': archetypeResult,
+}
 ```
-The Move:        '<exact Move title from the allow-list>'
-Why now:         one sentence tied to their hotspot or tier
-Do this week:    3-5 bullets, each starts with a verb, names who does it,
-                 names the artefact produced (doc, channel, meeting, policy)
-First 30 mins:   the very first thing to open or write tomorrow morning
-You'll know
-it landed when:  a behaviour or artefact, not a metric
-Watch out for:   the most common way this fails in a company their size
+
+Also refresh `report-pdf-ready.tsx` to use the same masthead + hairline + Cormorant headline + brass button system so all three transactional surfaces (PDF email, archetype email, and any future receipt) feel like one publication.
+
+### 7. Deploy + verify
+
+- `deploy_edge_functions(["send-transactional-email", "auth-email-hook"])`
+- Send a test from the archetype result page on the preview URL.
+- Tail `email_send_log` for the new `archetype-result` row → `pending` → `sent`.
+
+---
+
+## Visual system (single source of truth for all templates)
+
+```text
+Background      #ffffff   (email-body requirement)
+Inner surface   #F5EFE0   (warm cream paper, our --walnut)
+Ink             hsl(152 60% 9%)   deep phthalo, headlines + body
+Muted ink       hsl(152 20% 28%)
+Brass accent    hsl(32 60% 36%)   links, eyebrow, 1px rule, OTP frame
+Hairline        hsl(152 30% 14% / 0.14)
+Display font    'Cormorant Garamond', 'Times New Roman', serif — weight 500, italic accent
+Body font       'Inter', system-ui, sans-serif
+Mono            'JetBrains Mono', ui-monospace, monospace   (masthead + eyebrow + OTP)
+Eyebrow         11px / uppercase / tracking 0.18em / brass
+Button          h-12, radius 2px, cream text on phthalo, uppercase 12px, tracking 0.18em
 ```
 
-Rules baked into the prompt:
+## What we are NOT changing
 
-- Every action must name a **role** (you, your COO, the team lead, an AI champion) and a **deliverable** (a one-page policy, a Slack channel, a 30-minute standup, a shared prompt library, a tagged folder in Drive).
-- No "consider", "explore", "think about", "look into", "develop a strategy", "foster a culture". If the model would write that, it must instead write the specific thing to do.
-- Never invent vendor names. If a tool is needed, say "your existing chat tool" or "whatever you use for docs".
-- Cap the answer at ~180 words unless the user asked for an artefact (brief, plan, email).
-- For "How do I handle X?" questions (policy breaches, shadow tool use, scepticism, exec resistance) the assistant answers in the same shape but with a "Say this:" block containing a short script the user can paste or read aloud.
+- pgmq queue, RPC wrappers, cron job, suppression list, unsubscribe handler — all healthy.
+- DNS / sender domain (`notify.www.deepgrain.ai`).
+- The PDF generation in `email-report-pdf` itself (only the email shell around it).
 
-## 2. Shared voice guide, used in two places
+## Open question (will pick a sensible default if you don't reply)
 
-Create `supabase/functions/_shared/aioi-voice.ts` exporting:
+You ticked both "keep all six auth templates" and "only signup + magic-link + recovery". Default assumption: **keep all six files** so nothing breaks if Supabase ever fires one, but only invest deep copy work in signup / magic-link / recovery — the other three get a light visual pass to match. Tell me if you want the inactive three deleted instead.
 
-- `VOICE_GUIDE` (string) — the canonical voice rules. Covers: British English, no em-dashes, second person, no banned words, no rhetorical questions, no "in today's fast-paced world" openings, no "I hope this helps" closings, no emoji, contractions allowed, dry and direct.
-- `BANNED_PATTERNS` (RegExp[]) — superset of what `backfill-move-copy` already has, plus: "navigate", "landscape", "robust", "comprehensive", "dive in", "let's", "feel free", "I'd be happy to", "as an AI", "ensure that", "it's important to note", "in order to", "going forward", "at the end of the day".
-- `sanitise(text)` — same function shape as the one in `backfill-move-copy`, with the em-dash → comma replacement, contractions kept, double spaces collapsed.
-- `BANNED_OPENERS` (RegExp[]) — strips assistant openings like "Great question", "Certainly", "Of course", "Sure", "Absolutely".
+&nbsp;
 
-Then:
-
-- `backfill-move-copy/index.ts` imports `VOICE_GUIDE`, `BANNED_PATTERNS`, `sanitise` from the shared module instead of redefining its own. One source of truth.
-- `report-chat/index.ts` imports the same things and uses `VOICE_GUIDE` inside the system prompt's VOICE block, so the chat and the Move copy speak in the same voice.
-
-## 3. Strip the AI tells before the user sees them
-
-The chat streams. We can't sanitise mid-stream cleanly without breaking SSE framing, so do it in two places:
-
-1. **In the system prompt**: hard rule at the top, with examples of bad → good rewrites. Cheapest fix, catches most cases.
-2. **On persistence**: when we save the assistant's final message to `report_chat_messages`, run `sanitise()` on it. The DB copy (which is what the user sees on reload, and what gets exported to the action plan PDF) is always clean. The transient streamed version in the browser may briefly show an em-dash before it gets replaced by the persisted version on the next render.
-
-Add a small post-stream step in the edge function: collect the streamed deltas server-side as they pass through, then on `[DONE]` write the sanitised full text to the DB. (We already proxy the upstream stream; we'll wrap it in a `TransformStream` that tees the content into a buffer.)
-
-Optional polish: when the sheet finishes streaming, the client refetches the last persisted message from `report_chat_messages` and replaces the in-memory copy. One extra read, no UI rewrite needed.
-
-## 4. Tighter starter prompts
-
-Replace the current generic suggested prompts in `src/components/aioi/ReportChatSheet.tsx` with prompts that pull on the practicality contract:
-
-- "What should I do tomorrow morning on '<their #1 Move title>'?"
-- "We don't have an AI policy yet. What's the smallest one that works?"
-- "Someone on my team is using ChatGPT for client work without telling me. How do I handle it?"
-- "Give me a 30-minute agenda for the Monday standup that opens up '<their weakest pillar>'."
-
-These are pre-rendered server-side via the existing grounding bundle (the sheet already has access to `recommendations.moves[0]` and `hotspots[0]` from props). Falls back to generic strings if those aren't loaded.
-
-## 5. What I'm NOT touching
-
-- The Moves data itself. The advice quality starts in the playbook copy, but rewriting Moves is a separate piece of work and would need your editorial pass. This change makes the assistant **render** the Moves into action-shaped advice, which is the highest-leverage move right now.
-- Quotas, RLS, injection rules. All untouched.
-- The "Discuss this Move" entry point. Already there, will benefit automatically.
-
-## Technical change list
-
-**New**
-- `supabase/functions/_shared/aioi-voice.ts` — shared voice guide, banned patterns, sanitise, banned openers.
-
-**Edited**
-- `supabase/functions/report-chat/index.ts` — import shared voice; rewrite system prompt with the practicality contract and the answer shape; tee the upstream stream; sanitise + persist final assistant text on `[DONE]`.
-- `supabase/functions/backfill-move-copy/index.ts` — drop the local copies, import from `_shared/aioi-voice.ts`. No behaviour change.
-- `src/components/aioi/ReportChatSheet.tsx` — derive the suggested prompts from props (top Move title, top hotspot pillar name); fall back to generics.
-- `src/pages/AssessReport.tsx` — pass `topMoveTitle` and `topHotspotName` into `ReportChatLauncher` → `ReportChatSheet` so the prompts can be specific.
-
-## Order of execution
-
-1. Create the shared voice module.
-2. Refactor `backfill-move-copy` to use it (no functional change, just deduplication).
-3. Update `report-chat`: new system prompt, stream tee, sanitise-on-persist.
-4. Update the sheet's starter prompts and the launcher props.
-5. Eyeball it on a real report: ask "what do I do tomorrow on Move X" and confirm the reply has the contract sections, no em-dashes, no "delve".
-
-Approve and I'll ship 1-4 in one go and do the manual check in 5.
+okay, specifically there is a new table for you to look at. I've got some updates from the terminal. Go there and utilize that, but of course make these sexy little changes that you came up with as well. Think about exactly how to do it and go from there In Lovable Email Creator: Point it at the email_captures table. When someone submits their email on the result page, it appears there with sent = false. Your email system can poll that table and send the PDF. 
