@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { ArrowRight, RotateCcw, Calendar, ArrowUpRight } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
-import { ARCHETYPES, getArchetype, type ArchetypeIndex } from "@/lib/assessment";
+import { ARCHETYPES, getArchetype, type ArchetypeIndex } from "@/lib/archetypes";
 import { trackEvent } from "@/lib/analytics";
 import { seoRoutes } from "@/lib/seo";
 

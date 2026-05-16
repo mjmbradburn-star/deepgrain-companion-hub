@@ -2,7 +2,7 @@ import { Hero } from "@/components/aioi/Hero";
 import { Seo } from "@/components/aioi/Seo";
 import { SiteFooter } from "@/components/aioi/SiteFooter";
 import { SiteNav } from "@/components/aioi/SiteNav";
-import { ARCHETYPES } from "@/lib/assessment";
+import { ARCHETYPES } from "@/lib/archetypes";
 import { trackEvent } from "@/lib/analytics";
 import { applicationJsonLd, faqJsonLd, seoRoutes } from "@/lib/seo";
 import { useEffect } from "react";

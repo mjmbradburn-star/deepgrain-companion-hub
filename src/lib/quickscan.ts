@@ -1,11 +1,17 @@
 // 3-question Archetype Quickscan — client-side scoring, no server round-trip.
-// Uses the question bank and scoring from assessment.ts.
+// Uses the question bank and scoring from archetypes.ts.
 
 import {
-  QUESTIONS,
+  ARCHETYPE_QUESTIONS as QUESTIONS,
   calculateArchetype,
-  type ArchetypeDraft,
-} from "@/lib/assessment";
+} from "@/lib/archetypes";
+
+export interface ArchetypeDraft {
+  answers: Record<string, number>;
+  level?: "company" | "function" | "individual";
+  startedAt?: string;
+  slug?: string;
+}
 
 const SCAN_KEY = "dg:archetype:scan";
 
