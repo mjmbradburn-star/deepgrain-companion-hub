@@ -52,17 +52,38 @@ export default function AssessResult() {
     try {
       const answers = JSON.parse(localStorage.getItem("dg:archetype:last-answers") || "{}");
       const level = (localStorage.getItem("dg:archetype:last-level") || "company") as any;
-      
-      // Save to Supabase so Lovable's email system can pick it up
-      await import("@/lib/archetype-storage").then(({ saveEmailCapture }) =>
-        saveEmailCapture({
+
+      // 1. Persist the capture so it's durable + retryable by the dispatcher.
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: capture, error: insertErr } = await supabase
+        .from("email_captures")
+        .insert({
           email,
           archetype_index: archetype.index,
           answers,
           level,
         })
-      );
-      
+        .select("id")
+        .single();
+      if (insertErr) throw insertErr;
+
+      // 2. Fire-and-forget: ask the dispatcher to send this row immediately.
+      //    If it fails the row stays sent=false and will be picked up by a
+      //    later batch run, so we don't surface the error to the user.
+      void supabase.functions.invoke("process-email-captures", {
+        body: { id: capture?.id },
+      });
+
+      // 3. Also send a magic link so they can sign in and save the result.
+      const origin = window.location.origin;
+      void supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${origin}/auth/callback?next=/assess/result?a=${archetype.index}`,
+        },
+      });
+
       localStorage.setItem("dg:archetype:email", email);
       trackEvent("archetype_email_captured", { archetype: archetype.index });
       setSaved(true);

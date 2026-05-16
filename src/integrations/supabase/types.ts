@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      archetype_results: {
+        Row: {
+          answers: Json
+          archetype_index: number
+          created_at: string
+          id: string
+          level: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          archetype_index: number
+          created_at?: string
+          id?: string
+          level?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          archetype_index?: number
+          created_at?: string
+          id?: string
+          level?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       benchmarks_materialised: {
         Row: {
           function: string | null
@@ -50,6 +77,45 @@ export type Database = {
           sample_size?: number
           sector?: string | null
           size_band?: string | null
+        }
+        Relationships: []
+      }
+      email_captures: {
+        Row: {
+          answers: Json
+          archetype_index: number
+          attempts: number
+          created_at: string
+          email: string
+          id: string
+          last_error: string | null
+          level: string
+          sent: boolean
+          sent_at: string | null
+        }
+        Insert: {
+          answers?: Json
+          archetype_index: number
+          attempts?: number
+          created_at?: string
+          email: string
+          id?: string
+          last_error?: string | null
+          level?: string
+          sent?: boolean
+          sent_at?: string | null
+        }
+        Update: {
+          answers?: Json
+          archetype_index?: number
+          attempts?: number
+          created_at?: string
+          email?: string
+          id?: string
+          last_error?: string | null
+          level?: string
+          sent?: boolean
+          sent_at?: string | null
         }
         Relationships: []
       }
