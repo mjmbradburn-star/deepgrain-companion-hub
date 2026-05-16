@@ -1,55 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 
 export function Hero() {
-  const [scrolled, setScrolled] = useState(false);
-  const washTopRef = useRef<HTMLDivElement>(null);
-  const washBottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Subtle parallax on the radial washes — pure transform, GPU only.
-  // Disabled under prefers-reduced-motion.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        const top = washTopRef.current;
-        const bot = washBottomRef.current;
-        if (top) top.style.transform = `translate3d(0, ${y * 0.12}px, 0)`;
-        if (bot) bot.style.transform = `translate3d(0, ${y * -0.08}px, 0)`;
-        ticking = false;
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
     <section className="relative min-h-[88svh] sm:min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut">
-      {/* Soft tonal washes — gentle parallax, GPU-only */}
+      {/* Soft tonal washes — static, no parallax */}
       <div
-        ref={washTopRef}
         aria-hidden="true"
-        className="absolute -top-40 -right-40 w-[60vw] h-[60vw] rounded-full opacity-50 blur-3xl motion-safe:animate-fade-in-slow will-change-transform"
+        className="absolute -top-40 -right-40 w-[60vw] h-[60vw] rounded-full opacity-50 blur-3xl motion-safe:animate-fade-in-slow"
         style={{ background: "radial-gradient(circle, hsl(var(--surface-2)) 0%, transparent 60%)" }}
       />
       <div
-        ref={washBottomRef}
         aria-hidden="true"
-        className="absolute -bottom-40 -left-40 w-[50vw] h-[50vw] rounded-full opacity-40 blur-3xl motion-safe:animate-fade-in-slow [animation-delay:120ms] will-change-transform"
+        className="absolute -bottom-40 -left-40 w-[50vw] h-[50vw] rounded-full opacity-40 blur-3xl motion-safe:animate-fade-in-slow [animation-delay:120ms]"
         style={{ background: "radial-gradient(circle, hsl(var(--green) / 0.08) 0%, transparent 60%)" }}
       />
 
@@ -111,19 +75,6 @@ export function Hero() {
             ~60 sec · 3 questions · no email
           </span>
         </div>
-      </div>
-
-      {/* Scroll cue — desktop only; mobile already shows everything in-flow */}
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute inset-x-0 bottom-5 z-10 hidden sm:flex flex-col items-center gap-2 transition-opacity duration-500 ${
-          scrolled ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        <span className="h-8 w-px bg-cream/30 origin-top motion-safe:animate-scroll-bob" />
-        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-cream/50">
-          Scroll · Five archetypes
-        </span>
       </div>
     </section>
   );

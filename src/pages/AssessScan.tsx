@@ -7,10 +7,6 @@ import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
 import { Button } from "@/components/ui/button";
 import {
-  loadDraft,
-  type Level,
-} from "@/lib/assessment";
-import {
   getQuickscanQuestions,
   loadScan,
   saveScan,
@@ -20,14 +16,11 @@ import {
 import { trackEvent } from "@/lib/analytics";
 import { seoRoutes } from "@/lib/seo";
 
-const VALID_LEVELS: Level[] = ["company", "function", "individual"];
-
 export default function AssessScan() {
   const navigate = useNavigate();
 
   const initialScan = loadScan();
-  const draftLevel = initialScan.level ?? loadDraft().level;
-  const level: Level = draftLevel && VALID_LEVELS.includes(draftLevel) ? draftLevel : "company";
+  const level = initialScan.level ?? "company";
 
   const [answers, setAnswers] = useState<Record<string, number>>(initialScan.answers ?? {});
   const questions = getQuickscanQuestions();
@@ -78,9 +71,11 @@ export default function AssessScan() {
     async (finalAnswers: Record<string, number>) => {
       setSubmitting(true);
       const archetypeIndex = calculateArchetype(finalAnswers);
-      // Small delay so the user sees a transition
       await new Promise((r) => setTimeout(r, 400));
       clearScan();
+      // Store for result page auto-save
+      localStorage.setItem("dg:archetype:last-answers", JSON.stringify(finalAnswers));
+      localStorage.setItem("dg:archetype:last-level", level);
       trackEvent("quickscan_completed", { level, archetype: archetypeIndex });
       navigate(`/assess/result?a=${archetypeIndex}`);
     },
@@ -155,10 +150,8 @@ export default function AssessScan() {
         <main className="container flex-1 flex items-center justify-center py-24">
           <div className="text-center max-w-md">
             <Loader2 className="h-6 w-6 animate-spin text-brass mx-auto" />
-            <p className="mt-6 font-display text-2xl text-cream/85">Finding your archetype…</p>
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">
-              Just a moment.
-            </p>
+            <p className="mt-6 font-display text-2xl text-cream/85">Finding your archetype...</p>
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/40">Just a moment.</p>
           </div>
         </main>
       </AssessChrome>
