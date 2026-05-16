@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { ArrowRight, RotateCcw, Calendar, ArrowUpRight } from "lucide-react";
+import { ArrowRight, RotateCcw, Calendar, ArrowUpRight, Printer } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
 import { ARCHETYPES, getArchetype, type ArchetypeIndex } from "@/lib/archetypes";
@@ -39,9 +39,23 @@ export default function AssessResult() {
   return (
     <AssessChrome back={{ to: "/assess", label: "Assessment" }} ariaLabel={`Your archetype: ${archetype.name}`}>
       <Seo title={`${archetype.name} — AI Operating Archetype | AIOI`} description={archetype.definition} path="/assess/result" noindex />
-      <main className="container py-12 sm:py-20 w-full">
+
+      {/* ─── Screen result ─────────────────────────────────────────────── */}
+      <main className="container py-12 sm:py-20 w-full print:hidden">
         <div className="max-w-3xl mx-auto">
-          <p className="eyebrow mb-4">Your AI Operating Archetype</p>
+          <div className="flex items-center justify-between mb-6">
+            <p className="eyebrow mb-0">Your AI Operating Archetype</p>
+            <button
+              onClick={() => {
+                trackEvent("archetype_print_clicked");
+                window.print();
+              }}
+              className="inline-flex items-center gap-2 rounded-sm bg-brass text-walnut hover:bg-brass-bright px-4 py-2 font-ui text-xs uppercase tracking-wider transition-colors"
+            >
+              <Printer className="h-3.5 w-3.5" /> Print / Save PDF
+            </button>
+          </div>
+
           <h1 className={`font-display text-5xl sm:text-6xl ${archetype.colour}`}>{archetype.name}</h1>
           <p className="mt-2 font-display italic text-2xl text-cream/70">{archetype.tagline}</p>
 
@@ -119,6 +133,78 @@ export default function AssessResult() {
           </div>
         </div>
       </main>
+
+      {/* ─── Print-only A4 one-pager ───────────────────────────────────── */}
+      <section className="hidden print:block">
+        <article
+          className="bg-cream text-walnut p-12"
+          style={{ aspectRatio: "1 / 1.414", minHeight: "100vh" }}
+        >
+          {/* Masthead */}
+          <header className="flex items-baseline justify-between border-b border-walnut/15 pb-4 mb-8">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55">
+                AI Operating Index
+              </p>
+              <h1 className="font-display text-3xl text-walnut leading-tight mt-1">
+                AI Operating Archetype
+              </h1>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55">
+                {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            </div>
+          </header>
+
+          {/* Archetype header */}
+          <div className="mb-8">
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-walnut/55 mb-2">
+              Your archetype
+            </p>
+            <h2 className="font-display text-4xl text-walnut leading-tight">{archetype.name}</h2>
+            <p className="font-display italic text-xl text-walnut/70 mt-1">{archetype.tagline}</p>
+          </div>
+
+          {/* Body */}
+          <div className="space-y-6">
+            <section>
+              <h3 className="font-display text-lg text-walnut mb-2">What this means</h3>
+              <p className="font-display text-sm text-walnut/80 leading-relaxed">{archetype.definition}</p>
+            </section>
+
+            <section>
+              <h3 className="font-display text-lg text-walnut mb-2">Why it matters</h3>
+              <p className="font-display text-sm text-walnut/80 leading-relaxed">{archetype.whyItMatters}</p>
+            </section>
+
+            <section>
+              <h3 className="font-display text-lg text-walnut mb-2">Your leverage point</h3>
+              <p className="font-display text-sm text-walnut/80 leading-relaxed">{archetype.leveragePoint}</p>
+            </section>
+
+            <section>
+              <h3 className="font-display text-lg text-walnut mb-2">What good looks like</h3>
+              <p className="font-display text-sm text-walnut/80 leading-relaxed">{archetype.whatGoodLooksLike}</p>
+            </section>
+          </div>
+
+          {/* Footer */}
+          <footer className="mt-auto pt-8 border-t border-walnut/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-display text-sm text-walnut">deepgrain.ai</p>
+                <p className="font-mono text-[10px] text-walnut/50 mt-1">
+                  AI-first People Operations consultancy
+                </p>
+              </div>
+              <p className="font-mono text-[10px] text-walnut/50">
+                Generated by the AI Operating Index
+              </p>
+            </div>
+          </footer>
+        </article>
+      </section>
     </AssessChrome>
   );
 }
