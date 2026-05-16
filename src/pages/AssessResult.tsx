@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { ArrowRight, RotateCcw, Calendar, ArrowUpRight, Printer, Mail, Loader2 } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
+import { ArchetypeGlyph } from "@/components/aioi/ArchetypeGlyph";
 import { ARCHETYPES, getArchetype, type ArchetypeIndex } from "@/lib/archetypes";
 import { trackEvent } from "@/lib/analytics";
 import { useAuthReady } from "@/hooks/use-auth-ready";
@@ -22,11 +23,12 @@ export default function AssessResult() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [glyphReady, setGlyphReady] = useState(false);
 
   useEffect(() => {
     if (archetype) {
       trackEvent("archetype_result_viewed", { archetype: archetype.index });
-      // Auto-save for logged-in users
+      const t = setTimeout(() => setGlyphReady(true), 120);
       if (user) {
         const answers = JSON.parse(localStorage.getItem("dg:archetype:last-answers") || "{}");
         const level = (localStorage.getItem("dg:archetype:last-level") || "company") as any;
@@ -37,6 +39,7 @@ export default function AssessResult() {
           level,
         }).then(() => setSaved(true)).catch(() => {});
       }
+      return () => clearTimeout(t);
     }
   }, [archetype, user]);
 
@@ -92,8 +95,23 @@ export default function AssessResult() {
       {/* Screen result */}
       <main className="container py-12 sm:py-20 w-full print:hidden">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <p className="eyebrow mb-0">Your AI Operating Archetype</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div>
+              <p className="eyebrow mb-2">Your AI Operating Archetype</p>
+              <div className="flex items-center gap-5">
+                <ArchetypeGlyph
+                  index={archetype.index}
+                  size={64}
+                  strokeWidth={1}
+                  animate={glyphReady}
+                  colour={`hsl(var(--cream) / 0.6)`}
+                />
+                <div>
+                  <h1 className={`font-display text-5xl sm:text-6xl ${archetype.colour}`}>{archetype.name}</h1>
+                  <p className="mt-1 font-display italic text-2xl text-cream/70">{archetype.tagline}</p>
+                </div>
+              </div>
+            </div>
             <button
               onClick={() => {
                 trackEvent("archetype_print_clicked");
@@ -104,9 +122,6 @@ export default function AssessResult() {
               <Printer className="h-3.5 w-3.5" /> Print / Save PDF
             </button>
           </div>
-
-          <h1 className={`font-display text-5xl sm:text-6xl ${archetype.colour}`}>{archetype.name}</h1>
-          <p className="mt-2 font-display italic text-2xl text-cream/70">{archetype.tagline}</p>
 
           <div className="mt-10 space-y-10">
             <section>

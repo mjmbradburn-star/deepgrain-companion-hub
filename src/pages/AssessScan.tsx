@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
 import { AssessChrome } from "@/components/aioi/AssessChrome";
 import { Seo } from "@/components/aioi/Seo";
 import { OptionCard } from "@/components/aioi/OptionCard";
+import { StepDots } from "@/components/aioi/StepDots";
 import { Button } from "@/components/ui/button";
 import {
   getQuickscanQuestions,
@@ -201,8 +202,9 @@ export default function AssessScan() {
           )}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-7">
+            <StepDots step={step} total={questions.length} />
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-cream/40">
-              Question {step} of {questions.length}
+              {step} / {questions.length}
             </span>
           </div>
 

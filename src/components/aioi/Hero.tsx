@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { HeroParticles } from "./HeroParticles";
 
 export function Hero() {
   return (
     <section className="relative min-h-[88svh] sm:min-h-[100svh] flex flex-col overflow-hidden grain bg-walnut">
+      <HeroParticles />
       {/* Soft tonal washes — static, no parallax */}
       <div
         aria-hidden="true"
