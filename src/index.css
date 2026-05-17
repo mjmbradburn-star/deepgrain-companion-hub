@@ -245,7 +245,13 @@
     transform: translateY(14px);
     transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
                 transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform, opacity;
+    /* Note: `will-change` intentionally omitted here. Applying it to every
+       Reveal/ScrollReveal on the page promoted dozens of GPU layers and
+       made scrolling janky on long pages. */
+  }
+  .reveal.is-visible {
+    /* Drop any residual compositor hint once the animation has played. */
+    will-change: auto;
   }
   .reveal.is-visible {
     opacity: 1;
