@@ -39,7 +39,7 @@ export default function Assess() {
 
   return (
     <AssessChrome back={{ to: "/", label: "Home" }} ariaLabel="Choose assessment level">
-      <Seo {...seoRoutes.landing} path="/assess" />
+      <Seo {...seoRoutes.assess} path="/assess" />
       <main className="container flex-1 flex items-center justify-center py-16 sm:py-24">
         <div className="w-full max-w-2xl mx-auto">
           <p className="eyebrow mb-4">Assessment</p>

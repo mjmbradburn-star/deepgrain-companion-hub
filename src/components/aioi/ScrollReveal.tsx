@@ -34,13 +34,14 @@ export function ScrollReveal({
     return () => io.disconnect();
   }, []);
 
+  const Component = Tag as any;
   return (
-    <Tag
+    <Component
       ref={ref as any}
       className={`reveal ${visible ? "is-visible" : ""} ${className}`}
       style={{ "--i": delay } as React.CSSProperties}
     >
       {children}
-    </Tag>
+    </Component>
   );
 }
