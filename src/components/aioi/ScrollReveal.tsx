@@ -34,7 +34,6 @@ export function ScrollReveal({
     return () => io.disconnect();
   }, []);
 
-  return (
   const Component = Tag as any;
   return (
     <Component
