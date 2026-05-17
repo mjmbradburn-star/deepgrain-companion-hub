@@ -1,31 +1,31 @@
 /**
- * ScrollReveal — wraps children and adds the `is-visible` class
- * when the element enters the viewport.
+ * ScrollReveal — wraps children in a div that adds the `is-visible` class
+ * when it enters the viewport. Stagger via the `index` prop (integer),
+ * multiplied by 70ms in CSS via the `--i` custom property.
  */
 import {
-  createElement,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
-  type ElementType,
   type ReactNode,
 } from "react";
 
 interface ScrollRevealProps {
   children: ReactNode;
   className?: string;
-  delay?: number;
-  as?: ElementType;
+  /** Stagger index — multiplied by 70ms in CSS. */
+  index?: number;
 }
+
+type RevealStyle = CSSProperties & { "--i"?: number };
 
 export function ScrollReveal({
   children,
   className = "",
-  delay = 0,
-  as = "div",
+  index = 0,
 }: ScrollRevealProps) {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -44,13 +44,15 @@ export function ScrollReveal({
     return () => io.disconnect();
   }, []);
 
-  return createElement(
-    as,
-    {
-      ref,
-      className: `reveal ${visible ? "is-visible" : ""} ${className}`,
-      style: { "--i": delay } as CSSProperties,
-    },
-    children,
+  const style: RevealStyle = { "--i": index };
+
+  return (
+    <div
+      ref={ref}
+      className={`reveal ${visible ? "is-visible" : ""} ${className}`.trim()}
+      style={style}
+    >
+      {children}
+    </div>
   );
 }
