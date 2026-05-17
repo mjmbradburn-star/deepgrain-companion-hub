@@ -9,7 +9,7 @@ import { getArchetype } from "@/lib/archetypes";
 import { trackEvent } from "@/lib/analytics";
 
 export default function MyReports() {
-  const { user, ready } = useAuthReady();
+  const { user, isReady: ready } = useAuthReady();
   const navigate = useNavigate();
   const [results, setResults] = useState<ArchetypeResult[]>([]);
   const [loading, setLoading] = useState(true);
