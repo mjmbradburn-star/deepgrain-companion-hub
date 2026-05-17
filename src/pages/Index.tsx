@@ -12,7 +12,7 @@ import { ArrowRight, Layers, Target, Compass, Grid3X3 } from "lucide-react";
 
 function ArchetypeCard({ archetype, index }: { archetype: (typeof ARCHETYPES)[number]; index: number }) {
   return (
-    <ScrollReveal delay={index * 0.08}>
+    <ScrollReveal index={index}>
       <div className="group rounded-sm border border-cream/10 bg-surface-1/40 p-6 hover:border-cream/20 transition-all duration-300 motion-lift">
         <div className="flex items-start justify-between mb-5">
           <ArchetypeGlyph index={archetype.index} size={48} strokeWidth={1.5} colour={`hsl(var(--cream) / 0.5)`} />
@@ -89,7 +89,7 @@ export default function Index() {
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((s, i) => (
-              <ScrollReveal key={s.num} delay={i * 0.1}>
+              <ScrollReveal key={s.num} index={i}>
                 <div className="group relative border-l-2 border-brass/30 pl-6 hover:border-brass/60 transition-colors duration-300">
                   <div className="flex items-center gap-3 mb-3">
                     <s.icon className="h-4 w-4 text-brass/70 group-hover:text-brass transition-colors" />
@@ -101,7 +101,7 @@ export default function Index() {
               </ScrollReveal>
             ))}
           </div>
-          <ScrollReveal delay={0.3}>
+          <ScrollReveal index={3}>
             <div className="mt-14">
               <a
                 href="/assess"
@@ -166,7 +166,7 @@ export default function Index() {
                 a: "Deepgrain is the studio behind the AI Operating Index. We build diagnostic and operating tools for AI enablement and transformation.",
               },
             ].map(({ q, a }, i) => (
-              <ScrollReveal key={q} delay={i * 0.06}>
+              <ScrollReveal key={q} index={i}>
                 <div>
                   <h3 className="font-display text-lg text-cream">{q}</h3>
                   <p className="mt-2 font-display text-sm text-cream/60 leading-relaxed">{a}</p>
