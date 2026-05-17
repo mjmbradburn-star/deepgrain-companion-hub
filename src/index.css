@@ -96,7 +96,8 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* Native scrolling — `scroll-behavior: smooth` made wheel/trackpad
+       feel laggy on long pages with heavy blurred decorations. */
     /* Prevent any rogue oversized element from triggering horizontal scroll on phones. */
     overflow-x: hidden;
   }
